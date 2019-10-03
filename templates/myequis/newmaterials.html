@@ -1,0 +1,9 @@
+{% if new_material_list %}
+    <ul>
+    {% for material in new_material_list %}
+        <li><a href="{% url 'myequis:material' material.id %}">{{ material.name }}, {{ material.manufactor }}</a> {{ material.size }}, {{ material.price }}, {{ material.part }} </li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>Keine unverwendetes Material vorhanden.</p>
+{% endif %}

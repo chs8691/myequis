@@ -1,0 +1,32 @@
+{% load static %}
+
+<link rel="stylesheet" type="text/css" href="{% static 'myequis/style.css' %}">
+
+<h2>{{ bicycle.name }}: Records </h2>
+<div >
+<a class="nav-button"  href="/myequis/bicycles/{{ bicycle.id }}">Back</a>
+</div>
+<div >
+<a class="nav-button"  href="/myequis/bicycles/{{ bicycle.id }}/create_record">Add</a>
+</div>
+<div >
+{% if records %}
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Value</th>
+            </tr>
+        </thead>
+        {% for record in records %}
+            <tr>
+                <td><a href="/myequis/records/{{ record.id }}">{{ record.date }}</a></td>
+                <td>{{ record.km }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+{% else %}
+    <p>No records yet</p>
+{% endif %}
+</div>
+
