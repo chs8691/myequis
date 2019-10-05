@@ -1,15 +1,23 @@
 {% load static %}
+{% load humanize %}
 
 <link rel="stylesheet" type="text/css" href="{% static 'myequis/style.css' %}">
 
 <h2>{{ bicycle.name }}</h2>
 
+<div class="clearfix">
+    <div class="button-line-flex-container">
+        <a class="nav-button" href="/myequis">Home</a>
+    </div>
+</div>
 
-<a class="nav-button" href="/myequis">Home</a>
+<h3>Last Records</h3>
 
-<h3>Records</h3>
-
-<a class="nav-button" href="records">Edit</a>
+<div class="clearfix">
+    <div class="button-line-flex-container">
+        <a class="nav-button" href="records">Edit</a>
+    </div>
+</div>
 
 <div>
 {% if records %}

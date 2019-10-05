@@ -9,9 +9,15 @@ logger = logging.getLogger(__name__)
 
 # Edit Record
 class RecordForm(forms.Form):
+    
+    # Switch for POST-only checks
     custom_validations = False
-    date = forms.DateField(label='Date')   
-    km = forms.IntegerField(label='KM', min_value=0)
+    
+    date = forms.DateField(label='Date') 
+    
+    km = forms.IntegerField(widget=forms.NumberInput(
+                attrs={'size':'10'}), label="KM",  min_value=0, max_value=9999999)
+    
     id = forms.IntegerField(label='id', widget=forms.HiddenInput())
     
     # must be called to enable custom validations with POST
@@ -28,6 +34,8 @@ class RecordForm(forms.Form):
 #   Check if the give record values against the existing ones        
     def check_edit_record(self):
         #logger.warning("LOGGER: " + str(self.cleaned_data))
+        #raise forms.ValidationError("TEST")
+        #logger.warning("LOGGER: " + str("After Raise"))
         
         #get the actual form data we have to check
         id = self.cleaned_data['id']
@@ -57,14 +65,14 @@ class RecordForm(forms.Form):
             if delta.days > 0 and km < r.km:
                 raise forms.ValidationError(
                     _("%(km)d < %(r_km)d km of record for date %(r_date)s"), 
-                    code="record_date_dublicate",
+                    code="record_km_to_low",
                     params={'km': km, 'r_km': r.km, 'r_date': r.date}, 
                     )
             
             if delta.days < 0 and km > r.km:
                 raise forms.ValidationError(
                     _("%(km)d > %(r_km)d km of record for date %(r_date)s"), 
-                    code="record_date_dublicate",
+                    code="record_km_to_high",
                     params={'km': km, 'r_km': r.km, 'r_date': r.date}, 
                     )
             

@@ -1,13 +1,13 @@
 {% load static %}
+{% load humanize %}
 
 <link rel="stylesheet" type="text/css" href="{% static 'myequis/style.css' %}">
 
 <h2>{{ bicycle.name }}: Records </h2>
-<div >
-<a class="nav-button"  href="/myequis/bicycles/{{ bicycle.id }}">Back</a>
-</div>
-<div >
-<a class="nav-button"  href="/myequis/bicycles/{{ bicycle.id }}/create_record">Add</a>
+<div class="button-line-flex-container">
+    <a class="nav-button" href="/myequis">Home</a>
+    <a class="nav-button"  href="/myequis/bicycles/{{ bicycle.id }}">Back</a>
+    <a class="nav-button"  href="/myequis/bicycles/{{ bicycle.id }}/create_record">Add</a>
 </div>
 <div >
 {% if records %}
@@ -21,7 +21,7 @@
         {% for record in records %}
             <tr>
                 <td><a href="/myequis/records/{{ record.id }}">{{ record.date }}</a></td>
-                <td>{{ record.km }}</td>
+                <td>{{ record.km  }}</td>
             </tr>
         {% endfor %}
     </table>

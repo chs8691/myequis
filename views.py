@@ -30,15 +30,14 @@ class UpdateRecordView(UpdateView):
     def post(self, request, *args, **kwargs):
         record = get_object_or_404(Record, pk=kwargs['record_id'])
         
-        logger.warning("LOGGER: " + str(record))
+        logger.warning("POST: " + str(record))
         form = RecordForm(request.POST)
-        
         
         form.enable_validations()
         
-        logger.warning(str(record))
-        
+        logger.warning("Before is_valid ")
         if form.is_valid():
+            logger.warning("is Valid ")
             form.check_edit_record()
             # process the data in form.cleaned_data as required
             record.date = form.cleaned_data['date']
@@ -49,6 +48,7 @@ class UpdateRecordView(UpdateView):
             return HttpResponseRedirect(reverse('myequis:records', args=(record.bicycle.id,)))              
         
         else:
+            logger.warning("is not valid" )
             template = loader.get_template('myequis/record.html')
             return HttpResponse(template.render({ 'record': record, 'form': form }, request))    
     
@@ -67,9 +67,11 @@ def create_record(request, bicycle_id):
      # if this is a POST request we need to process the form data
     if request.method == 'POST':
         # create a form instance and populate it with data from the request:
+        logger.warning("LOGGER: " + str("POST"))
         form = RecordForm(request.POST)
         # check whether it's valid:
         if form.is_valid():
+            logger.warning("LOGGER: " + str("valid"))
             # process the data in form.cleaned_data as required
             record.date = form.cleaned_data['date']
             record.km = form.cleaned_data['km']
@@ -104,7 +106,7 @@ def records(request, bicycle_id):
 def bicycle(request, bicycle_id):
     
     bicycle = Bicycle.objects.get(pk=bicycle_id)
-    records = Record.objects.filter(bicycle__id=bicycle_id).order_by('-date')
+    records = Record.objects.filter(bicycle__id=bicycle_id).order_by('-date')[:2]
     
     template = loader.get_template('myequis/bicycle.html')
 

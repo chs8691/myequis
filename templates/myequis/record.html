@@ -2,12 +2,43 @@
 
 <link rel="stylesheet" type="text/css" href="{% static 'myequis/style.css' %}">
 
-<h3>Record of Bicycle {{ record.bicycle.id }}</h3>
 
-{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+<h3>Edit Record of Bicycle {{ record.bicycle.name }}</h3>
+
+<div class="clearfix">
+    <div class="button-line-flex-container">
+        <a class="nav-button"  href="/myequis/bicycles/{{ record.bicycle.id }}/records">Cancel</a>
+    </div>
+</div>
+
+<h4></h4>
+
+{% if form.errors %}
+    {% for field in form %}
+        {% for error in field.errors %}
+            <div class="alert">
+                <strong>{{ error|escape }}</strong>
+            </div>
+        {% endfor %}
+    {% endfor %}
+    {% for error in form.non_field_errors %}
+        <div class="alert">
+            <strong>{{ error|escape }}</strong>
+        </div>
+    {% endfor %}
+{% endif %}
+
 
 <form action="{% url 'myequis:record' record.id %}" method="post">
     {% csrf_token %}
-    {{ form }}
-    <input type="submit" value="Save">
+    <div class="grid-container">
+        <div class="grid-item-label">{{ form.date.label }}</div>
+        <div class="grid-item-value">{{ form.date }}</div>
+        <div class="grid-item-label">{{ form.km.label }}</div>
+        <div class="grid-item-value">{{ form.km }}</div>
+        {{ form.id }}
+    </div>
+    <div class="form-button-bar">
+        <input class="form-button" type="submit" value="Save">
+    </div>
 </form>
