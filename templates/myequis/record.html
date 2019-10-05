@@ -1,9 +1,29 @@
 {% load static %}
 
+    
+{% load bootstrap4 %}
+
+    <!-- Bootstrap 4 -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
+
+    <!-- Font Awesome -->
+    <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+
+    <!-- Moment.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.23.0/moment.min.js" integrity="sha256-VBLiveTKyUZMEzJd6z2mhfxIqz3ZATCuVMawPZGzIfA=" crossorigin="anonymous"></script>
+
+    <!-- Tempus Dominus Bootstrap 4 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.1.2/css/tempusdominus-bootstrap-4.min.css" integrity="sha256-XPTBwC3SBoWHSmKasAk01c08M6sIA5gF5+sRxqak2Qs=" crossorigin="anonymous" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.1.2/js/tempusdominus-bootstrap-4.min.js" integrity="sha256-z0oKYg6xiLq3yJGsp/LsY9XykbweQlHl42jHv2XTBz4=" crossorigin="anonymous"></script>
+
+
 <link rel="stylesheet" type="text/css" href="{% static 'myequis/style.css' %}">
-
-
-<h3>Edit Record of Bicycle {{ record.bicycle.name }}</h3>
+    
+    
+<h3 class="myequi-h3">Edit Record of Bicycle {{ record.bicycle.name }}</h3>
 
 <div class="clearfix">
     <div class="button-line-flex-container">
@@ -29,16 +49,31 @@
 {% endif %}
 
 
-<form action="{% url 'myequis:record' record.id %}" method="post">
+<form class="record-form" action="{% url 'myequis:record' record.id %}" method="post">
     {% csrf_token %}
-    <div class="grid-container">
-        <div class="grid-item-label">{{ form.date.label }}</div>
-        <div class="grid-item-value">{{ form.date }}</div>
-        <div class="grid-item-label">{{ form.km.label }}</div>
-        <div class="grid-item-value">{{ form.km }}</div>
+
+        <div>{{ form.date.label }}</div>
+        <div class="input-group date" id="datetimepicker1" data-target-input="nearest">
+            {{ form.date }}
+            <div class="input-group-append" data-target="#datetimepicker1" data-toggle="datetimepicker">
+                <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+            </div>
+        </div>    
+    
+        <div >{{ form.km.label }}</div>
+        <div >{{ form.km }}</div>
+        
         {{ form.id }}
-    </div>
+        
     <div class="form-button-bar">
         <input class="form-button" type="submit" value="Save">
     </div>
 </form>
+
+<script>
+  $(function () {
+    $("#datetimepicker1").datetimepicker({
+      format: 'DD/MM/YYYY',
+    });
+  });
+</script>

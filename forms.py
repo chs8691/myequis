@@ -13,7 +13,14 @@ class RecordForm(forms.Form):
     # Switch for POST-only checks
     custom_validations = False
     
-    date = forms.DateField(label='Date') 
+    date = forms.DateField(
+        input_formats=['%d/%m/%Y'],
+        widget=forms.DateTimeInput(attrs={
+            'class': 'form-control datetimepicker-input',
+            'data-target': '#datetimepicker1'
+        }),
+        label="Date"
+    )
     
     km = forms.IntegerField(widget=forms.NumberInput(
                 attrs={'size':'10'}), label="KM",  min_value=0, max_value=9999999)
