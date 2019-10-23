@@ -6,7 +6,7 @@ class Bicycle(models.Model):
     name = models.CharField(max_length=100)
 
     def __str__(self):
-        return self.name
+        return str(self.name)
 
 
 
@@ -16,7 +16,7 @@ class Component(models.Model):
     name = models.CharField(max_length=100)
     
     def __str__(self):
-        return self.name
+        return str(self.name)
     
 # Parts of a component. For instance front wheel: tube, tire, left spokes. 
 # This is a simplified model of the real world. There is no position within a part, e.g. spokes(1)
@@ -30,7 +30,7 @@ class Part(models.Model):
         return "{}/{}".format(self.component.name, self.name)    
     
     def __str__(self):
-        return "{}/{}".format(self.component.name, self.name)    
+        return "{}/{}".format(str(self.component.name), str(self.name))    
 
 # Point in time of a bycicle to record its data
 class Record(models.Model):
@@ -41,7 +41,7 @@ class Record(models.Model):
     bicycle = models.ForeignKey(Bicycle, on_delete=models.CASCADE)
 
     def __str__(self):
-        return "{} {}".format(self.date, self.bicycle.name)
+        return "{} {}".format(str(self.date), str(self.bicycle.name))
 
 
 # A material is a physically part of a bicycle. It can be installed at removed, but it must not be used, e.g. when a new tube is bought, it has yet no relation to an bicyle. 
@@ -70,7 +70,7 @@ class Material(models.Model):
         return self.mount_record.bicycle.name
     
     def __str__(self):
-        return self.name
+        return str(self.name)
 
 
 

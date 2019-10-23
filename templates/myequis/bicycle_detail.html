@@ -7,7 +7,7 @@
 
 <div class="clearfix">
     <div class="button-line-flex-container">
-        <a class="nav-button" href="/myequis">Home</a>
+        <a class="nav-button" href="{% url 'myequis:index-url' %}">Home</a>
     </div>
 </div>
 
@@ -15,7 +15,7 @@
 
 <div class="clearfix">
     <div class="button-line-flex-container">
-        <a class="nav-button" href="records">Edit</a>
+        <a class="nav-button" href="{% url 'myequis:list-records-url' bicycle.id %}">Edit</a>
     </div>
 </div>
 
