@@ -33,16 +33,15 @@ class CreateRecordForm(forms.Form):
         self.check_create_record()
         
         
-
 #   Check if the give record values against the existing ones        
     def check_create_record(self):
-        logger.warning("check_create_record() clean_data={}".format(self.cleaned_data))
+        #logger.warning("check_create_record() clean_data={}".format(self.cleaned_data))
         
         #get the actual form data we have to check
         date = self.cleaned_data['date']
         km = self.cleaned_data['km']
         
-        logger.warning("Check new record: date={} km={}".format(str(date), str(km)))
+        #logger.warning("Check new record: date={} km={}".format(str(date), str(km)))
         # bicycle's existing records
         records = Record.objects.filter(bicycle_id=self.cleaned_data['bicycle_id'])
         
@@ -75,10 +74,7 @@ class CreateRecordForm(forms.Form):
             
 # Edit Record
 class EditRecordForm(forms.Form):
-    
-    # Switch for POST-only checks
-    custom_validations = False
-    
+
     date = forms.DateField(
         input_formats=['%Y/%m/%d'],
         
@@ -93,32 +89,23 @@ class EditRecordForm(forms.Form):
     
     #id = forms.IntegerField(label='id', widget=forms.HiddenInput())
     #bicycle_id = forms.IntegerField(label='bicycle_id', widget=forms.HiddenInput())
-    id = forms.IntegerField(label='id')
-    bicycle_id = forms.IntegerField(label='bicycle_id')
+    id = forms.IntegerField(label='id', widget=forms.HiddenInput())
     
-    # must be called to enable custom validations with POST
-    def enable_validations(self):
-        self.custom_validations = True
     
     def clean(self):
-        clean_data = super().clean()
-
-        if self.custom_validations:
-            self.check_edit_record()
+        logger.warning("clean() self={}".format(str(self)))
+        super(EditRecordForm, self).clean()
+        self.check_edit_record()
         
 
 #   Check if the give record values against the existing ones        
     def check_edit_record(self):
         logger.warning("check_edit_record")
-        #logger.warning("LOGGER: " + str(self.cleaned_data))
-        #raise forms.ValidationError("TEST")
-        #logger.warning("LOGGER: " + str("After Raise"))
         
         #get the actual form data we have to check
         id = self.cleaned_data['id']
         date = self.cleaned_data['date']
         km = self.cleaned_data['km']
-        bicycle_id = self.cleaned_data['bicycle_id']
 
         # Persisted Record under edit
         record = Record.objects.get(pk=id)

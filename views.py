@@ -50,9 +50,7 @@ class CreateRecordView(CreateView):
         record.date = form.cleaned_data['date']
         record.km = form.cleaned_data['km']
         record.bicycle = get_object_or_404(Bicycle, pk=form.cleaned_data['bicycle_id'])
-        #logger.warning("new record= {}".format(str(record)))
 
-        #logger.warning("Before is_valid ")
         if form.is_valid():
             #logger.warning("is Valid. form.cleaned_data={}".format(str(form.cleaned_data)))
             form.check_create_record()
@@ -99,29 +97,24 @@ class CreateRecordView(CreateView):
 class EditRecordView(UpdateView):
     
     def get(self, request, *args, **kwargs):
-        logger.warning("path_info: " + str(request.path_info))
-        logger.warning("kwargs: " + str(kwargs))
+        logger.warning("EditRecordView GET request: {}".format(str(request)))
         
-        logger.warning("Entering: {}".format(str("create_record:else")))
         record = get_object_or_404(Record, pk=kwargs['record_id'])
-        logger.warning("EXISTS: " + str(record))
     
-        data = {'date': record.date, 
-                'km': record.km,
-                'id': record.id}
-        form = EditRecordForm(data)
+        form = EditRecordForm({
+            'date': record.date, 
+            'km': record.km,
+            'id': record.id})
 
         template = loader.get_template('myequis/edit_record.html')
         return HttpResponse(template.render({ 'record': record, 'form': form }, request))
 
 
     def post(self, request, *args, **kwargs):
+        logger.warning("EditRecordView POST request.POST: {}".format(str(request.POST)))
         record = get_object_or_404(Record, pk=kwargs['record_id'])
         
-        logger.warning("POST: " + str(record))
         form = EditRecordForm(request.POST)
-        
-        form.enable_validations()
         
         logger.warning("Before is_valid ")
         if form.is_valid():
@@ -131,9 +124,10 @@ class EditRecordView(UpdateView):
             record.date = form.cleaned_data['date']
             record.km = form.cleaned_data['km']
             record.save()
+            logger.warning("Record saved={}".format(str(record)))
             
             # redirect to a new URL:
-            return HttpResponseRedirect(reverse('myequis:records', args=(record.bicycle.id,)))              
+            return HttpResponseRedirect(reverse('myequis:list-records-url', args=(record.bicycle.id,)))              
         
         else:
             logger.warning("is not valid" )
