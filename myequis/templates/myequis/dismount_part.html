@@ -1,0 +1,98 @@
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'myequis/style.css' %}">
+
+<script language="JavaScript">
+    function tdClick(record_id, duration, distance){
+
+        document.getElementById("id_selected_record").value = record_id;
+
+        var elements = document.getElementsByClassName("td-radiobutton-cell-checked")
+        if(elements.length > 0) {
+            elements[0].className = "td-radiobutton-cell";
+        }
+
+        element = document.getElementById("record-id-" + record_id)
+        element.className = "td-radiobutton-cell-checked";
+
+        document.getElementById("summary").innerHTML = "Used for " + duration + " days and " + distance + " km"
+
+    }
+</script>
+
+<h3 class="myequi-h3">{{ bicycle.name }} | Dismount Part {{ part.name }} </h3>
+
+<div class="clearfix">
+    <div class="button-line-flex-container">
+        <a class="nav-button"  href="{% url 'myequis:edit-part-url' bicycle.id part.id %}">Edit</a>
+        <a class="nav-button"  href="{% url 'myequis:exchange-part-url' bicycle.id part.id %}">Exchange</a>
+        <a class="nav-button-disabled">Dismount</a>
+    </div>
+</div>
+
+<h4></h4>
+
+{% if form.errors %}
+    {% for field in form %}
+        {% for error in field.errors %}
+            <div class="alert">
+                <strong>{{ error|escape }}</strong>
+            </div>
+        {% endfor %}
+    {% endfor %}
+    {% for error in form.non_field_errors %}
+        <div class="alert">
+            <strong>{{ error|escape }}</strong>
+        </div>
+    {% endfor %}
+{% endif %}
+
+    <table>
+        <thead>
+        <tr>
+            <th>Material</th>
+            <th>Manufacturer</th>
+            <th>Size</th>
+            <th>Price</th>
+        </tr>
+        </thead>
+        <tr>
+            <td >{{ material.name }}</td>
+            <td>{{ material.manufactor }}</td>
+            <td>{{ material.size }}</td>
+            <td>{{ material.price }}</td>
+        </tr>
+    </table>
+Mounted at {{ material.mount_record.date }}, {{ material.mount_record.km }} km
+<div id="summary">Choose the dismounting record below</div>
+
+<form class="part-form" action="" method="post">
+    {% csrf_token %}
+
+    <h5>{{ form.selected_record.label }}</h5>
+    <table>
+        <thead>
+        <tr>
+            <th>Date</th>
+            <th>km</th>
+        </tr>
+        </thead>
+        {% for record in records %}
+        <tr>
+            <td  id="record-id-{{ record.id }}" class="td-radiobutton-cell"
+                 onclick="tdClick('{{ record.id }}', '{{ record.duration }}', '{{ record.distance }}');">
+                {{ record.date }}
+            </td>
+            <td>{{ record.km }}</td>
+        </tr>
+        {% endfor %}
+        {{ form.selected_record }}
+        {{ form.bicycle_id }}
+        {{ form.material_id }}
+    </table>
+
+    <div class="form-button-bar">
+        <input class="form-button" type="submit" name="save" value="Save">
+        <input class="form-button" type="submit" name="cancel" value="Cancel">
+    </div>
+</form>
+

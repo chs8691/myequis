@@ -1,0 +1,42 @@
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'myequis/style.css' %}">
+
+<h3 class="myequi-h3">{{ bicycle.name }} | Unmount Part {{ part.name }} </h3>
+
+<div class="clearfix">
+    <div class="button-line-flex-container">
+        <a class="nav-button"  href="{% url 'myequis:edit-part-url' bicycle.id part.id %}">Edit</a>
+        <a class="nav-button-disabled">Exchange</a>
+        <a class="nav-button"  href="{% url 'myequis:dismount-part-url' bicycle.id part.id %}">Dismount</a>
+    </div>
+</div>
+
+<h4></h4>
+
+{% if form.errors %}
+    {% for field in form %}
+        {% for error in field.errors %}
+            <div class="alert">
+                <strong>{{ error|escape }}</strong>
+            </div>
+        {% endfor %}
+    {% endfor %}
+    {% for error in form.non_field_errors %}
+        <div class="alert">
+            <strong>{{ error|escape }}</strong>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<form class="part-form" action="" method="post">
+    {% csrf_token %}
+
+    <div>{{ form.material_name.label }}</div>
+    <div >{{ form.material_name }}</div >
+
+    <div class="form-button-bar">
+        <input class="form-button" type="submit" name="save" value="Save">
+        <input class="form-button" type="submit" name="cancel" value="Cancel">
+    </div>
+</form>
+

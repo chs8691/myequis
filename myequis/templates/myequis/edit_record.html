@@ -1,0 +1,63 @@
+{% load static %}
+{% load bootstrap4 %}       {# import bootstrap4/bootstrap3 #}
+{% bootstrap_css %}         {# Embed Bootstrap CSS #}
+{% bootstrap_javascript jquery='full' %}  {# Embed Bootstrap JS+jQuery #}
+{{ form.media }}            {# Adds date-picker required JS and CSS #}
+
+<link rel="stylesheet" type="text/css" href="{% static 'myequis/style.css' %}">
+
+
+<h3 class="myequi-h3">{{ record.bicycle.name }} | Edit Record </h3>
+
+
+{% if form.errors %}
+{% for field in form %}
+{% for error in field.errors %}
+<div class="alert">
+    <strong>{{ error|escape }}</strong>
+</div>
+{% endfor %}
+{% endfor %}
+{% for error in form.non_field_errors %}
+<div class="alert">
+    <strong>{{ error|escape }}</strong>
+</div>
+{% endfor %}
+{% endif %}
+
+
+<form class="record-form" action="" method="post">
+    {% csrf_token %}
+
+    <div class="record-fields-area">
+        <div class="record-fields">
+
+            <div>{{ form.date.label }}</div>
+            <div class="record-field">{{ form.date }}</div>
+
+            <div>{{ form.km.label }}</div>
+            <div>{{ form.km }}</div>
+        </div>
+    </div>
+
+    {{ form.id }}
+
+    <div class="form-button-bar">
+        <input class="form-button" type="submit" name="save" value="Save">
+        {% if materials > 0 %}
+        <input class="form-button-disabled" type="submit" disabled name="delete" value="Delete"
+               onclick="return confirm('Delete dataset?')">
+        {% else %}
+        <input class="form-button" type="submit" name="delete" value="Delete"
+               onclick="return confirm('Delete dataset?')">
+        {% endif %}
+        <input class="form-button" type="submit" name="cancel" value="Cancel">
+
+    </div>
+</form>
+
+{% if materials > 0 %}
+<b>There are (dis)mounted materials associated with this record ({{ materials }}).</b>
+{% endif %}
+
+

@@ -1,0 +1,82 @@
+{% load static %}
+{% load humanize %}
+
+<link rel="stylesheet" type="text/css" href="{% static 'myequis/style.css' %}">
+
+<h2>{{ bicycle.name }}</h2>
+
+<div class="clearfix">
+    <div class="button-line-flex-container">
+        <a class="nav-button" href="{% url 'myequis:index-url' %}">Home</a>
+    </div>
+</div>
+
+<h3>Last Records</h3>
+
+<div class="clearfix">
+    <div class="button-line-flex-container">
+        <a class="nav-button" href="{% url 'myequis:list-records-url' bicycle.id %}">Edit</a>
+    </div>
+</div>
+
+<div>
+{% if records %}
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Value</th>
+            </tr>
+        </thead>
+        {% for record in records %}
+            <tr>
+                <td>{{ record.date }}</td>
+                <td>{{ record.km }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+{% else %}
+    <p>No records yet</p>
+{% endif %}
+</div>
+
+<h3>Components</h3>
+
+<div class="clearfix">
+    <div class="button-line-flex-container">
+        <a class="nav-button" href="{% url 'myequis:list-bicycle-parts-url' bicycle.id %}">Show all</a>
+    </div>
+</div>
+
+<div>
+{% if componentDataList %}
+    {% for componentData in componentDataList %}
+        {% if componentData.has_materials %}
+            <h4>{{ componentData.component_name }}</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Part</th>
+                        <th>Material</th>
+                        <th>Mounted at</th>
+                        <th>KM</th>
+                    </tr>
+                </thead>
+                {% for part in componentData.parts %}
+                    {% if part.material %}
+                        <tr>
+                            <td>{{ part.part.name }}</td>
+                            <td>{{ part.material.name }}</td>
+                            <td>{{ part.material.mount_record.date }}</td>
+                            <td>{{ part.distance }}</td>
+                        </tr>
+                    {% endif %}
+                {% endfor %}
+            </table>
+        {% endif %}
+    {% endfor%}
+{% else %}
+    <p>No components yet</p>
+{% endif %}
+</div>
+

@@ -1,0 +1,77 @@
+{% load static %}
+
+<link rel="stylesheet" type="text/css" href="{% static 'myequis/style.css' %}">
+
+
+<script language="JavaScript">
+    function tdClick(material_id){
+
+        document.getElementById("id_selected_material").value = material_id;
+
+        var elements = document.getElementsByClassName("td-radiobutton-cell-checked")
+        if(elements.length > 0) {
+            elements[0].className = "td-radiobutton-cell";
+        }
+
+        element = document.getElementById("material-id-" + material_id)
+        element.className = "td-radiobutton-cell-checked";
+    }
+</script>
+
+<h3 class="myequi-h3">{{ bicycle.name }} | Mount Part {{ part.name }} </h3>
+
+{% if form.errors %}
+    {% for field in form %}
+        {% for error in field.errors %}
+            <div class="alert">
+                <strong>{{ error|escape }}</strong>
+            </div>
+        {% endfor %}
+    {% endfor %}
+    {% for error in form.non_field_errors %}
+        <div class="alert">
+            <strong>{{ error|escape }}</strong>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<div>
+<form class="part-form" action="" method="post">
+    {% csrf_token %}
+
+    <div>{{ form.record_select.label }}</div>
+    <div>{{ form.record_select }}</div>
+
+    <h5></h5>
+    <div>{{ form.material_select.label }}</div>
+    <table>
+        <thead>
+        <tr>
+            <th>Material</th>
+            <th>Manufacturer</th>
+            <th>Size</th>
+            <th>Price</th>
+        </tr>
+        </thead>
+        {% for material in materials %}
+        <tr>
+            <td  id="material-id-{{ material.id }}" class="td-radiobutton-cell" onclick="tdClick('{{ material.id }}');">
+                {{ material.name }}
+            </td>
+            <td>{{ material.manufactor }}</td>
+            <td>{{ material.size }}</td>
+            <td>{{ material.price }}</td>
+        </tr>
+        {% endfor %}
+        {{ form.selected_material }}
+        {{ form.bicycle_id }}
+    </table>
+
+
+    <div class="form-button-bar">
+        <input class="form-button" type="submit" name="save" value="Save">
+        <input class="form-button" type="submit" name="cancel" value="Cancel">
+    </div>
+</form>
+</div>
+
