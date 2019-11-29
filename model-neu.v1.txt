@@ -1,9 +1,20 @@
 from django.db import models
 
 
-# A species defines a set of components
-class Species(models.Model):
+class BicycleType(models.Model):
     name = models.CharField(max_length=100)
+
+    component = models.ManyToManyField
+
+    def __str__(self):
+        return str(self.name)
+
+
+# A bicycle has Component which are maintained
+class Bicycle(models.Model):
+    name = models.CharField(max_length=100)
+
+    bicycle_type = models.ForeignKey(BicycleType, on_delete=models.CASCADE)
 
     def __str__(self):
         return str(self.name)
@@ -12,16 +23,6 @@ class Species(models.Model):
 # A bicycle is structured into components. For instance front wheel, gear etc.
 class Component(models.Model):
     name = models.CharField(max_length=100)
-    species = models.ForeignKey(Species, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return str(self.name)
-
-
-# A bicycle has a species with has components which are maintained
-class Bicycle(models.Model):
-    name = models.CharField(max_length=100)
-    species = models.ForeignKey(Species, on_delete=models.CASCADE)
 
     def __str__(self):
         return str(self.name)
@@ -34,11 +35,15 @@ class Part(models.Model):
 
     component = models.ForeignKey(Component, on_delete=models.CASCADE)
 
+    def display_long_name(self):
+        return "{}/{}".format(self.component.name, self.name)
+
     def __str__(self):
-        return "{}/{}/{}".format(self.component.species.name, self.component.name, self.name)
+        return "{}/{}".format(str(self.component.name), str(self.name))
+
+    # Point in time of a bycicle to record its data
 
 
-# Point in time of a bycicle to record its data
 class Record(models.Model):
     date = models.DateField()
     km = models.DecimalField(max_digits=10, decimal_places=0, )
@@ -65,11 +70,13 @@ class Material(models.Model):
 
 class Mounting(models.Model):
 
-    material = models.ForeignKey(Material, related_name="material", on_delete=models.CASCADE)
+    material = models.ForeignKey(Material, related_name="material", on_delete=models.CASCADE, blank=True,
+                                     null=True)
 
-    mount_record = models.ForeignKey(Record, related_name="mount_record", on_delete=models.CASCADE)
+    mount_record = models.ForeignKey(Record, related_name="mount_record", on_delete=models.CASCADE, blank=True,
+                                     null=True)
 
-    part = models.ForeignKey(Part, on_delete=models.CASCADE)
+    part = models.ForeignKey(Part, on_delete=models.CASCADE, blank=True, null=True)
 
     # Optional
     dismount_record = models.ForeignKey(Record, related_name="dismount_record", on_delete=models.CASCADE, blank=True,

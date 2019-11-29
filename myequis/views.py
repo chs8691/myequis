@@ -1,9 +1,9 @@
 import humanize
-from django.db.models import Q
+from django.db.models import Q, OuterRef, Exists
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.template import loader
-from myequis.models import Material
+from myequis.models import Material, Mounting
 from myequis.models import Bicycle
 from myequis.models import Record
 from myequis.models import Component
@@ -412,45 +412,56 @@ def bicycle_detail(request, bicycle_id):
     records = Record.objects.filter(bicycle__id=bicycle_id).order_by('-date')
 
     # Actual mounted
-    materials = Material.objects.filter(mount_record__bicycle_id=bicycle.id).filter(dismount_record=None)
+    materials = Material.objects.annotate(mounted=Exists(
+        Mounting.objects.filter(dismount_record=None, material=OuterRef('pk'))))\
+        .filter(mounted=True)\
+        .order_by('name')
 
-    componentDataList = []
+    component_data_list = []
 
-    for component in Component.objects.all():
-        componentData = dict()
+    for component in Component.objects.filter(species_id=bicycle.species.id):
+        component_data = dict()
 
-        componentData['component_name'] = component.name
+        component_data['component_name'] = component.name
 
         parts = Part.objects.filter(component__id=component.id)
 
         component_has_materials = False
-        partDataList = []
+        part_data_list = []
 
         for part in parts:
-            partMaterial = next((m for m in materials if m.part.id == part.id), None)
+            mountings = Mounting.objects.filter(mount_record__bicycle__id=bicycle_id,
+                                                part_id=part.id,
+                                                dismount_record=None,
+                                                )
+            if len(mountings) > 0:
+                part_material = mountings[0]
+            else:
+                part_material = None
 
             distance = ""
-            if not partMaterial is None:
+            if not part_material is None:
                 component_has_materials = True
                 # logger.warning("part={}".format(str(part)))
                 # logger.warning("partMaterial={}".format(str(partMaterial)))
 
                 if len(records) > 0:
-                    distance = (records[0].km - partMaterial.mount_record.km)
+                    distance = (records[0].km - part_material.mount_record.km)
 
-            partDataList.append(dict(part=part, material=partMaterial, distance=distance, ))
+            part_data_list.append(dict(part=part, material=part_material, distance=distance, ))
 
-        componentData['parts'] = partDataList
-        componentData['has_materials'] = component_has_materials
+        if component_has_materials:
+            component_data['parts'] = part_data_list
+            component_data['has_materials'] = component_has_materials
 
-        componentDataList.append(componentData)
+            component_data_list.append(component_data)
 
     template = loader.get_template('myequis/bicycle_detail.html')
 
     context = {
         'bicycle': bicycle,
         'records': records[:2],  # Last two
-        'componentDataList': componentDataList,
+        'componentDataList': component_data_list,
     }
 
     return HttpResponse(template.render(context, request))
@@ -518,8 +529,11 @@ def list_bicycle_parts(request, bicycle_id):
 def index(request):
     bicycles = Bicycle.objects.order_by('name')
 
-    materials = Material.objects.filter(mount_record=None).order_by('name')
-    # .order_by('name')
+    # Materials without actual mounted items
+    materials = Material.objects.annotate(mounted=Exists(
+        Mounting.objects.filter(dismount_record=None, material=OuterRef('pk'))))\
+        .filter(mounted=False)\
+        .order_by('name')
 
     template = loader.get_template('myequis/index.html')
     context = {
