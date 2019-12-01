@@ -1,5 +1,5 @@
 import humanize
-from django.db.models import Q, OuterRef, Exists
+from django.db.models import Q, OuterRef, Exists, Subquery
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.template import loader
@@ -319,8 +319,8 @@ class EditRecordView(UpdateView):
             'km': record.km,
             'id': record.id})
 
-        mounted = len(Material.objects.filter(mount_record_id=record.id))
-        dismounted = len(Material.objects.filter(dismount_record_id=record.id))
+        mounted = len(Mounting.objects.filter(mount_record_id=record.id))
+        dismounted = len(Mounting.objects.filter(dismount_record_id=record.id))
 
         template = loader.get_template('myequis/edit_record.html')
         return HttpResponse(
@@ -475,12 +475,18 @@ def list_bicycle_parts(request, bicycle_id):
     bicycle = Bicycle.objects.get(pk=bicycle_id)
     records = Record.objects.filter(bicycle__id=bicycle_id).order_by('-date')
 
-    # Actual mounted
-    materials = Material.objects.filter(mount_record__bicycle_id=bicycle.id).filter(dismount_record=None)
+    # All actual Mountings for this bicycle
+    mountings = Mounting.objects.annotate(
+        bicycle_found=Exists(
+            Record.objects.filter(bicycle_id=bicycle.id)
+        )
+    ).filter(bicycle_found=True, dismount_record=None)
+
+    logger.warning("mountings={}".format(str(mountings)))
 
     component_data_list = []
 
-    for component in Component.objects.all():
+    for component in Component.objects.filter(species_id=bicycle.species.id):
         component_data = dict()
 
         component_data['component_name'] = component.name
@@ -490,15 +496,26 @@ def list_bicycle_parts(request, bicycle_id):
         part_data_list = []
 
         for part in parts:
-            part_material = next((m for m in materials if m.part.id == part.id), None)
+            mounting = next((m for m in mountings if m.part.id == part.id), None)
+            if mounting is not None:
+                part_material = mounting.material
+            else:
+                part_material = None
 
             distance = ""
             if part_material is not None:
+                distance = 0
                 # logger.warning("part={}".format(str(part)))
                 # logger.warning("partMaterial={}".format(str(part_material)))
 
-                if len(records) > 0:
-                    distance = (records[0].km - part_material.mount_record.km)
+                # Material can be mounted multiple times and in different bicycles
+                for mounting in Mounting.objects.filter(material_id=part_material.id):
+                    if mounting.dismount_record is None:
+                        # actual mounted
+                        distance += records[0].km - mounting.mount_record.km
+                    else:
+                        # Materials history
+                        distance += mounting.dismount_record.km - mounting.mount_record.km
 
             # logger.warning("part={}".format(str(part)))
             part_data_list.append(dict(part=part, material=part_material, distance=distance, ))
