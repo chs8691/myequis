@@ -10,7 +10,7 @@ from myequis.models import Component
 from myequis.models import Part
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
-from .forms import CreateRecordForm, EditPartForm, MountPartForm, DismountPartForm
+from .forms import CreateRecordForm, DeleteMountingForm, MountForm, DismountForm, ExchangeMountingForm
 from .forms import EditRecordForm
 from django.views.generic.edit import UpdateView
 from django.views.generic.edit import CreateView
@@ -101,37 +101,82 @@ class CreateRecordView(CreateView):
         return record
 
 
-class EditPartView(UpdateView):
-    """
-    Input: Part.id, Bicycle.id
-    """
+class DeleteMountingView(UpdateView):
 
     def get(self, request, *args, **kwargs):
+
         bicycle = get_object_or_404(Bicycle, pk=kwargs['bicycle_id'])
         part = get_object_or_404(Part, pk=kwargs['part_id'])
-        form = EditPartForm({
 
+        my_mounting = get_object_or_404(Mounting, pk=Mounting.objects.filter(part_id=part.id,
+                                                                             mount_record__bicycle_id=bicycle.id,
+                                                                             dismount_record__isnull=True,
+                                                                             )[0].id)
+        logger.warning("mounting={}".format(str(my_mounting)))
+        form = DeleteMountingForm({
+            'mounting_id': my_mounting.id,
+            'bicycle_id': bicycle.id,
+            'inactive': False,
         })
 
-        template = loader.get_template('myequis/edit_part.html')
+        template = loader.get_template('myequis/delete_mounting.html')
         return HttpResponse(
-            template.render({'bicycle': bicycle, 'part': part}, request))
+            template.render(
+                {
+                    'bicycle': bicycle,
+                    'part': part,
+                    'mounting': my_mounting,
+                    'form': form,
+                }, request))
 
     def post(self, request, *args, **kwargs):
+        # logger.warning("post={}".format(request.POST))
         bicycle = get_object_or_404(Bicycle, pk=kwargs['bicycle_id'])
         part = get_object_or_404(Part, pk=kwargs['part_id'])
 
         if 'cancel' in request.POST:
             return HttpResponseRedirect(
-                "%s?message='Editing {} canceled'".format(part.name)
+                "%s?message='Delete mounting for Part {} canceled'".format(part.name)
                 % reverse('myequis:list-bicycle-parts-url',
                           args=(kwargs['bicycle_id'],)))
 
-        template = loader.get_template('myequis/edit_part.html')
-        return HttpResponse(template.render({}, request))
+        # logger.warning("Before mounting")
+        mounting = get_object_or_404(Mounting, pk=request.POST['mounting_id'])
+        # logger.warning("After mounting")
+
+        form = DeleteMountingForm(request.POST)
+
+        if 'delete' in request.POST:
+            logger.warning("Delete Mounting : {}".format(str(mounting)))
+            mounting.delete()
+            logger.warning("Done.")
+            # redirect to a new URL:
+            return HttpResponseRedirect(
+                "%s?message='Mounting deleted from part {}'".format(part.name)
+                % reverse('myequis:list-bicycle-parts-url',
+                          args=(kwargs['bicycle_id'],)))
+
+        else:
+            # logger.warning("delete not in POST")
+            template = loader.get_template('myequis/delete_mounting.html')
+            return HttpResponse(
+                template.render(
+                    {
+                        'bicycle': bicycle,
+                        'part': part,
+                        'mounting': mounting,
+                        'form': form,
+                    }, request))
+
+    @staticmethod
+    def select_materials():
+        return Material.objects.annotate(mounted=Exists(
+            Mounting.objects.filter(dismount_record=None, material=OuterRef('pk')))) \
+            .filter(mounted=False) \
+            .order_by('name')
 
 
-class MountPartView(CreateView):
+class MountMaterialView(CreateView):
     """
     Input: Part.id, Bicycle.id
     """
@@ -140,12 +185,12 @@ class MountPartView(CreateView):
         bicycle = get_object_or_404(Bicycle, pk=kwargs['bicycle_id'])
         part = get_object_or_404(Part, pk=kwargs['part_id'])
 
-        form = MountPartForm({
+        form = MountForm({
                 'bicycle_id': bicycle.id,
                 'selected_material': "",
         })
 
-        template = loader.get_template('myequis/mount_part.html')
+        template = loader.get_template('myequis/mount_material.html')
         return HttpResponse(
             template.render({
                 'bicycle': bicycle,
@@ -164,19 +209,20 @@ class MountPartView(CreateView):
                 % reverse('myequis:list-bicycle-parts-url',
                           args=(kwargs['bicycle_id'],)))
 
-        form = MountPartForm(request.POST)
+        form = MountForm(request.POST)
 
         if form.is_valid():
             # logger.warning("selected_material: {}".format(str(form.cleaned_data['selected_material'])))
             material_under_edit = get_object_or_404(Material, pk=form.cleaned_data['selected_material'])
             record = get_object_or_404(Record, pk=form.cleaned_data['record_select'])
-            logger.warning("record_sselect: {}".format(str(record)))
-            material_under_edit.mount_record = record
-            material_under_edit.dismount_record = None
-            material_under_edit.part = part
+            logger.warning("record_select: {}".format(str(record)))
 
-            material_under_edit.save()
-            logger.warning("Mounted: {}".format(str(material_under_edit)))
+            mounting = Mounting()
+            mounting.mount_record = record
+            mounting.material = material_under_edit
+            mounting.part = part
+            mounting.save()
+            logger.warning("New mounting created: {}".format(str(mounting)))
 
             return HttpResponseRedirect(
                 "%s?message='{} mounted'".format(part.name)
@@ -185,7 +231,7 @@ class MountPartView(CreateView):
 
         else:
             logger.warning("is not valid")
-            template = loader.get_template('myequis/mount_part.html')
+            template = loader.get_template('myequis/mount_material.html')
             return HttpResponse(
                 template.render({
                     'bicycle': bicycle,
@@ -196,13 +242,13 @@ class MountPartView(CreateView):
 
     @staticmethod
     def select_materials():
-        return Material.objects.filter(
-            (Q(mount_record=None) & Q(dismount_record=None) |
-             (Q(mount_record__isnull=False) & Q(dismount_record__isnull=False)))
-        )
+        return Material.objects.annotate(mounted=Exists(
+            Mounting.objects.filter(dismount_record=None, material=OuterRef('pk')))) \
+            .filter(mounted=False) \
+            .order_by('name')
 
 
-class DismountPartView(UpdateView):
+class DismountMaterialView(UpdateView):
     """
     Input: Part.id, Bicycle.id
     """
@@ -210,21 +256,23 @@ class DismountPartView(UpdateView):
     def get(self, request, *args, **kwargs):
         bicycle = get_object_or_404(Bicycle, pk=kwargs['bicycle_id'])
         part = get_object_or_404(Part, pk=kwargs['part_id'])
-        my_material = get_object_or_404(Material, mount_record__bicycle_id=bicycle.id, part_id=part.id,
-                                        dismount_record=None)
 
-        logger.warning("material={}".format(my_material))
+        my_mounting = get_object_or_404(Mounting, pk=Mounting.objects.filter(part_id=part.id,
+                                                                             mount_record__bicycle_id=bicycle.id,
+                                                                             dismount_record__isnull=True,
+                                                                             )[0].id)
+        logger.warning("mounting={}".format(str(my_mounting)))
 
-        form = DismountPartForm({
+        form = DismountForm({
             'bicycle_id': bicycle.id,
             'selected_record': "",
-            'material_id': my_material.id,
+            'mounting_id': my_mounting.id,
         })
 
-        records = Record.objects.filter(bicycle_id=bicycle.id, date__gt=my_material.mount_record.date).order_by("-date")
+        records = Record.objects.filter(bicycle_id=bicycle.id, date__gte=my_mounting.mount_record.date).order_by("-date")
         record_list = []
         for record in records:
-            days = record.date - my_material.mount_record.date
+            days = record.date - my_mounting.mount_record.date
             # logger.warning("duration={}".format(str(days.days)))
             record_list.append(
                 dict(
@@ -232,16 +280,16 @@ class DismountPartView(UpdateView):
                     date=record.date,
                     km=record.km,
                     duration=days.days,
-                    distance=record.km - my_material.mount_record.km,
+                    distance=record.km - my_mounting.mount_record.km,
                 )
             )
 
-        template = loader.get_template('myequis/dismount_part.html')
+        template = loader.get_template('myequis/dismount_material.html')
         return HttpResponse(
             template.render({
                 'bicycle': bicycle,
                 'part': part,
-                'material': my_material,
+                'mounting': my_mounting,
                 'records':  record_list,
                 'form': form,
             }, request))
@@ -256,27 +304,27 @@ class DismountPartView(UpdateView):
                 % reverse('myequis:list-bicycle-parts-url',
                           args=(kwargs['bicycle_id'],)))
 
-        form = DismountPartForm(request.POST)
+        form = DismountForm(request.POST)
 
         if form.is_valid():
             # logger.warning("selected_material: {}".format(str(form.cleaned_data)))
-            material_under_edit = get_object_or_404(Material, pk=form.cleaned_data['material_id'])
+            mounting_under_edit = get_object_or_404(Mounting, pk=form.cleaned_data['mounting_id'])
             record = get_object_or_404(Record, pk=form.cleaned_data['selected_record'])
-            material_under_edit.dismount_record = record
+            mounting_under_edit.dismount_record = record
 
-            material_under_edit.save()
-            logger.warning("Dismounted: {}".format(str(material_under_edit)))
+            mounting_under_edit.save()
+            logger.warning("Dismounted: {}".format(str(mounting_under_edit)))
 
             return HttpResponseRedirect(
                 "%s?message='{} dismounted'".format(part.name)
                 % reverse('myequis:list-bicycle-parts-url',
                           args=(kwargs['bicycle_id'],)))
 
-        template = loader.get_template('myequis/dismount_part.html')
+        template = loader.get_template('myequis/dismount_material.html')
         return HttpResponse(template.render({}, request))
 
 
-class ExchangePartView(UpdateView):
+class ExchangeMaterialView(UpdateView):
     """
     Input: Part.id, Bicycle.id
     """
@@ -284,13 +332,29 @@ class ExchangePartView(UpdateView):
     def get(self, request, *args, **kwargs):
         bicycle = get_object_or_404(Bicycle, pk=kwargs['bicycle_id'])
         part = get_object_or_404(Part, pk=kwargs['part_id'])
-        form = EditPartForm({
 
+        my_mounting = get_object_or_404(Mounting, pk=Mounting.objects.filter(part_id=part.id,
+                                                                             mount_record__bicycle_id=bicycle.id,
+                                                                             dismount_record__isnull=True,
+                                                                             )[0].id)
+
+        form = ExchangeMountingForm({
+            'bicycle_id': bicycle.id,
+            'selected_record': "",
+            'selected_material': "",
+            'mounting_id': my_mounting.id,
         })
 
-        template = loader.get_template('myequis/exchange_part.html')
+        template = loader.get_template('myequis/exchange_material.html')
         return HttpResponse(
-            template.render({'bicycle': bicycle, 'part': part}, request))
+            template.render({
+                'bicycle': bicycle,
+                'part': part,
+                'mounting': my_mounting,
+                'records': self.select_records(bicycle, my_mounting),
+                'materials': self.select_materials(),
+                'form': form,
+            }, request))
 
     def post(self, request, *args, **kwargs):
         bicycle = get_object_or_404(Bicycle, pk=kwargs['bicycle_id'])
@@ -302,8 +366,70 @@ class ExchangePartView(UpdateView):
                 % reverse('myequis:list-bicycle-parts-url',
                           args=(kwargs['bicycle_id'],)))
 
-        template = loader.get_template('myequis/exchange_part.html')
-        return HttpResponse(template.render({}, request))
+        form = ExchangeMountingForm(request.POST)
+        # logger.warning("form: {}".format(str(form.data)))
+        dis_mounting = get_object_or_404(Mounting, pk=form.data['mounting_id'])
+
+        if form.is_valid():
+            # logger.warning("selected_material: {}".format(str(form.cleaned_data['selected_material'])))
+            selected_record = get_object_or_404(Record, pk=form.cleaned_data['selected_record'])
+            selected_material = get_object_or_404(Material, pk=form.cleaned_data['selected_material'])
+            # logger.warning("record_select: {}".format(str(selected_record)))
+
+            dis_mounting.dismount_record = selected_record
+            dis_mounting.part = part
+            dis_mounting.save()
+            logger.warning("Mounting updated: {}".format(str(dis_mounting)))
+
+            new_mounting = Mounting()
+            new_mounting.mount_record = selected_record
+            new_mounting.material = selected_material
+            new_mounting.part = part
+            new_mounting.save()
+            logger.warning("New mounting created: {}".format(str(new_mounting)))
+
+            return HttpResponseRedirect(
+                "%s?message='{} mounted'".format(part.name)
+                % reverse('myequis:list-bicycle-parts-url',
+                          args=(kwargs['bicycle_id'],)))
+
+        else:
+            logger.warning("is not valid")
+            template = loader.get_template('myequis/exchange_material.html')
+            return HttpResponse(
+                template.render({
+                    'bicycle': bicycle,
+                    'mounting': dis_mounting,
+                    'part': part,
+                    'records': self.select_records(bicycle, dis_mounting),
+                    'materials': self.select_materials(),
+                    'form': form,
+                }, request))
+
+    @staticmethod
+    def select_materials():
+        return Material.objects.annotate(mounted=Exists(
+            Mounting.objects.filter(dismount_record=None, material=OuterRef('pk')))) \
+            .filter(mounted=False) \
+            .order_by('name')
+
+    @staticmethod
+    def select_records(bicycle, mounting):
+        records = Record.objects.filter(bicycle_id=bicycle.id, date__gte=mounting.mount_record.date).order_by("-date")
+        record_list = []
+        for record in records:
+            days = record.date - mounting.mount_record.date
+            # logger.warning("duration={}".format(str(days.days)))
+            record_list.append(
+                dict(
+                    id=record.id,
+                    date=record.date,
+                    km=record.km,
+                    duration=days.days,
+                    distance=record.km - mounting.mount_record.km,
+                )
+            )
+        return record_list
 
 
 class EditRecordView(UpdateView):
@@ -417,6 +543,14 @@ def bicycle_detail(request, bicycle_id):
         .filter(mounted=True)\
         .order_by('name')
 
+    # All actual Mountings for this bicycle
+    mountings = Mounting.objects.annotate(
+        bicycle_found=Exists(
+            Record.objects.filter(bicycle_id=bicycle.id)
+        )
+    ).filter(bicycle_found=True, dismount_record=None)
+    logger.warning("mountings={}".format(str(mountings)))
+
     component_data_list = []
 
     for component in Component.objects.filter(species_id=bicycle.species.id):
@@ -430,25 +564,29 @@ def bicycle_detail(request, bicycle_id):
         part_data_list = []
 
         for part in parts:
-            mountings = Mounting.objects.filter(mount_record__bicycle__id=bicycle_id,
-                                                part_id=part.id,
-                                                dismount_record=None,
-                                                )
-            if len(mountings) > 0:
-                part_material = mountings[0]
+            mounting = next((m for m in mountings if m.part.id == part.id), None)
+            if mounting is not None:
+                part_material = mounting.material
             else:
                 part_material = None
 
             distance = ""
-            if not part_material is None:
+            if part_material is not None:
                 component_has_materials = True
+                distance = 0
                 # logger.warning("part={}".format(str(part)))
-                # logger.warning("partMaterial={}".format(str(partMaterial)))
+                # logger.warning("partMaterial={}".format(str(part_material)))
 
-                if len(records) > 0:
-                    distance = (records[0].km - part_material.mount_record.km)
+                # Material can be mounted multiple times and in different bicycles
+                for mounting in Mounting.objects.filter(material_id=part_material.id):
+                    if mounting.dismount_record is None:
+                        # actual mounted
+                        distance += records[0].km - mounting.mount_record.km
+                    else:
+                        # Materials history
+                        distance += mounting.dismount_record.km - mounting.mount_record.km
 
-            part_data_list.append(dict(part=part, material=part_material, distance=distance, ))
+            part_data_list.append(dict(part=part, material=part_material, mounting=mounting, distance=distance, ))
 
         if component_has_materials:
             component_data['parts'] = part_data_list
@@ -482,7 +620,7 @@ def list_bicycle_parts(request, bicycle_id):
         )
     ).filter(bicycle_found=True, dismount_record=None)
 
-    logger.warning("mountings={}".format(str(mountings)))
+    # logger.warning("mountings={}".format(str(mountings)))
 
     component_data_list = []
 
@@ -518,7 +656,7 @@ def list_bicycle_parts(request, bicycle_id):
                         distance += mounting.dismount_record.km - mounting.mount_record.km
 
             # logger.warning("part={}".format(str(part)))
-            part_data_list.append(dict(part=part, material=part_material, distance=distance, ))
+            part_data_list.append(dict(part=part, material=part_material, distance=distance, mounting=mounting))
 
         component_data['parts'] = part_data_list
 
@@ -537,6 +675,80 @@ def list_bicycle_parts(request, bicycle_id):
         context = {
             'bicycle': bicycle,
             'records': records[:2],  # Last two
+            'componentDataList': component_data_list,
+        }
+
+    return HttpResponse(template.render(context, request))
+
+
+def list_bicycle_history(request, bicycle_id):
+    """
+    bicycle_history.html
+    """
+
+    bicycle = Bicycle.objects.get(pk=bicycle_id)
+
+    # All actual Mountings for this bicycle
+    mountings = Mounting.objects.annotate(
+        bicycle_found=Exists(
+            Record.objects.filter(bicycle_id=bicycle.id)
+        )
+    ).filter(bicycle_found=True, dismount_record=None)
+
+    # logger.warning("mountings={}".format(str(mountings)))
+
+    component_data_list = []
+
+    for component in Component.objects.filter(species_id=bicycle.species.id):
+        component_data = dict()
+
+        component_data['component_name'] = component.name
+
+        parts = Part.objects.filter(component__id=component.id)
+
+        part_data_list = []
+
+        for part in parts:
+            mounting = next((m for m in mountings if m.part.id == part.id), None)
+            if mounting is not None:
+                part_material = mounting.material
+            else:
+                part_material = None
+
+            distance = ""
+            if part_material is not None:
+                distance = 0
+                # logger.warning("part={}".format(str(part)))
+                # logger.warning("partMaterial={}".format(str(part_material)))
+
+                # Material can be mounted multiple times and in different bicycles
+                for mounting in Mounting.objects.filter(material_id=part_material.id):
+                    if mounting.dismount_record is None:
+                        logger.warning("mounting={}".format(str(mounting)))
+                        # actual mounted
+                        # distance += records[0].km - mounting.mount_record.km
+                    else:
+                        # Materials history
+                        distance += mounting.dismount_record.km - mounting.mount_record.km
+
+            # logger.warning("part={}".format(str(part)))
+            part_data_list.append(dict(part=part, material=part_material, distance=distance, mounting=mounting))
+
+        component_data['parts'] = part_data_list
+
+        component_data_list.append(component_data)
+
+    template = loader.get_template('myequis/bicycle_history.html')
+
+    if 'message' in request.GET.keys():
+        context = {
+            'bicycle': bicycle,
+            'componentDataList': component_data_list,
+            'message': request.GET['message']
+        }
+    else:
+        context = {
+            'bicycle': bicycle,
             'componentDataList': component_data_list,
         }
 

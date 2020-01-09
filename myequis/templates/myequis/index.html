@@ -17,15 +17,15 @@
         <thead>
             <tr>
                 <th>Name</th>
-                <th>Manufactor</th>
+                <th>Manufacture</th>
                 <th>Price</th>
             </tr>
         </thead>
         {% for material in materials %}
             <tr>
-                <td>{{ material.name }}</td>
-                <td>{{ material.manufacture }}</td>
-                <td>{{ material.price }}</td>
+                <td><span>Name</span>{{ material.name }}</td>
+                <td><span>Manufacture</span>{{ material.manufacture }}</td>
+                <td><span>Price</span>{{ material.price }}</td>
             </tr>
         {% endfor %}
     </table>

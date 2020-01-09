@@ -76,5 +76,10 @@ class Mounting(models.Model):
                                         null=True)
 
     def __str__(self):
-        return "{} {}".format(str(self.material.name), str(self.mount_record.date))
+        return "{}/{}/{} {} active={}".format(str(self.mount_record.bicycle.name),
+                                              str(self.part.name),
+                                              str(self.material.name),
+                                              str(self.mount_record.date),
+                                              str(self.dismount_record is None),
+                                              )
 

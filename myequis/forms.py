@@ -72,17 +72,12 @@ class CreateRecordForm(forms.Form):
                 )
 
 
-class EditPartForm(forms.Form):
-
-    def clean(self):
-        logger.warning("data={}".format(str(self.data)))
-
-
-# class MySelect(Select):
-#     template_name = 'myequis/deprecated_my_select.html'
+class DeleteMountingForm(forms.Form):
+    bicycle_id = forms.CharField(widget=forms.HiddenInput(), required=False)
+    mounting_id = forms.CharField(widget=forms.HiddenInput(), required=False)
 
 
-class MountPartForm(forms.Form):
+class MountForm(forms.Form):
 
     record_select = forms.ChoiceField(label="Record", required=False, widget=Select())
     selected_material = forms.CharField(widget=forms.HiddenInput(), required=False)
@@ -106,18 +101,12 @@ class MountPartForm(forms.Form):
         self.fields['record_select'].choices = tuples
 
         self.is_save = 'save' in args[0]
-        # logger.warning("is_save={}".format(str(self.is_save)))
-
-        # self.fields['record_select'].queryset = records
-
-        # if len(records) > 0:
-        #     self.initial['record_select'] = records[0]
 
     def clean(self):
         logger.warning("clean() is_save={}".format(str(self.is_save)))
         # logger.warning("data={}".format(str(self.data)))
         # logger.warning("\nself={}\nENDSELF".format(str(self)))
-        super(MountPartForm, self).clean()
+        super(MountForm, self).clean()
 
         # Only if save button pressed
         if self.is_save:
@@ -132,11 +121,12 @@ class MountPartForm(forms.Form):
             )
 
 
-class DismountPartForm(forms.Form):
+class ExchangeMountingForm(forms.Form):
 
-    selected_record = forms.CharField(widget=forms.HiddenInput(), label='Records', required=False)
+    selected_record = forms.CharField(widget=forms.HiddenInput(), required=False)
     bicycle_id = forms.CharField(widget=forms.HiddenInput(), required=False)
-    material_id = forms.CharField(widget=forms.HiddenInput(), required=False)
+    mounting_id = forms.CharField(widget=forms.HiddenInput(), required=False)
+    selected_material = forms.CharField(widget=forms.HiddenInput(), required=False)
 
     # Will be set to true in POST, if save button pressed
     is_save = False
@@ -151,7 +141,49 @@ class DismountPartForm(forms.Form):
         logger.warning("clean() is_save={}".format(str(self.is_save)))
         # logger.warning("data={}".format(str(self.data)))
         # logger.warning("\nself={}\nENDSELF".format(str(self)))
-        super(DismountPartForm, self).clean()
+        super(ExchangeMountingForm, self).clean()
+
+        # Only if save button pressed
+        if self.is_save:
+            self.check_data()
+
+    def check_data(self):
+        # logger.warning("data={}".format(str(self.data)))
+        # logger.warning("cleaned_data={}".format(str(self.cleaned_data)))
+
+        if len(self.cleaned_data['selected_record']) == 0:
+            raise forms.ValidationError(
+                _("No record selected"),
+                code="no_record_selected"
+            )
+
+        if len(self.cleaned_data['selected_material']) == 0:
+            raise forms.ValidationError(
+                _("No material selected"),
+                code="no_material_selected"
+            )
+
+
+class DismountForm(forms.Form):
+
+    selected_record = forms.CharField(widget=forms.HiddenInput(), label='Records', required=False)
+    bicycle_id = forms.CharField(widget=forms.HiddenInput(), required=False)
+    mounting_id = forms.CharField(widget=forms.HiddenInput(), required=False)
+
+    # Will be set to true in POST, if save button pressed
+    is_save = False
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # logger.warning("__init__() args={}".format(args[0]))
+
+        self.is_save = 'save' in args[0]
+
+    def clean(self):
+        logger.warning("clean() is_save={}".format(str(self.is_save)))
+        # logger.warning("data={}".format(str(self.data)))
+        # logger.warning("\nself={}\nENDSELF".format(str(self)))
+        super(DismountForm, self).clean()
 
         # Only if save button pressed
         if self.is_save:

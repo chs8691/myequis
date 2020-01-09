@@ -1,7 +1,5 @@
 {% load static %}
-
 <link rel="stylesheet" type="text/css" href="{% static 'myequis/style.css' %}">
-
 
 <script language="JavaScript">
     function tdClick(material_id){
@@ -18,7 +16,7 @@
     }
 </script>
 
-<h3 class="myequi-h3">{{ bicycle.name }} | Mount Part {{ part.name }} </h3>
+<h3 class="myequi-h3">{{ bicycle.name }} | {{ part.name }} | Mount</h3>
 
 {% if form.errors %}
     {% for field in form %}
@@ -56,16 +54,16 @@
         {% for material in materials %}
         <tr>
             <td  id="material-id-{{ material.id }}" class="td-radiobutton-cell" onclick="tdClick('{{ material.id }}');">
-                {{ material.name }}
+                <span>Material</span>{{ material.name }}
             </td>
-            <td>{{ material.manufactor }}</td>
-            <td>{{ material.size }}</td>
-            <td>{{ material.price }}</td>
+            <td><span>Manufacture</span>{{ material.manufacture }}</td>
+            <td><span>Size</span>{{ material.size }}</td>
+            <td><span>Price</span>{{ material.price }}</td>
         </tr>
         {% endfor %}
-        {{ form.selected_material }}
-        {{ form.bicycle_id }}
     </table>
+    {{ form.selected_material }}
+    {{ form.bicycle_id }}
 
 
     <div class="form-button-bar">

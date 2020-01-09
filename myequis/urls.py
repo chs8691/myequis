@@ -16,21 +16,24 @@ urlpatterns = [
     # ex: myequis/bicycles/5/parts
     path('bicycles/<int:bicycle_id>/parts', views.list_bicycle_parts, name='list-bicycle-parts-url'),
 
-    # ex: myequis/bicycles/5/part/4/mount
-    path('bicycles/<int:bicycle_id>/part/<int:part_id>/mount', views.MountPartView.as_view(),
-         name='mount-part-url'),
+    # ex: myequis/bicycles/5/history
+    path('bicycles/<int:bicycle_id>/history', views.list_bicycle_history, name='list-bicycle-history-url'),
 
-    # ex: myequis/bicycles/5/part/4/edit
-    path('bicycles/<int:bicycle_id>/part/<int:part_id>/edit', views.EditPartView.as_view(),
-         name='edit-part-url'),
+    # ex: myequis/bicycles/5/part/4/mount
+    path('bicycles/<int:bicycle_id>/part/<int:part_id>/mount', views.MountMaterialView.as_view(),
+         name='mount-material-url'),
+
+    # ex: myequis/bicycles/5/part/4/delete-mounting
+    path('bicycles/<int:bicycle_id>/part/<int:part_id>/delete-mounting', views.DeleteMountingView.as_view(),
+         name='delete-mounting-url'),
 
     # ex: myequis/bicycles/5/part/4/exchange
-    path('bicycles/<int:bicycle_id>/part/<int:part_id>/exchange', views.ExchangePartView.as_view(),
-         name='exchange-part-url'),
+    path('bicycles/<int:bicycle_id>/part/<int:part_id>/exchange', views.ExchangeMaterialView.as_view(),
+         name='exchange-material-url'),
 
     # ex: myequis/bicycles/5/part/4/dismount
-    path('bicycles/<int:bicycle_id>/part/<int:part_id>/dismount', views.DismountPartView.as_view(),
-         name='dismount-part-url'),
+    path('bicycles/<int:bicycle_id>/part/<int:part_id>/dismount', views.DismountMaterialView.as_view(),
+         name='dismount-material-url'),
 
     # ex: myequis/records/create_record?bicycle_id=1
     path('bicycles/<int:bicycle_id>/create-record', views.CreateRecordView.as_view(), name='create-record-url'),

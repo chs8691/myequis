@@ -1,0 +1,50 @@
+{% load static %}
+{% load humanize %}
+
+<link rel="stylesheet" type="text/css" href="{% static 'myequis/style.css' %}">
+
+<h2>{{ bicycle.name }} | Part History</h2>
+
+<div class="clearfix">
+    <div class="button-line-flex-container">
+        <a class="nav-button" href="{% url 'myequis:index-url' %}">Home</a>
+        <a class="nav-button"  href="{% url 'myequis:bicycle-detail-url' bicycle.id %}">Back</a>
+    </div>
+</div>
+
+<h3>Components </h3>
+
+<div>
+{% if componentDataList %}
+    {% for componentData in componentDataList %}
+        {% if componentData.has_materials %}
+            <h4>{{ componentData.component_name }}</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Part</th>
+                        <th>Materials</th>
+                        <th>Mountings</th>
+                        <th>Total Duration</th>
+                        <th>Total KM</th>
+                    </tr>
+                </thead>
+                {% for part in componentData.parts %}
+                    {% if part.material %}
+                        <tr>
+                            <td><span>Part</span>{{ part.part.name }}</td>
+                            <td><span>Materials</span>{{ part.materials }}</td>
+                            <td><span>Mountings</span>{{ part.mountings }}</td>
+                            <td><span>Total Duration</span>{{ part.duration }}</td>
+                            <td><span>Total KM</span>{{ part.distance }}</td>
+                        </tr>
+                    {% endif %}
+                {% endfor %}
+            </table>
+        {% endif %}
+    {% endfor%}
+{% else %}
+    <p>No components with parts with mounted materials yet</p>
+{% endif %}
+</div>
+

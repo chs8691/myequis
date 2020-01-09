@@ -38,10 +38,10 @@
             <tr>
                 <td  class="td-button-cell"  onclick="tdClick('{% url 'myequis:edit-record-url' record.id %}');">
 <!--                    <a href="{% url 'myequis:edit-record-url' record.id %}">-->
-                        {{ record.date }}
+                        <span>Date</span>{{ record.date }}
 <!--                    </a>-->
                 </td>
-                <td>{{ record.km  }}</td>
+                <td><span>KM</span>{{ record.km  }}</td>
             </tr>
         {% endfor %}
     </table>

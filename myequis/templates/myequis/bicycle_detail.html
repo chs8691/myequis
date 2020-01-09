@@ -30,8 +30,8 @@
         </thead>
         {% for record in records %}
             <tr>
-                <td>{{ record.date }}</td>
-                <td>{{ record.km }}</td>
+                <td><span>Date</span>{{ record.date }}</td>
+                <td><span>Value</span>{{ record.km }}</td>
             </tr>
         {% endfor %}
     </table>
@@ -40,10 +40,11 @@
 {% endif %}
 </div>
 
-<h3>Components</h3>
+<h3>Components in Usage</h3>
 
 <div class="clearfix">
     <div class="button-line-flex-container">
+        <a class="nav-button" href="{% url 'myequis:list-bicycle-history-url' bicycle.id %}">History</a>
         <a class="nav-button" href="{% url 'myequis:list-bicycle-parts-url' bicycle.id %}">Show all</a>
     </div>
 </div>
@@ -65,10 +66,10 @@
                 {% for part in componentData.parts %}
                     {% if part.material %}
                         <tr>
-                            <td>{{ part.part.name }}</td>
-                            <td>{{ part.material.name }}</td>
-                            <td>{{ part.material.mount_record.date }}</td>
-                            <td>{{ part.distance }}</td>
+                            <td><span>Part</span>{{ part.part.name }}</td>
+                            <td><span>Material</span>{{ part.material.name }}</td>
+                            <td><span>Mounted at</span>{{ part.mounting.mount_record.date }}</td>
+                            <td><span>KM</span>{{ part.distance }}</td>
                         </tr>
                     {% endif %}
                 {% endfor %}
@@ -76,7 +77,7 @@
         {% endif %}
     {% endfor%}
 {% else %}
-    <p>No components yet</p>
+    <p>No components with parts with mounted materials yet</p>
 {% endif %}
 </div>
 
