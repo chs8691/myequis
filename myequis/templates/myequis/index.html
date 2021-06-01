@@ -11,7 +11,12 @@
     <p>No bicycles yet</p>
 {% endif %}
 
-<h2>Unused Materials</h2>
+<h2>Materials</h2>
+<div class="clearfix">
+    <div class="button-line-flex-container">
+        <a class="nav-button" href="{% url 'myequis:list-materials-url' %}">Manage</a>
+    </div>
+</div>
 {% if materials %}
     <table>
         <thead>

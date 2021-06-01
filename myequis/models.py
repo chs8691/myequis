@@ -59,6 +59,10 @@ class Material(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     weight = models.DecimalField(max_digits=10, decimal_places=3, name="Weight [g]", blank=True, null=True)
 
+    disposed = models.BooleanField(default=False)
+    disposedAt = models.DateField(blank=True, null=True)
+
+
     def __str__(self):
         return str(self.name)
 
@@ -82,4 +86,3 @@ class Mounting(models.Model):
                                               str(self.mount_record.date),
                                               str(self.dismount_record is None),
                                               )
-

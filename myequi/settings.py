@@ -27,6 +27,9 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+# Set the default type for ID fields
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
 
 # Application definition
 
@@ -34,7 +37,7 @@ INSTALLED_APPS = [
     # <APPS_FOLDER>.<FILE_NAME>.<CLASS_NAME>
     # Include the myequis app
     'myequis.apps.MyequisConfig',
-    
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
