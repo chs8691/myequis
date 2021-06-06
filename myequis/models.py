@@ -62,7 +62,6 @@ class Material(models.Model):
     disposed = models.BooleanField(default=False)
     disposedAt = models.DateField(blank=True, null=True)
 
-
     def __str__(self):
         return str(self.name)
 
@@ -79,10 +78,15 @@ class Mounting(models.Model):
     dismount_record = models.ForeignKey(Record, related_name="dismount_record", on_delete=models.CASCADE, blank=True,
                                         null=True)
 
+    @property
+    def active(self):
+        return self.dismount_record is None
+
+
     def __str__(self):
         return "{}/{}/{} {} active={}".format(str(self.mount_record.bicycle.name),
                                               str(self.part.name),
                                               str(self.material.name),
                                               str(self.mount_record.date),
-                                              str(self.dismount_record is None),
+                                              str(self.active),
                                               )

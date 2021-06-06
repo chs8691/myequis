@@ -10,7 +10,19 @@
     </div>
 </div>
 
+{% if message %}
+    <div class="message-line">
+        <strong>{{ message|escape }}</strong>
+    </div>
+{% endif %}
+
+
 <h3>New Materials</h3>
+<div class="clearfix">
+    <div class="button-line-flex-container">
+      <a class="nav-button"  href="{% url 'myequis:create-material-url' %}">Add</a>
+    </div>
+</div>
 {% if new_materials %}
     <table>
         <thead>

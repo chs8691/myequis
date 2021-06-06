@@ -1,24 +1,88 @@
 import humanize
 from django.db.models import Q, OuterRef, Exists, Subquery
-from django.http import HttpResponse
-from django.http import HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
-from myequis.models import Material, Mounting
-from myequis.models import Bicycle
-from myequis.models import Record
-from myequis.models import Component
-from myequis.models import Part
+from myequis.models import Material, Mounting, Bicycle, Record, Component, Part
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
-from .forms import CreateRecordForm, DeleteMountingForm, MountForm, DismountForm, ExchangeMountingForm
-from .forms import EditRecordForm
-from django.views.generic.edit import UpdateView
-from django.views.generic.edit import CreateView
+from .forms import CreateRecordForm, CreateMaterialForm, DeleteMountingForm, MountForm, DismountForm, ExchangeMountingForm, EditRecordForm
+from django.views.generic.edit import UpdateView, CreateView
 from datetime import datetime, date
 import logging
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
+
+class CreateMaterialView(CreateView):
+
+    def get(self, request, *args, **kwargs):
+        logger.warning("CreateMaterialView GET request: {}".format(str(request)))
+
+        # Find the best km as default value
+        material = Material()
+        # material.weight = 0
+        # material.name = "x"
+        # material.manufacture = "y"
+        # material.size = "s"
+        material.weight = 0
+        # material.price = 0
+
+        # If called with data, clean() will be processed!
+        form = CreateMaterialForm(
+            {
+            'name': material.name,
+            'manufacture': material.manufacture,
+            'size': material.size,
+            'weight': material.weight,
+            'price': material.price,
+             })
+
+        template = loader.get_template('myequis/create_material.html')
+        return HttpResponse(template.render({'material': material, 'form': form}, request))
+
+    def post(self, request, *args, **kwargs):
+        logger.warning("CreateMaterialView POST request.POST: {}".format(str(request.POST)))
+
+        if 'cancel' in request.POST:
+            return HttpResponseRedirect(
+                "%s?message='Create material canceled'" % reverse('myequis:list-materials-url'))
+
+        form = CreateMaterialForm(request.POST)
+        # logger.warning("form: " + str(form))
+        # logger.warning("form cleaned_data: " + str(form.cleaned_data))
+
+        material = Material()
+
+        if form.is_valid():
+            logger.warning("is valid. form.cleaned_data={}".format(str(form.cleaned_data)))
+            form.check_data()
+
+            # process the data in form.cleaned_data as required
+            material.name = form.cleaned_data['name']
+            material.manufacture = form.cleaned_data['manufacture']
+            material.size = form.cleaned_data['size']
+            material.weight = form.cleaned_data['weight']
+            material.price = form.cleaned_data['price']
+
+
+            material.save()
+            logger.warning("New material saved={}".format(str(material)))
+
+            # redirect to a new URL:
+            # see https://docs.djangoproject.com/en/dev/ref/urlresolvers/#django.core.urlresolvers.reverse
+            # return HttpResponseRedirect(reverse('url_records', args=(record.bicycle.id,)))
+            return HttpResponseRedirect(
+                "%s?message='{} created'".format(material.name)
+                % reverse('myequis:list-materials-url'))
+
+        else:
+            logger.warning("is not valid")
+            template = loader.get_template('myequis/create_material.html')
+            return HttpResponse(template.render({
+            'material': material,
+            'form': form,
+            }, request))
+
 
 
 class CreateRecordView(CreateView):
@@ -793,35 +857,55 @@ def index(request):
 
 def materials(request):
 
-    # Materials without actual mounted items
+    # Existing materials without any mountings
     new_materials = Material.objects.annotate(used=Exists(
         Mounting.objects.filter(material=OuterRef('pk'))))\
         .filter(used=False)\
         .filter(disposed=False)\
         .order_by('name')
 
-        # .annotate(dismountedAt=\
-        # Mounting.objects.filter(dismount_record__isnull=False, material=OuterRef('pk')))\
-        # .order_by('-dismount_record__date')[0]\
-    # Materials without actual mounted items
+    # Existing materials without actual mounted items
     dismounted_materials = Material.objects\
         .annotate(mounted=Exists(Mounting.objects\
-            .filter(dismount_record=None, material=OuterRef('pk'))))\
+            .filter(Q(dismount_record__isnull=True), material=OuterRef('pk'))))\
         .filter(mounted=False)\
         .filter(disposed=False)\
         .order_by('name')
 
+    # Existing materials which are dismounted actually
+    dismounted_materials = Material.objects\
+        .annotate(mounted=Exists(Mounting.objects.\
+            filter(Q(dismount_record__isnull=True), material=OuterRef('pk'))))\
+        .annotate(hasMountings=Exists(Mounting.objects\
+            .filter(material=OuterRef('pk'))))\
+        .filter(mounted=False)\
+        .filter(disposed=False)\
+        .filter(hasMountings=True)\
+        .annotate(dismountedAt=Subquery(Mounting.objects\
+            .filter(material=OuterRef('pk'))\
+            .order_by('-dismount_record__date')\
+            .values('dismount_record__date')[:1]))
+
     # Materials without actual mounted items
     disposed_materials = Material.objects\
         .filter(disposed=True)\
-        .order_by('name')
+        .order_by('-disposedAt')
 
     template = loader.get_template('myequis/materials.html')
-    context = {
-        'new_materials': new_materials,
-        'dismounted_materials': dismounted_materials,
-        'disposed_materials': disposed_materials,
-    }
+
+    if 'message' in request.GET.keys():
+        context = {
+            'new_materials': new_materials,
+            'dismounted_materials': dismounted_materials,
+            'disposed_materials': disposed_materials,
+            'message': request.GET['message']
+        }
+    else:
+        context = {
+            'new_materials': new_materials,
+            'dismounted_materials': dismounted_materials,
+            'disposed_materials': disposed_materials,
+        }
 
     return HttpResponse(template.render(context, request))
 

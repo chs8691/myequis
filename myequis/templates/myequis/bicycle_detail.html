@@ -15,7 +15,7 @@
 
 <div class="clearfix">
     <div class="button-line-flex-container">
-        <a class="nav-button" href="{% url 'myequis:list-records-url' bicycle.id %}">Edit</a>
+        <a class="nav-button" href="{% url 'myequis:list-records-url' bicycle.id %}">Manage</a>
     </div>
 </div>
 
@@ -45,7 +45,7 @@
 <div class="clearfix">
     <div class="button-line-flex-container">
         <a class="nav-button" href="{% url 'myequis:list-bicycle-history-url' bicycle.id %}">History</a>
-        <a class="nav-button" href="{% url 'myequis:list-bicycle-parts-url' bicycle.id %}">Show all</a>
+        <a class="nav-button" href="{% url 'myequis:list-bicycle-parts-url' bicycle.id %}">Manage</a>
     </div>
 </div>
 
@@ -80,4 +80,3 @@
     <p>No components with parts with mounted materials yet</p>
 {% endif %}
 </div>
-
