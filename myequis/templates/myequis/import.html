@@ -1,0 +1,25 @@
+{% load static %}
+
+<link rel="stylesheet" type="text/css" href="{% static 'myequis/style.css' %}">
+
+<div class="clearfix">
+    <div class="button-line-flex-container">
+      <a class="nav-button" href="{% url 'myequis:index-url' %}">Home</a>
+    </div>
+</div>
+
+{% block content %}
+<h2>Import Data</h2>
+<p>ATTENTION: Importing to database. All data will be overwritten. </p>
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="file" name="importData">
+    <p>Please select format of file.</p>
+    <select name="file-format" class="form-control my-3">
+        <option selected>Choose format...</option>
+        <option>CSV</option>
+        <option>JSON</option>
+      </select>
+    <button class="btn btn-primary" type="submit">Import</button>
+  </form>
+  {% endblock %}

@@ -55,9 +55,11 @@ class Material(models.Model):
     name = models.CharField(max_length=100)
 
     manufacture = models.CharField(max_length=100)
-    size = models.CharField(max_length=100, blank=True, null=True)
+    size = models.CharField(max_length=100, blank=True, default="")
     price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    weight = models.DecimalField(max_digits=10, decimal_places=3, name="Weight [g]", blank=True, null=True)
+    weight = models.DecimalField(max_digits=10, decimal_places=3, blank=True, null=True)
+
+    comment = models.CharField(max_length=500, blank=True, default="")
 
     disposed = models.BooleanField(default=False)
     disposedAt = models.DateField(blank=True, null=True)

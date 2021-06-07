@@ -2,6 +2,12 @@
 
 <link rel="stylesheet" type="text/css" href="{% static 'myequis/style.css' %}">
 
+<script language="JavaScript">
+    function tdClick(url){
+        window.open(url, "_self");
+    }
+</script>
+
 <h2>Materials</h2>
 
 <div class="clearfix">
@@ -32,15 +38,20 @@
                 <th>Size</th>
                 <th>Weight</th>
                 <th>Price</th>
+                <th>Comment</th>
             </tr>
         </thead>
         {% for material in new_materials %}
             <tr>
-                <td><span>Name</span>{{ material.name }}</td>
+                <td  class="td-button-cell"  onclick="tdClick('{% url 'myequis:edit-material-url' material.id %}');">
+                        <span>Name</span>{{ material.name }}
+                </td>
+
                 <td><span>Manufacture</span>{{ material.manufacture }}</td>
                 <td><span>Size</span>{{ material.size }}</td>
                 <td><span>Weight</span>{{ material.weight }}</td>
                 <td><span>Price</span>{{ material.price }}</td>
+                <td><span>Comment</span>{{ material.comment }}</td>
             </tr>
         {% endfor %}
     </table>
@@ -59,16 +70,20 @@
                 <th>Size</th>
                 <th>Weight</th>
                 <th>Price</th>
+                <th>Comment</th>
             </tr>
         </thead>
         {% for material in dismounted_materials %}
             <tr>
                 <td><span>Date</span>{{ material.dismountedAt }}</td>
-                <td><span>Name</span>{{ material.name }}</td>
+                <td  class="td-button-cell"  onclick="tdClick('{% url 'myequis:edit-material-url' material.id %}');">
+                        <span>Name</span>{{ material.name }}
+                </td>
                 <td><span>Manufacture</span>{{ material.manufacture }}</td>
                 <td><span>Size</span>{{ material.size }}</td>
                 <td><span>Weight</span>{{ material.weight }}</td>
                 <td><span>Price</span>{{ material.price }}</td>
+                <td><span>Comment</span>{{ material.comment }}</td>
             </tr>
         {% endfor %}
     </table>
@@ -88,16 +103,20 @@
                 <th>Size</th>
                 <th>Weight</th>
                 <th>Price</th>
+                <th>Comment</th>
             </tr>
         </thead>
         {% for material in disposed_materials %}
             <tr>
                 <td><span>Date</span>{{ material.disposedAt }}</td>
-                <td><span>Name</span>{{ material.name }}</td>
+                <td  class="td-button-cell"  onclick="tdClick('{% url 'myequis:edit-material-url' material.id %}');">
+                        <span>Name</span>{{ material.name }}
+                </td>
                 <td><span>Manufacture</span>{{ material.manufacture }}</td>
                 <td><span>Size</span>{{ material.size }}</td>
                 <td><span>Weight</span>{{ material.weight }}</td>
                 <td><span>Price</span>{{ material.price }}</td>
+                <td><span>Comment</span>{{ material.comment }}</td>
             </tr>
         {% endfor %}
     </table>

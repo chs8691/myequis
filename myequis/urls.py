@@ -7,6 +7,11 @@ urlpatterns = [
     # ex: /myequis/
     path('', views.index, name='index-url'),
 
+    path('export', views.export_data, name='export-url'),
+
+    path('import', views.import_data, name='import-url'),
+
+
 #### BICYCLES ##############################
 
     # ex: myequis/bicycles/5/
@@ -52,5 +57,9 @@ urlpatterns = [
 
     # ex: myequis/materials/create
     path('materials/create', views.CreateMaterialView.as_view(), name='create-material-url'),
+
+    # ex: myequis/materials/4
+    path('materials/<int:material_id>/', views.EditMaterialView.as_view(), name='edit-material-url'),
+
 
 ]

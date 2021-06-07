@@ -1,17 +1,170 @@
 import humanize
+from datetime import datetime, date
+import logging
+import io
+import zipfile
+from tablib import Dataset
 from django.db.models import Q, OuterRef, Exists, Subquery
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
-from myequis.models import Material, Mounting, Bicycle, Record, Component, Part
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
-from .forms import CreateRecordForm, CreateMaterialForm, DeleteMountingForm, MountForm, DismountForm, ExchangeMountingForm, EditRecordForm
 from django.views.generic.edit import UpdateView, CreateView
-from datetime import datetime, date
-import logging
+from myequis.models import Material, Mounting, Bicycle, Record, Component, Part
+from .forms import CreateRecordForm, CreateMaterialForm, DeleteMountingForm, MountForm, DismountForm, ExchangeMountingForm, EditRecordForm, EditMaterialForm
+
+from .resources import BicycleResource, ComponentResource, MaterialResource, MountingResource, PartResource, RecordResource, SpeciesResource
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
+
+def zip_files(files, suffix):
+    outfile = io.BytesIO()
+    with zipfile.ZipFile(outfile, 'w') as zf:
+        for n in files:
+            zf.writestr("{}.{}".format(n["name"], suffix), n["data"])
+    return outfile.getvalue()
+
+def import_data(request):
+    if request.method == 'POST':
+        file_format = request.POST['file-format']
+        species_resource = SpeciesResource()
+        dataset = Dataset()
+        new_species = request.FILES['importData']
+
+        if file_format == 'CSV':
+            imported_data = dataset.load(new_species.read().decode('utf-8'),format='csv')
+            result = species_resource.import_data(dataset, dry_run=True)
+        elif file_format == 'JSON':
+            imported_data = dataset.load(new_species.read().decode('utf-8'),format='json')
+            # Testing data import
+            result = species_resource.import_data(dataset, dry_run=True)
+
+        # if not result.has_errors():
+            # Import now
+            # species_resource.import_data(dataset, dry_run=False)
+
+    return render(request, 'myequis/import.html')
+
+def export_data(request):
+    if request.method == 'POST':
+        # Get selected option from form
+        file_format = request.POST['file-format']
+
+        if file_format == 'CSV':
+
+            zipped_file = zip_files([
+                dict(name="Bicycle", data=BicycleResource().export().csv),
+                dict(name="Component", data=ComponentResource().export().csv),
+                dict(name="Material", data=MaterialResource().export().csv),
+                dict(name="Mounting", data=MountingResource().export().csv),
+                dict(name="Part", data=PartResource().export().csv),
+                dict(name="Record", data=RecordResource().export().csv),
+                ], "csv")
+
+            response = HttpResponse(zipped_file, content_type='application/octet-stream')
+            response['Content-Disposition'] = 'attachment; filename="exported_data_csv.zip"'
+
+            return response
+
+        elif file_format == 'JSON':
+
+            zipped_file = zip_files([
+                dict(name="Bicycle", data=BicycleResource().export().json),
+                dict(name="Component", data=ComponentResource().export().json),
+                dict(name="Material", data=MaterialResource().export().json),
+                dict(name="Mounting", data=MountingResource().export().json),
+                dict(name="Part", data=PartResource().export().json),
+                dict(name="Record", data=RecordResource().export().json),
+                ], "json")
+
+            response = HttpResponse(zipped_file, content_type='application/octet-stream')
+            response['Content-Disposition'] = 'attachment; filename="exported_data_json.zip"'
+            return response
+
+        elif file_format == 'XLS (Excel)':
+
+            zipped_file = zip_files([
+                dict(name="Bicycle", data=BicycleResource().export().xls),
+                dict(name="Component", data=ComponentResource().export().xls),
+                dict(name="Material", data=MaterialResource().export().xls),
+                dict(name="Mounting", data=MountingResource().export().xls),
+                dict(name="Part", data=PartResource().export().xls),
+                dict(name="Record", data=RecordResource().export().xls),
+                ], "xls")
+
+            response = HttpResponse(zipped_file, content_type='application/octet-stream')
+            response['Content-Disposition'] = 'attachment; filename="exported_data_xls.zip"'
+
+            return response
+
+    return render(request, 'myequis/export.html')
+
+
+class EditMaterialView(CreateView):
+
+    def get(self, request, *args, **kwargs):
+        logger.warning("EditMaterialView GET request: {}".format(str(request)))
+
+        # Find the best km as default value
+        material = get_object_or_404(Material, pk=kwargs['material_id'])
+
+        # If called with data, clean() will be processed!
+        form = EditMaterialForm(
+            {
+            'name': material.name,
+            'manufacture': material.manufacture,
+            'size': material.size,
+            'weight': material.weight,
+            'price': material.price,
+            'comment': material.comment,
+             })
+
+        template = loader.get_template('myequis/edit_material.html')
+        return HttpResponse(template.render({'material': material, 'form': form}, request))
+
+    def post(self, request, *args, **kwargs):
+        logger.warning("EditMaterialView POST request.POST: {}".format(str(request.POST)))
+
+        if 'cancel' in request.POST:
+            return HttpResponseRedirect(
+                "%s?message='Edit material canceled'" % reverse('myequis:list-materials-url'))
+
+        form = EditMaterialForm(request.POST)
+        # logger.warning("form: " + str(form))
+        # logger.warning("form cleaned_data: " + str(form.cleaned_data))
+
+        material = get_object_or_404(Material, pk=kwargs['material_id'])
+
+        if form.is_valid():
+            logger.warning("is valid. form.cleaned_data={}".format(str(form.cleaned_data)))
+            form.check_data()
+
+            # process the data in form.cleaned_data as required
+            material.name = form.cleaned_data['name']
+            material.manufacture = form.cleaned_data['manufacture']
+            material.size = form.cleaned_data['size']
+            material.weight = form.cleaned_data['weight']
+            material.price = form.cleaned_data['price']
+            material.comment = form.cleaned_data['comment']
+
+            material.save()
+            logger.warning("New material saved={}".format(str(material)))
+
+            # redirect to a new URL:
+            # see https://docs.djangoproject.com/en/dev/ref/urlresolvers/#django.core.urlresolvers.reverse
+            # return HttpResponseRedirect(reverse('url_records', args=(record.bicycle.id,)))
+            return HttpResponseRedirect(
+                "%s?message='{} updated'".format(material.name)
+                % reverse('myequis:list-materials-url'))
+
+        else:
+            logger.warning("is not valid")
+            template = loader.get_template('myequis/edit_material.html')
+            return HttpResponse(template.render({
+            'material': material,
+            'form': form,
+            }, request))
 
 class CreateMaterialView(CreateView):
 
@@ -20,12 +173,6 @@ class CreateMaterialView(CreateView):
 
         # Find the best km as default value
         material = Material()
-        # material.weight = 0
-        # material.name = "x"
-        # material.manufacture = "y"
-        # material.size = "s"
-        material.weight = 0
-        # material.price = 0
 
         # If called with data, clean() will be processed!
         form = CreateMaterialForm(
@@ -35,6 +182,7 @@ class CreateMaterialView(CreateView):
             'size': material.size,
             'weight': material.weight,
             'price': material.price,
+            'comment': material.comment,
              })
 
         template = loader.get_template('myequis/create_material.html')
@@ -63,7 +211,7 @@ class CreateMaterialView(CreateView):
             material.size = form.cleaned_data['size']
             material.weight = form.cleaned_data['weight']
             material.price = form.cleaned_data['price']
-
+            material.comment = form.cleaned_data['comment']
 
             material.save()
             logger.warning("New material saved={}".format(str(material)))
@@ -82,7 +230,6 @@ class CreateMaterialView(CreateView):
             'material': material,
             'form': form,
             }, request))
-
 
 
 class CreateRecordView(CreateView):

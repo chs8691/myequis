@@ -37,3 +37,11 @@
 {% else %}
     <p>No unused materials</p>
 {% endif %}
+
+<h2>Bulk Operations</h2>
+<div class="clearfix">
+    <div class="button-line-flex-container">
+        <a class="nav-button" href="{% url 'myequis:export-url' %}">Export</a>
+        <a class="nav-button" href="{% url 'myequis:import-url' %}">Import</a>
+    </div>
+</div>

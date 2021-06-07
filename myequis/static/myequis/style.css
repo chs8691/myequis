@@ -31,13 +31,13 @@ body {
     text-align: center;
     border: 1px solid;
     border-color: black;
-    padding: 0.25em; 
+    padding: 0.25em;
     margin-left: 0.2em;
     margin-bottom: 0.2em;
     color: blue;
     width: 100px;
-    border-radius: .2em; 
-    
+    border-radius: .2em;
+
 }
 
 .nav-button-disabled{
@@ -72,16 +72,16 @@ a:visited.nav-button{
     color: black;
 }
 
-a.nav-button:hover{ 
-    background-color: #004d66; 
-    color: white; 
+a.nav-button:hover{
+    background-color: #004d66;
+    color: white;
     border: 1px solid;
     border-color: #0f1e3e;
 }
 
-a.nav-button:active{ 
-    background-color: #74868c; 
-    color: white; 
+a.nav-button:active{
+    background-color: #74868c;
+    color: white;
     border: 1px solid;
     border-color: #193167;
 }
@@ -149,10 +149,10 @@ table td span {
 }
 
 
-h2{ 
-  color: #fff; 
+h2{
+  color: #fff;
   background-color:  #004d66;
-  border-radius: .5em; 
+  border-radius: .5em;
   padding: .5em 1em
 
 }
@@ -167,18 +167,18 @@ h2.a:visited{
     color: white;
 }
 
-.myequi-h3 { 
-  color: #fff; 
+.myequi-h3 {
+  color: #fff;
   background-color:  #004d66;
-  border-radius: .5em; 
+  border-radius: .5em;
   padding: .3em 1em
 
 }
 
-h4 { 
-  color: #fff; 
+h4 {
+  color: #fff;
   background-color:  #004d66;
-  border-radius: .5em; 
+  border-radius: .5em;
   padding: .1em 1em
 
 }
@@ -209,10 +209,10 @@ td {
     text-align: center;
     border: 1px solid;
     border-color: black;
-    padding: 1em; 
+    padding: 1em;
     color: blue;
     width: 90%;
-    display: block;    
+    display: block;
     border-radius: .5em;
 }
 
@@ -222,15 +222,15 @@ a:visited.table-button{
 
 
 a.table-button:hover{
-    background-color: #004d66; 
-    color: white; 
+    background-color: #004d66;
+    color: white;
     border: 1px solid;
     border-color: #0f1e3e;
 }
 
-a.table-button:active{ 
-    background-color: #74868c; 
-    color: white; 
+a.table-button:active{
+    background-color: #74868c;
+    color: white;
     border: 1px solid;
     border-color: #193167;
 }
@@ -305,20 +305,13 @@ a.table-button:active{
     display: block;
 }
 
+
 .record-form{
     max-width: 700px;
     border: 1px solid;
     border-color: grey;
     padding: 1em;
     margin: 1em;
-}
-
-.record-fields-area{
-    display: flex;
-    align-content: center;
-    max-width: 400px;
-}
-.record-fields{
 }
 
 .record-field{
@@ -343,21 +336,21 @@ a.table-button:active{
     text-align: center;
     border: 1px solid;
     border-color: black;
-    padding: 1em; 
-    margin: 1em; 
+    padding: 1em;
+    margin: 1em;
     min-width: 10em;
     color: #3a4345;
-    border-radius: .2em; 
+    border-radius: .2em;
 }
 .form-button-disabled {
     text-align: center;
     border: 1px solid;
     border-color: grey;
-    margin: 1em; 
-    padding: 1em; 
+    margin: 1em;
+    padding: 1em;
     min-width: 10em;
     color: #909fa2;
-    border-radius: .2em; 
+    border-radius: .2em;
 }
 
 .alert{
@@ -366,4 +359,3 @@ a.table-button:active{
     margin: 0.5em;
     padding: 0.3em;
 }
-

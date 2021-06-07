@@ -13,6 +13,72 @@ logger = logging.getLogger(__name__)
 
 
 # Create Material
+class EditMaterialForm(forms.Form):
+
+    name = forms.CharField(widget=forms.TextInput(
+        attrs={'max_length': '50'}), required=False, label="Name")
+
+    manufacture = forms.CharField(widget=forms.TextInput(
+        attrs={'max_length': '30'}), required=False, label="Manufacture")
+
+    size = forms.CharField(widget=forms.TextInput(
+        attrs={'max_length': '20'}), required=False, label="Size")
+
+    weight = forms.IntegerField(widget=forms.NumberInput(
+        attrs={'size': '5'}), required=False,
+        label="Weight [g]", min_value=0, max_value=99999)
+
+    price = forms.DecimalField(widget=forms.NumberInput(
+        attrs={'size': '8', 'decimal_places': '2'}), required=False,
+        label="Price [€]", min_value=0, max_value=999999)
+
+    comment = forms.CharField(widget=forms.TextInput(
+        attrs={'max_length': '500'}), required=False, label="Comment")
+
+    # Will be set to true in POST, if save button pressed
+    is_save = False
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # logger.warning("__init__() args={}".format(args[0]))
+
+        self.is_save = 'save' in args[0]
+
+    # Form class stores get data and clean will will called, every time data have been changed.
+    def clean(self):
+        logger.warning("clean() self={}".format(str(self)))
+        super(EditMaterialForm, self).clean()
+
+        # Only if save button pressed
+        if self.is_save:
+            self.check_data()
+
+    #   Check if the give record values against the existing ones
+    def check_data(self):
+        logger.warning("check_edit_material() clean_data={}".format(self.cleaned_data))
+
+        # get the actual form data we have to check
+        name = self.cleaned_data['name']
+        manufacture = self.cleaned_data['manufacture']
+        size = self.cleaned_data['size']
+        weight = self.cleaned_data['weight']
+        price = self.cleaned_data['price']
+        comment = self.cleaned_data['comment']
+
+        if len(name) < 1 :
+            raise forms.ValidationError(
+                _("A name must be specified"),
+                code="material_name_empty",
+                params={'name': name},
+            )
+
+        if len(manufacture) < 1 :
+            raise forms.ValidationError(
+                _("A manufacture must be specified"),
+                code="material_manufacture_empty",
+                params={'manufacture': manufacture},
+            )
+
 class CreateMaterialForm(forms.Form):
 
     name = forms.CharField(widget=forms.TextInput(
@@ -31,6 +97,9 @@ class CreateMaterialForm(forms.Form):
     price = forms.DecimalField(widget=forms.NumberInput(
         attrs={'size': '8', 'decimal_places': '2'}), required=False,
         label="Price [€]", min_value=0, max_value=999999)
+
+    comment = forms.CharField(widget=forms.TextInput(
+        attrs={'max_length': '500'}), required=False, label="Comment")
 
     # Will be set to true in POST, if save button pressed
     is_save = False
@@ -60,6 +129,7 @@ class CreateMaterialForm(forms.Form):
         size = self.cleaned_data['size']
         weight = self.cleaned_data['weight']
         price = self.cleaned_data['price']
+        comment = self.cleaned_data['comment']
 
         if len(name) < 1 :
             raise forms.ValidationError(
@@ -74,7 +144,6 @@ class CreateMaterialForm(forms.Form):
                 code="material_manufacture_empty",
                 params={'manufacture': manufacture},
             )
-
 
 
 # Create Record

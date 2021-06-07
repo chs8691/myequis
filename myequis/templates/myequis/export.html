@@ -1,0 +1,24 @@
+{% load static %}
+
+<link rel="stylesheet" type="text/css" href="{% static 'myequis/style.css' %}">
+
+<div class="clearfix">
+    <div class="button-line-flex-container">
+      <a class="nav-button" href="{% url 'myequis:index-url' %}">Home</a>
+    </div>
+</div>
+
+{% block content %}
+<h2>Export</h2>
+<p>Exporting all data from database. Please select format of file.</p>
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <select name="file-format" class="form-control my-3">
+        <option selected>Choose format...</option>
+        <option>CSV</option>
+        <option>JSON</option>
+        <option>XLS (Excel)</option>
+      </select>
+    <button class="btn btn-primary" type="submit">Export</button>
+  </form>
+  {% endblock %}

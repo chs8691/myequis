@@ -1,3 +1,5 @@
+from import_export.admin import ImportExportModelAdmin
+
 from django.contrib import admin
 
 from .models import Component, Mounting, Species
@@ -5,7 +7,6 @@ from .models import Part
 from .models import Bicycle
 from .models import Record
 from .models import Material
-
 
 class ComponentInline(admin.TabularInline):
     model = Component
@@ -19,22 +20,25 @@ class RecordInline(admin.TabularInline):
     ordering = ["-date"]
 
 
-class BicycleAdmin(admin.ModelAdmin):
+@admin.register(Bicycle)
+class BicycleAdmin(ImportExportModelAdmin):
     inlines = [RecordInline]
     ordering = ["name"]
 
 
-class SpeciesAdmin(admin.ModelAdmin):
+
+@admin.register(Species)
+class SpeciesAdmin(ImportExportModelAdmin):
     inlines = [ComponentInline]
     ordering = ["name"]
-
 
 class PartInline(admin.TabularInline):
     model = Part
     extra = 3
 
 
-class ComponentAdmin(admin.ModelAdmin):
+@admin.register(Component)
+class ComponentAdmin(ImportExportModelAdmin):
     inlines = [PartInline]
     ordering = ["name"]
 
@@ -47,8 +51,8 @@ class MountingAdmin(admin.ModelAdmin):
     ordering = ["mount_record__date"]
 
 
-admin.site.register(Bicycle, BicycleAdmin)
-admin.site.register(Species, SpeciesAdmin)
-admin.site.register(Component, ComponentAdmin)
+# admin.site.register(Bicycle, BicycleAdmin)
+# admin.site.register(Species, SpeciesAdmin)
+# admin.site.register(Component, ComponentAdmin)
 admin.site.register(Material, MaterialAdmin)
 admin.site.register(Mounting, MountingAdmin)
