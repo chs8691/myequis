@@ -11,6 +11,43 @@ import logging
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
+# Create Material
+class ImportForm(forms.Form):
+
+    importData = forms.FileField(label="Data File (ZIP)", required=False)
+
+    # Will be set to true in POST, if save button pressed
+    is_save = False
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # logger.warning("__init__() args={}".format(args[0]))
+
+        self.is_save = 'save' in args[0]
+
+    # Form class stores get data and clean will will called, every time data have been changed.
+    def clean(self):
+        # logger.warning("clean() self={}".format(str(self)))
+        super(ImportForm, self).clean()
+
+
+        # Only if save button pressed
+        if self.is_save:
+            self.check_data()
+
+    #   Check if the give record values against the existing ones
+    def check_data(self):
+        logger.warning("import: check_data() clean_data={}".format(self.cleaned_data))
+
+        # get the actual form data we have to check
+        importData = self.cleaned_data['importData']
+
+        if importData is None :
+            raise forms.ValidationError(
+                _("A file must be specified"),
+                code="file_empty",
+            )
+
 
 # Create Material
 class EditMaterialForm(forms.Form):

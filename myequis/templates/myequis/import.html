@@ -1,4 +1,6 @@
 {% load static %}
+{% load bootstrap4 %}       {# import bootstrap4/bootstrap3 #}
+{% bootstrap_css %}         {# Embed Bootstrap CSS #}
 
 <link rel="stylesheet" type="text/css" href="{% static 'myequis/style.css' %}">
 
@@ -8,18 +10,31 @@
     </div>
 </div>
 
-{% block content %}
+{% if message %}
+    <div class="message-line">
+        <strong>{{ message|escape }}</strong>
+    </div>
+{% endif %}
+
 <h2>Import Data</h2>
-<p>ATTENTION: Importing to database. All data will be overwritten. </p>
-<form method="post" enctype="multipart/form-data">
+<p>Importing to database. </p>
+<p>ATTENTION: All data will be overwritten ! </p>
+
+{% if output %}
+  {% for line in output %}
+        {{ line }}<br>
+  {% endfor %}
+{% endif %}
+
+<form class="record-form"  method="post" action="" enctype="multipart/form-data">
     {% csrf_token %}
-    <input type="file" name="importData">
-    <p>Please select format of file.</p>
-    <select name="file-format" class="form-control my-3">
-        <option selected>Choose format...</option>
-        <option>CSV</option>
-        <option>JSON</option>
-      </select>
-    <button class="btn btn-primary" type="submit">Import</button>
+
+    {% bootstrap_form form %}
+
+    {% buttons %}
+    <input class="form-button" type="submit" name="dryrun" value="Dry run">
+    <input class="form-button" type="submit" name="import" value="Import"
+           onclick="return confirm('Overwrite all data ?')">
+    {% endbuttons %}
+
   </form>
-  {% endblock %}

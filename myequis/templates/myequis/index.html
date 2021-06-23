@@ -1,6 +1,14 @@
 {% load static %}
+{% load bootstrap4 %}       {# import bootstrap4/bootstrap3 #}
+{% bootstrap_css %}         {# Embed Bootstrap CSS #}
 
 <link rel="stylesheet" type="text/css" href="{% static 'myequis/style.css' %}">
+
+{% if message %}
+    <div class="message-line">
+        <strong>{{ message|escape }}</strong>
+    </div>
+{% endif %}
 
 <h2>Bicycles</h2>
 {% if bicycles %}

@@ -9,7 +9,7 @@ urlpatterns = [
 
     path('export', views.export_data, name='export-url'),
 
-    path('import', views.import_data, name='import-url'),
+    path('import', views.ImportView.as_view(), name='import-url'),
 
 
 #### BICYCLES ##############################
