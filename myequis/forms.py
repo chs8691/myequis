@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 # Create Material
 class ImportForm(forms.Form):
 
-    importData = forms.FileField(label="Data File (ZIP)", required=False)
+    importData = forms.FileField(label="File", required=False)
 
     # Will be set to true in POST, if save button pressed
     is_save = False

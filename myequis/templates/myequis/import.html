@@ -11,14 +11,15 @@
 </div>
 
 {% if message %}
-    <div class="message-line">
+    <div class="alert">
         <strong>{{ message|escape }}</strong>
     </div>
 {% endif %}
 
 <h2>Import Data</h2>
-<p>Importing to database. </p>
 <p>ATTENTION: All data will be overwritten ! </p>
+<p>Did you make an export to backup your data? It is strongly recommended to make an export before executing the import! </p>
+<p>The import file must be a ZIP file with one file for every model - like export is creating it.</p>
 
 {% if output %}
   {% for line in output %}
@@ -33,8 +34,13 @@
 
     {% buttons %}
     <input class="form-button" type="submit" name="dryrun" value="Dry run">
-    <input class="form-button" type="submit" name="import" value="Import"
-           onclick="return confirm('Overwrite all data ?')">
+    {% if import_disabled %}
+      <input class="form-button-disabled" type="submit" name="import" value="Import"
+             disabled=true>
+    {% else %}
+      <input class="form-button" type="submit" name="import" value="Import"
+            onclick="return confirm('Overwrite all data ?')">
+    {% endif %}
     {% endbuttons %}
 
   </form>
