@@ -5,6 +5,7 @@ import io
 import zipfile
 
 from tablib import Dataset, UnsupportedFormat
+from django.db import DatabaseError, transaction
 from django.db.models import Q, OuterRef, Exists, Subquery
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
@@ -36,13 +37,13 @@ def unzip_files(zip_file):
     ret = dict()
 
     with zipfile.ZipFile(zip_file, 'r') as z:
-        # logger.warning(f"ZipFile list:{z.namelist()}")
+        logger.warning(f"ZipFile list:{z.namelist()}")
 
         for n in z.namelist():
             dataset = Dataset()
             (name, suffix) = path.splitext(n)
             suffix = suffix[1:]
-            # logger.warning(f"unzip_files name and suffix = {name} and {suffix}")
+            logger.warning(f"unzip_files name and suffix = {name} and {suffix}")
             with z.open(n) as myfile:
                 ret[name] = data=dataset.load(myfile.read().decode('utf-8'),format=suffix)
 
@@ -61,7 +62,7 @@ class ImportView(CreateView):
         template = loader.get_template('myequis/import.html')
         return HttpResponse(template.render({
         'form': form,
-        'import_disabled': "true",
+        # 'import_disabled': "true", No good idea - give the user a chance to decide by himself
         }, request))
 
 
@@ -79,167 +80,116 @@ class ImportView(CreateView):
 
         output = []
 
-        if 'dryrun' in request.POST:
-            logger.warning("dry run")
-
         if 'import' in request.POST:
             logger.warning("import")
 
         # logger.warning(f"importData={request.FILES['importData'].name}")
 
         if form.is_valid():
-            # logger.warning("is valid. form.cleaned_data={}".format(str(form.cleaned_data)))
+            logger.warning("is valid. form.cleaned_data={}".format(str(form.cleaned_data)))
 
-            # form.check_data()
+            form.check_data()
 
-            # logger.warning(f"request={request.FILES['importData']}")
+            logger.warning(f"request={request.FILES['importData']}")
             data_count = 0
             error = False
 
             try:
                 datasets = unzip_files(request.FILES['importData'])
+                logger.warning(f"datasets={datasets}")
 
             except (UnsupportedFormat, MultiValueDictKeyError) as e:
                 logger.error(e)
                 message = str(e)
                 error = True
 
-            # logger.warning(f"datasets={datasets}")
 
             if error is False:
-                output.append(f"Loaded file: {request.FILES['importData']}")
 
-                bicycle_resource = BicycleResource()
-                bicycle_data = datasets["Bicycle"]
-                data_count = data_count + len(bicycle_data)
-                logger.warning(f"bicycle_data={bicycle_data}")
-                result_bicycle = bicycle_resource.import_data( bicycle_data, dry_run=True)
-                output.append(f"Bicycle: {len(Bicycle.objects.all())} <-- {len(bicycle_data)}")
-                if result_bicycle.has_errors():
-                    message = "Invalid Bicycles data"
-                error = error or result_bicycle.has_errors()
+                try:
+                    with transaction.atomic():
+                        output.append(f"Loaded file: {request.FILES['importData']}")
 
-                component_resource = ComponentResource()
-                component_data = datasets["Component"]
-                data_count = data_count + len(component_data)
-                logger.warning(f"component_data={component_data}")
-                result_component = component_resource.import_data( component_data, dry_run=True)
-                output.append(f"Component: {len(Component.objects.all())} <-- {len(component_data)}")
-                if result_component.has_errors():
-                    message = "Invalid Components data"
-                error = error or result_component.has_errors()
+                        Mounting.objects.all().delete()
+                        Material.objects.all().delete()
+                        Record.objects.all().delete()
+                        Bicycle.objects.all().delete()
+                        Part.objects.all().delete()
+                        Component.objects.all().delete()
+                        Species.objects.all().delete()
 
-                material_resource = MaterialResource()
-                material_data = datasets["Material"]
-                data_count = data_count + len(material_data)
-                logger.warning(f"material_data={material_data}")
-                result_material = material_resource.import_data( material_data, dry_run=True)
-                output.append(f"Material: {len(Material.objects.all())} <-- {len(material_data)}")
-                if result_material.has_errors():
-                    message = "Invalid Materials data"
-                error = error or result_material.has_errors()
+                        species_resource = SpeciesResource()
+                        species_data = datasets["Species"]
+                        data_count = data_count + len(species_data)
+                        logger.warning(f"species_data={species_data}")
+                        output.append(f"Species: {len(Species.objects.all())} <-- {len(species_data)}")
+                        result_species = species_resource.import_data( species_data)
+                        if result_species.has_errors():
+                            message = "Invalid Species data"
+                        error = error or result_species.has_errors()
 
-                mounting_resource = MountingResource()
-                mounting_data = datasets["Mounting"]
-                data_count = data_count + len(mounting_data)
-                logger.warning(f"mounting_data={mounting_data}")
-                result_mounting = mounting_resource.import_data( mounting_data, dry_run=True)
-                output.append(f"Mounting: {len(Mounting.objects.all())} <-- {len(mounting_data)}")
-                if result_mounting.has_errors():
-                    message = "Invalid Mountings data"
-                error = error or result_mounting.has_errors()
+                        component_resource = ComponentResource()
+                        component_data = datasets["Component"]
+                        data_count = data_count + len(component_data)
+                        logger.warning(f"component_data={component_data}")
+                        output.append(f"Component: {len(Component.objects.all())} <-- {len(component_data)}")
+                        result_component = component_resource.import_data( component_data)
+                        if result_component.has_errors():
+                            message = "Invalid Components data"
+                        error = error or result_component.has_errors()
 
-                part_resource = PartResource()
-                part_data = datasets["Part"]
-                data_count = data_count + len(part_data)
-                logger.warning(f"part_data={part_data}")
-                result_part = part_resource.import_data( part_data, dry_run=True)
-                output.append(f"Part: {len(Part.objects.all())} <-- {len(part_data)}")
-                if result_part.has_errors():
-                    message = "Invalid Parts data"
-                error = error or result_part.has_errors()
+                        part_resource = PartResource()
+                        part_data = datasets["Part"]
+                        data_count = data_count + len(part_data)
+                        logger.warning(f"part_data={part_data}")
+                        output.append(f"Part: {len(Part.objects.all())} <-- {len(part_data)}")
+                        result_part = part_resource.import_data( part_data)
+                        if result_part.has_errors():
+                            message = "Invalid Parts data"
+                        error = error or result_part.has_errors()
 
-                record_resource = RecordResource()
-                record_data = datasets["Record"]
-                data_count = data_count + len(record_data)
-                logger.warning(f"record_data={record_data}")
-                result_record = record_resource.import_data( record_data, dry_run=True)
-                output.append(f"Record: {len(Record.objects.all())} <-- {len(record_data)}")
-                if result_record.has_errors():
-                    message = "Invalid Records data"
-                error = error or result_record.has_errors()
+                        bicycle_resource = BicycleResource()
+                        bicycle_data = datasets["Bicycle"]
+                        data_count = data_count + len(bicycle_data)
+                        logger.warning(f"bicycle_data={bicycle_data}")
+                        output.append(f"Bicycle: {len(Bicycle.objects.all())} <-- {len(bicycle_data)}")
+                        result_bicycle = bicycle_resource.import_data( bicycle_data)
+                        if result_bicycle.has_errors():
+                            message = "Invalid Bicycles data"
+                        error = error or result_bicycle.has_errors()
 
-                species_resource = SpeciesResource()
-                species_data = datasets["Species"]
-                data_count = data_count + len(species_data)
-                logger.warning(f"species_data={species_data}")
-                result_species = species_resource.import_data( species_data, dry_run=True)
-                output.append(f"Species: {len(Species.objects.all())} <-- {len(species_data)}")
-                if result_species.has_errors():
-                    message = "Invalid Species data"
-                error = error or result_species.has_errors()
+                        record_resource = RecordResource()
+                        record_data = datasets["Record"]
+                        data_count = data_count + len(record_data)
+                        logger.warning(f"record_data={record_data}")
+                        output.append(f"Record: {len(Record.objects.all())} <-- {len(record_data)}")
+                        result_record = record_resource.import_data( record_data)
+                        if result_record.has_errors():
+                            message = "Invalid Records data"
+                        error = error or result_record.has_errors()
 
-            if error:
-                logger.warning("error occurred")
-                template = loader.get_template('myequis/import.html')
-                return HttpResponse(template.render({
-                'form': form,
-                'output': output,
-                'message': "ERROR:" + message,
-                'import_disabled': "true",
-                }, request))
+                        material_resource = MaterialResource()
+                        material_data = datasets["Material"]
+                        data_count = data_count + len(material_data)
+                        logger.warning(f"material_data={material_data}")
+                        output.append(f"Material: {len(Material.objects.all())} <-- {len(material_data)}")
+                        result_material = material_resource.import_data( material_data)
+                        if result_material.has_errors():
+                            message = "Invalid Materials data"
+                        error = error or result_material.has_errors()
 
-            if 'dryrun' in request.POST:
-                logger.warning("dry run done")
-                template = loader.get_template('myequis/import.html')
-                return HttpResponse(template.render({
-                'form': form,
-                'output': output,
-                }, request))
+                        mounting_resource = MountingResource()
+                        mounting_data = datasets["Mounting"]
+                        data_count = data_count + len(mounting_data)
+                        logger.warning(f"mounting_data={mounting_data}")
+                        output.append(f"Mounting: {len(Mounting.objects.all())} <-- {len(mounting_data)}")
+                        result_mounting = mounting_resource.import_data( mounting_data)
+                        if result_mounting.has_errors():
+                            message = "Invalid Mountings data"
+                        error = error or result_mounting.has_errors()
 
-            if not error:
-
-                result_bicycle = bicycle_resource.import_data( bicycle_data, dry_run=False)
-                if result_bicycle.has_errors():
-                    message = "Invalid Bicycles data"
-                error = error or result_bicycle.has_errors()
-
-                # result_component = component_resource.import_data( component_data, dry_run=False)
-                # data_count = data_count + len(_data)
-                # if result_component.has_errors():
-                #     message = "Invalid Components data"
-                # error = error or result_component.has_errors()
-                #
-                # result_material = material_resource.import_data( material_data, dry_run=False)
-                # data_count = data_count + len(_data)
-                # if result_material.has_errors():
-                #     message = "Invalid Materials data"
-                # error = error or result_material.has_errors()
-                #
-                # result_mounting = mounting_resource.import_data( mounting_data, dry_run=False)
-                # data_count = data_count + len(_data)
-                # if result_mounting.has_errors():
-                #     message = "Invalid Mountings data"
-                # error = error or result_mounting.has_errors()
-                #
-                # result_part = part_resource.import_data( part_data, dry_run=False)
-                # data_count = data_count + len(_data)
-                # if result_part.has_errors():
-                #     message = "Invalid Parts data"
-                # error = error or result_part.has_errors()
-                #
-                # result_record = record_resource.import_data( record_data, dry_run=False)
-                # data_count = data_count + len(_data)
-                # if result_record.has_errors():
-                #     message = "Invalid Records data"
-                # error = error or result_record.has_errors()
-                #
-                # result_species = species_resource.import_data( species_data, dry_run=False)
-                # data_count = data_count + len(_data)
-                # if result_species.has_errors():
-                #     message = "Invalid Species data"
-                # error = error or result_species.has_errors()
-
+                except DatabaseError:
+                    logger.warning(f"DatabaseError occurred={e}")
 
             if error:
                 logger.warning("import failed")
@@ -247,8 +197,8 @@ class ImportView(CreateView):
                 return HttpResponse(template.render({
                 'form': form,
                 'output': output,
+                'message': "ERROR:" + message,
                 }, request))
-
 
             # redirect to a new URL:
             # see https://docs.djangoproject.com/en/dev/ref/urlresolvers/#django.core.urlresolvers.reverse

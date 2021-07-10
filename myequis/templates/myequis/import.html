@@ -33,14 +33,10 @@
     {% bootstrap_form form %}
 
     {% buttons %}
-    <input class="form-button" type="submit" name="dryrun" value="Dry run">
-    {% if import_disabled %}
-      <input class="form-button-disabled" type="submit" name="import" value="Import"
-             disabled=true>
-    {% else %}
+      <!-- <input class="form-button" type="submit" name="import" value="Import"
+            onclick="return confirm('Overwrite all data ?')"> -->
       <input class="form-button" type="submit" name="import" value="Import"
-            onclick="return confirm('Overwrite all data ?')">
-    {% endif %}
+            ">
     {% endbuttons %}
 
   </form>
