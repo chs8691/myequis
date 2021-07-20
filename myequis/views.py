@@ -1,5 +1,3 @@
-import humanize
-from datetime import datetime, date
 import logging
 import io
 import zipfile
@@ -7,9 +5,11 @@ import zipfile
 from tablib import Dataset, UnsupportedFormat
 from django.db import DatabaseError, transaction
 from django.db.models import Q, OuterRef, Exists, Subquery
+from django.conf import settings
+from django.contrib.auth import authenticate, login
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.datastructures import MultiValueDictKeyError
 from django.views.generic.edit import UpdateView, CreateView
@@ -22,12 +22,14 @@ from .resources import BicycleResource, ComponentResource, MaterialResource, Mou
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
+
 def zip_files(files, suffix):
     outfile = io.BytesIO()
     with zipfile.ZipFile(outfile, 'w') as zf:
         for n in files:
             zf.writestr("{}.{}".format(n["name"], suffix), n["data"])
     return outfile.getvalue()
+
 
 def unzip_files(zip_file):
     """
@@ -45,11 +47,14 @@ def unzip_files(zip_file):
             suffix = suffix[1:]
             logger.warning(f"unzip_files name and suffix = {name} and {suffix}")
             with z.open(n) as myfile:
-                ret[name] = data=dataset.load(myfile.read().decode('utf-8'),format=suffix)
+                ret[name] = dataset.load(myfile.read().decode('utf-8'), format = suffix)
 
     # logger.warning(f"unzip_files ret = {ret}")
 
     return ret
+
+
+
 
 class ImportView(CreateView):
 
@@ -432,10 +437,18 @@ class EditMaterialView(CreateView):
             'form': form,
             }, request))
 
+
 class CreateMaterialView(CreateView):
 
     def get(self, request, *args, **kwargs):
-        logger.warning("CreateMaterialView GET request: {}".format(str(request)))
+        logger.warning(
+            "CreateMaterialView GET request: {}".format(str(request)))
+
+        logger.warning(f"user.is_authenticated={request.user.is_authenticated}")
+        if not request.user.is_authenticated:
+            return redirect('%s?next=%s' % (settings.LOGIN_URL, request.path))
+        else:
+            logger.warning(f"User={request.user}")
 
         # Find the best km as default value
         material = Material()
@@ -443,12 +456,12 @@ class CreateMaterialView(CreateView):
         # If called with data, clean() will be processed!
         form = CreateMaterialForm(
             {
-            'name': material.name,
-            'manufacture': material.manufacture,
-            'size': material.size,
-            'weight': material.weight,
-            'price': material.price,
-            'comment': material.comment,
+                'name': material.name,
+                'manufacture': material.manufacture,
+                'size': material.size,
+                'weight': material.weight,
+                'price': material.price,
+                'comment': material.comment,
              })
 
         template = loader.get_template('myequis/create_material.html')

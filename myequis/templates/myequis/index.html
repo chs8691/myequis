@@ -10,6 +10,15 @@
     </div>
 {% endif %}
 
+<div class="clearfix">
+    <div class="button-line-flex-container">
+        <a class="nav-button" href="{% url 'login' %}">Login</a>
+    </div>
+    <div class="button-line-flex-container">
+        <a class="nav-button" href="{% url 'logout' %}">Logout</a>
+    </div>
+</div>
+
 <h2>Bicycles</h2>
 {% if bicycles %}
     {% for bicycle in bicycles %}
