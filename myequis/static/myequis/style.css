@@ -3,6 +3,14 @@ body {
   text-color: black;
 }
 
+.profile-line{
+	display: block;
+	flex: auto;
+    float: right;
+    margin-right: 0.5em;
+    margin-bottom: 0.3em;
+}
+
 .button-line-flex-container {
 	display: flex;
 	flex-wrap: wrap;
@@ -215,6 +223,12 @@ td {
     display: block;
     border-radius: .5em;
 }
+
+
+a.table-button{
+    text-decoration: none;
+}
+
 
 a:visited.table-button{
     color: black;

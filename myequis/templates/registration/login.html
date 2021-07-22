@@ -1,11 +1,13 @@
-
-{% block title %}Login{% endblock %}
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'myequis/style.css' %}">
 
 {% block content %}
+
   <h2>Login</h2>
   <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit">Login</button>
+    <button class="form-button" type="submit">Login</button>
   </form>
+
 {% endblock %}

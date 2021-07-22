@@ -2,11 +2,12 @@ import logging
 import io
 import zipfile
 
+from datetime import datetime
 from tablib import Dataset, UnsupportedFormat
 from django.db import DatabaseError, transaction
 from django.db.models import Q, OuterRef, Exists, Subquery
 from django.conf import settings
-from django.contrib.auth import authenticate, login
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
 from django.shortcuts import get_object_or_404, redirect, render
@@ -45,39 +46,38 @@ def unzip_files(zip_file):
             dataset = Dataset()
             (name, suffix) = path.splitext(n)
             suffix = suffix[1:]
-            logger.warning(f"unzip_files name and suffix = {name} and {suffix}")
+            logger.warning(
+                f"unzip_files name and suffix = {name} and {suffix}")
             with z.open(n) as myfile:
-                ret[name] = dataset.load(myfile.read().decode('utf-8'), format = suffix)
+                ret[name] = dataset.load(
+                    myfile.read().decode('utf-8'), format=suffix)
 
     # logger.warning(f"unzip_files ret = {ret}")
 
     return ret
 
 
-
-
-class ImportView(CreateView):
+class ImportView(LoginRequiredMixin, CreateView):
 
     def get(self, request, *args, **kwargs):
         logger.warning("ImportView GET request: {}".format(str(request)))
 
         # If called with data, clean() will be processed!
-        form = ImportForm({ })
+        form = ImportForm({})
 
         template = loader.get_template('myequis/import.html')
         return HttpResponse(template.render({
-        'form': form,
-        # 'import_disabled': "true", No good idea - give the user a chance to decide by himself
+            'form': form,
+            # 'import_disabled': "true", No good idea - give the user a chance to decide by himself
         }, request))
 
-
     def post(self, request, *args, **kwargs):
-        logger.warning("ImportView POST request.POST: {} request.FILES:{}".format(str(request.POST), str(request.FILES)))
+        logger.warning("ImportView POST request.POST: {} request.FILES:{}".format(
+            str(request.POST), str(request.FILES)))
 
         if 'cancel' in request.POST:
             return HttpResponseRedirect(
                 "%s?message='Import canceled'" % reverse('myequis:index-url'))
-
 
         form = ImportForm(request.POST, request.FILES)
         # logger.warning("form: " + str(form))
@@ -91,7 +91,8 @@ class ImportView(CreateView):
         # logger.warning(f"importData={request.FILES['importData'].name}")
 
         if form.is_valid():
-            logger.warning("is valid. form.cleaned_data={}".format(str(form.cleaned_data)))
+            logger.warning("is valid. form.cleaned_data={}".format(
+                str(form.cleaned_data)))
 
             form.check_data()
 
@@ -108,12 +109,12 @@ class ImportView(CreateView):
                 message = str(e)
                 error = True
 
-
             if error is False:
 
                 try:
                     with transaction.atomic():
-                        output.append(f"Loaded file: {request.FILES['importData']}")
+                        output.append(
+                            f"Loaded file: {request.FILES['importData']}")
 
                         Mounting.objects.all().delete()
                         Material.objects.all().delete()
@@ -127,8 +128,10 @@ class ImportView(CreateView):
                         species_data = datasets["Species"]
                         data_count = data_count + len(species_data)
                         logger.warning(f"species_data={species_data}")
-                        output.append(f"Species: {len(Species.objects.all())} <-- {len(species_data)}")
-                        result_species = species_resource.import_data( species_data)
+                        output.append(
+                            f"Species: {len(Species.objects.all())} <-- {len(species_data)}")
+                        result_species = species_resource.import_data(
+                            species_data)
                         if result_species.has_errors():
                             message = "Invalid Species data"
                         error = error or result_species.has_errors()
@@ -137,8 +140,10 @@ class ImportView(CreateView):
                         component_data = datasets["Component"]
                         data_count = data_count + len(component_data)
                         logger.warning(f"component_data={component_data}")
-                        output.append(f"Component: {len(Component.objects.all())} <-- {len(component_data)}")
-                        result_component = component_resource.import_data( component_data)
+                        output.append(
+                            f"Component: {len(Component.objects.all())} <-- {len(component_data)}")
+                        result_component = component_resource.import_data(
+                            component_data)
                         if result_component.has_errors():
                             message = "Invalid Components data"
                         error = error or result_component.has_errors()
@@ -147,8 +152,9 @@ class ImportView(CreateView):
                         part_data = datasets["Part"]
                         data_count = data_count + len(part_data)
                         logger.warning(f"part_data={part_data}")
-                        output.append(f"Part: {len(Part.objects.all())} <-- {len(part_data)}")
-                        result_part = part_resource.import_data( part_data)
+                        output.append(
+                            f"Part: {len(Part.objects.all())} <-- {len(part_data)}")
+                        result_part = part_resource.import_data(part_data)
                         if result_part.has_errors():
                             message = "Invalid Parts data"
                         error = error or result_part.has_errors()
@@ -157,8 +163,10 @@ class ImportView(CreateView):
                         bicycle_data = datasets["Bicycle"]
                         data_count = data_count + len(bicycle_data)
                         logger.warning(f"bicycle_data={bicycle_data}")
-                        output.append(f"Bicycle: {len(Bicycle.objects.all())} <-- {len(bicycle_data)}")
-                        result_bicycle = bicycle_resource.import_data( bicycle_data)
+                        output.append(
+                            f"Bicycle: {len(Bicycle.objects.all())} <-- {len(bicycle_data)}")
+                        result_bicycle = bicycle_resource.import_data(
+                            bicycle_data)
                         if result_bicycle.has_errors():
                             message = "Invalid Bicycles data"
                         error = error or result_bicycle.has_errors()
@@ -167,8 +175,10 @@ class ImportView(CreateView):
                         record_data = datasets["Record"]
                         data_count = data_count + len(record_data)
                         logger.warning(f"record_data={record_data}")
-                        output.append(f"Record: {len(Record.objects.all())} <-- {len(record_data)}")
-                        result_record = record_resource.import_data( record_data)
+                        output.append(
+                            f"Record: {len(Record.objects.all())} <-- {len(record_data)}")
+                        result_record = record_resource.import_data(
+                            record_data)
                         if result_record.has_errors():
                             message = "Invalid Records data"
                         error = error or result_record.has_errors()
@@ -177,8 +187,10 @@ class ImportView(CreateView):
                         material_data = datasets["Material"]
                         data_count = data_count + len(material_data)
                         logger.warning(f"material_data={material_data}")
-                        output.append(f"Material: {len(Material.objects.all())} <-- {len(material_data)}")
-                        result_material = material_resource.import_data( material_data)
+                        output.append(
+                            f"Material: {len(Material.objects.all())} <-- {len(material_data)}")
+                        result_material = material_resource.import_data(
+                            material_data)
                         if result_material.has_errors():
                             message = "Invalid Materials data"
                         error = error or result_material.has_errors()
@@ -187,8 +199,10 @@ class ImportView(CreateView):
                         mounting_data = datasets["Mounting"]
                         data_count = data_count + len(mounting_data)
                         logger.warning(f"mounting_data={mounting_data}")
-                        output.append(f"Mounting: {len(Mounting.objects.all())} <-- {len(mounting_data)}")
-                        result_mounting = mounting_resource.import_data( mounting_data)
+                        output.append(
+                            f"Mounting: {len(Mounting.objects.all())} <-- {len(mounting_data)}")
+                        result_mounting = mounting_resource.import_data(
+                            mounting_data)
                         if result_mounting.has_errors():
                             message = "Invalid Mountings data"
                         error = error or result_mounting.has_errors()
@@ -200,9 +214,9 @@ class ImportView(CreateView):
                 logger.warning("import failed")
                 template = loader.get_template('myequis/import.html')
                 return HttpResponse(template.render({
-                'form': form,
-                'output': output,
-                'message': "ERROR:" + message,
+                    'form': form,
+                    'output': output,
+                    'message': "ERROR:" + message,
                 }, request))
 
             # redirect to a new URL:
@@ -216,7 +230,7 @@ class ImportView(CreateView):
             logger.warning("is not valid")
             template = loader.get_template('myequis/import.html')
             return HttpResponse(template.render({
-            'form': form,
+                'form': form,
             }, request))
 
 
@@ -239,44 +253,48 @@ def xxximport_data(request):
         bicycle_resource = BicycleResource()
         bicycle_data = datasets["Bicycle"]
         logger.warning(f"bicycle_data={bicycle_data}")
-        result_bicycle = bicycle_resource.import_data( bicycle_data, dry_run=dry_run
-)
-        output.append(f"Bicycle: {len(Bicycle.objects.all())} <-- {len(bicycle_data)}")
+        result_bicycle = bicycle_resource.import_data(bicycle_data, dry_run=dry_run
+                                                      )
+        output.append(
+            f"Bicycle: {len(Bicycle.objects.all())} <-- {len(bicycle_data)}")
         if result_bicycle.has_errors():
             message = "Invalid Bicycles data"
 
         component_resource = ComponentResource()
         component_data = datasets["Component"]
         logger.warning(f"component_data={component_data}")
-        result_component = component_resource.import_data( component_data, dry_run=dry_run
-)
-        output.append(f"Component: {len(Component.objects.all())} <-- {len(component_data)}")
+        result_component = component_resource.import_data(component_data, dry_run=dry_run
+                                                          )
+        output.append(
+            f"Component: {len(Component.objects.all())} <-- {len(component_data)}")
         if result_component.has_errors():
             message = "Invalid Components data"
 
         material_resource = MaterialResource()
         material_data = datasets["Material"]
         logger.warning(f"material_data={material_data}")
-        result_material = material_resource.import_data( material_data, dry_run=dry_run
-)
-        output.append(f"Material: {len(Material.objects.all())} <-- {len(material_data)}")
+        result_material = material_resource.import_data(material_data, dry_run=dry_run
+                                                        )
+        output.append(
+            f"Material: {len(Material.objects.all())} <-- {len(material_data)}")
         if result_material.has_errors():
             message = "Invalid Materials data"
 
         mounting_resource = MountingResource()
         mounting_data = datasets["Mounting"]
         logger.warning(f"mounting_data={mounting_data}")
-        result_mounting = mounting_resource.import_data( mounting_data, dry_run=dry_run
-)
-        output.append(f"Mounting: {len(Mounting.objects.all())} <-- {len(mounting_data)}")
+        result_mounting = mounting_resource.import_data(mounting_data, dry_run=dry_run
+                                                        )
+        output.append(
+            f"Mounting: {len(Mounting.objects.all())} <-- {len(mounting_data)}")
         if result_mounting.has_errors():
             message = "Invalid Mountings data"
 
         part_resource = PartResource()
         part_data = datasets["Part"]
         logger.warning(f"part_data={part_data}")
-        result_part = part_resource.import_data( part_data, dry_run=dry_run
-)
+        result_part = part_resource.import_data(part_data, dry_run=dry_run
+                                                )
         output.append(f"Part: {len(Part.objects.all())} <-- {len(part_data)}")
         if result_part.has_errors():
             message = "Invalid Parts data"
@@ -284,22 +302,22 @@ def xxximport_data(request):
         record_resource = RecordResource()
         record_data = datasets["Record"]
         logger.warning(f"record_data={record_data}")
-        result_record = record_resource.import_data( record_data, dry_run=dry_run
-)
-        output.append(f"Record: {len(Record.objects.all())} <-- {len(record_data)}")
+        result_record = record_resource.import_data(record_data, dry_run=dry_run
+                                                    )
+        output.append(
+            f"Record: {len(Record.objects.all())} <-- {len(record_data)}")
         if result_record.has_errors():
             message = "Invalid Records data"
-
 
         species_resource = SpeciesResource()
         species_data = datasets["Species"]
         logger.warning(f"species_data={species_data}")
-        result_species = species_resource.import_data( species_data, dry_run=dry_run
-)
-        output.append(f"Species: {len(Species.objects.all())} <-- {len(species_data)}")
+        result_species = species_resource.import_data(species_data, dry_run=dry_run
+                                                      )
+        output.append(
+            f"Species: {len(Species.objects.all())} <-- {len(species_data)}")
         if result_species.has_errors():
             message = "Invalid Species data"
-
 
         # if not result.has_errors():
             # Import now
@@ -308,10 +326,8 @@ def xxximport_data(request):
     # return render(request, 'myequis/import.html')
     template = loader.get_template('myequis/import.html')
     return HttpResponse(template.render({
-    'output': output,
+        'output': output,
     }, request))
-
-
 
 
 def export_data(request):
@@ -331,7 +347,8 @@ def export_data(request):
                 dict(name="Species", data=SpeciesResource().export().csv),
                 ], "csv")
 
-            response = HttpResponse(zipped_file, content_type='application/octet-stream')
+            response = HttpResponse(
+                zipped_file, content_type='application/octet-stream')
             response['Content-Disposition'] = 'attachment; filename="exported_data_csv.zip"'
 
             return response
@@ -348,7 +365,8 @@ def export_data(request):
                 dict(name="Species", data=SpeciesResource().export().json),
                 ], "json")
 
-            response = HttpResponse(zipped_file, content_type='application/octet-stream')
+            response = HttpResponse(
+                zipped_file, content_type='application/octet-stream')
             response['Content-Disposition'] = 'attachment; filename="exported_data_json.zip"'
             return response
 
@@ -364,7 +382,8 @@ def export_data(request):
                 dict(name="Species", data=SpeciesResource().export().xls),
                 ], "xls")
 
-            response = HttpResponse(zipped_file, content_type='application/octet-stream')
+            response = HttpResponse(
+                zipped_file, content_type='application/octet-stream')
             response['Content-Disposition'] = 'attachment; filename="exported_data_xls.zip"'
 
             return response
@@ -372,7 +391,7 @@ def export_data(request):
     return render(request, 'myequis/export.html')
 
 
-class EditMaterialView(CreateView):
+class EditMaterialView(LoginRequiredMixin, CreateView):
 
     def get(self, request, *args, **kwargs):
         logger.warning("EditMaterialView GET request: {}".format(str(request)))
@@ -383,19 +402,20 @@ class EditMaterialView(CreateView):
         # If called with data, clean() will be processed!
         form = EditMaterialForm(
             {
-            'name': material.name,
-            'manufacture': material.manufacture,
-            'size': material.size,
-            'weight': material.weight,
-            'price': material.price,
-            'comment': material.comment,
+                'name': material.name,
+                'manufacture': material.manufacture,
+                'size': material.size,
+                'weight': material.weight,
+                'price': material.price,
+                'comment': material.comment,
              })
 
         template = loader.get_template('myequis/edit_material.html')
         return HttpResponse(template.render({'material': material, 'form': form}, request))
 
     def post(self, request, *args, **kwargs):
-        logger.warning("EditMaterialView POST request.POST: {}".format(str(request.POST)))
+        logger.warning(
+            "EditMaterialView POST request.POST: {}".format(str(request.POST)))
 
         if 'cancel' in request.POST:
             return HttpResponseRedirect(
@@ -408,7 +428,8 @@ class EditMaterialView(CreateView):
         material = get_object_or_404(Material, pk=kwargs['material_id'])
 
         if form.is_valid():
-            logger.warning("is valid. form.cleaned_data={}".format(str(form.cleaned_data)))
+            logger.warning("is valid. form.cleaned_data={}".format(
+                str(form.cleaned_data)))
             form.check_data()
 
             # process the data in form.cleaned_data as required
@@ -433,8 +454,8 @@ class EditMaterialView(CreateView):
             logger.warning("is not valid")
             template = loader.get_template('myequis/edit_material.html')
             return HttpResponse(template.render({
-            'material': material,
-            'form': form,
+                'material': material,
+                'form': form,
             }, request))
 
 
@@ -444,7 +465,8 @@ class CreateMaterialView(CreateView):
         logger.warning(
             "CreateMaterialView GET request: {}".format(str(request)))
 
-        logger.warning(f"user.is_authenticated={request.user.is_authenticated}")
+        logger.warning(
+            f"user.is_authenticated={request.user.is_authenticated}")
         if not request.user.is_authenticated:
             return redirect('%s?next=%s' % (settings.LOGIN_URL, request.path))
         else:
@@ -468,7 +490,8 @@ class CreateMaterialView(CreateView):
         return HttpResponse(template.render({'material': material, 'form': form}, request))
 
     def post(self, request, *args, **kwargs):
-        logger.warning("CreateMaterialView POST request.POST: {}".format(str(request.POST)))
+        logger.warning(
+            "CreateMaterialView POST request.POST: {}".format(str(request.POST)))
 
         if 'cancel' in request.POST:
             return HttpResponseRedirect(
@@ -481,7 +504,8 @@ class CreateMaterialView(CreateView):
         material = Material()
 
         if form.is_valid():
-            logger.warning("is valid. form.cleaned_data={}".format(str(form.cleaned_data)))
+            logger.warning("is valid. form.cleaned_data={}".format(
+                str(form.cleaned_data)))
             form.check_data()
 
             # process the data in form.cleaned_data as required
@@ -506,12 +530,12 @@ class CreateMaterialView(CreateView):
             logger.warning("is not valid")
             template = loader.get_template('myequis/create_material.html')
             return HttpResponse(template.render({
-            'material': material,
-            'form': form,
+                'material': material,
+                'form': form,
             }, request))
 
 
-class CreateRecordView(CreateView):
+class CreateRecordView(LoginRequiredMixin, CreateView):
 
     def get(self, request, *args, **kwargs):
         # logger.warning("CreateRecordView GET request: {}".format(str(request)))
@@ -546,7 +570,8 @@ class CreateRecordView(CreateView):
         record = Record()
         record.date = form.cleaned_data['date']
         record.km = form.cleaned_data['km']
-        record.bicycle = get_object_or_404(Bicycle, pk=form.cleaned_data['bicycle_id'])
+        record.bicycle = get_object_or_404(
+            Bicycle, pk=form.cleaned_data['bicycle_id'])
 
         if form.is_valid():
             # logger.warning("is Valid. form.cleaned_data={}".format(str(form.cleaned_data)))
@@ -578,7 +603,8 @@ class CreateRecordView(CreateView):
         record.bicycle = bicycle
         # logger.warning("NEW: " + str(record))
 
-        records = Record.objects.filter(bicycle_id=bicycle.id).filter(date__lt=record.date).order_by('-date')
+        records = Record.objects.filter(bicycle_id=bicycle.id).filter(
+            date__lt=record.date).order_by('-date')
 
         if len(records) >= 1:
             r = records[0]
@@ -591,7 +617,7 @@ class CreateRecordView(CreateView):
         return record
 
 
-class DeleteMountingView(UpdateView):
+class DeleteMountingView(LoginRequiredMixin, UpdateView):
 
     def get(self, request, *args, **kwargs):
 
@@ -626,7 +652,8 @@ class DeleteMountingView(UpdateView):
 
         if 'cancel' in request.POST:
             return HttpResponseRedirect(
-                "%s?message='Delete mounting for Part {} canceled'".format(part.name)
+                "%s?message='Delete mounting for Part {} canceled'".format(
+                    part.name)
                 % reverse('myequis:list-bicycle-parts-url',
                           args=(kwargs['bicycle_id'],)))
 
@@ -666,7 +693,7 @@ class DeleteMountingView(UpdateView):
             .order_by('name')
 
 
-class MountMaterialView(CreateView):
+class MountMaterialView(LoginRequiredMixin, CreateView):
     """
     Input: Part.id, Bicycle.id
     """
@@ -703,8 +730,10 @@ class MountMaterialView(CreateView):
 
         if form.is_valid():
             # logger.warning("selected_material: {}".format(str(form.cleaned_data['selected_material'])))
-            material_under_edit = get_object_or_404(Material, pk=form.cleaned_data['selected_material'])
-            record = get_object_or_404(Record, pk=form.cleaned_data['record_select'])
+            material_under_edit = get_object_or_404(
+                Material, pk=form.cleaned_data['selected_material'])
+            record = get_object_or_404(
+                Record, pk=form.cleaned_data['record_select'])
             logger.warning("record_select: {}".format(str(record)))
 
             mounting = Mounting()
@@ -738,7 +767,7 @@ class MountMaterialView(CreateView):
             .order_by('name')
 
 
-class DismountMaterialView(UpdateView):
+class DismountMaterialView(LoginRequiredMixin, UpdateView):
     """
     Input: Part.id, Bicycle.id
     """
@@ -778,7 +807,8 @@ class DismountMaterialView(UpdateView):
                                                                              dismount_record__isnull=True,
                                                                              )[0].id)
 
-        logger.warning(f"POST: bycicle={bicycle} part={part} my_mounting={my_mounting}")
+        logger.warning(
+            f"POST: bycicle={bicycle} part={part} my_mounting={my_mounting}")
 
         if 'cancel' in request.POST:
             return HttpResponseRedirect(
@@ -789,9 +819,12 @@ class DismountMaterialView(UpdateView):
         form = DismountForm(request.POST)
 
         if form.is_valid():
-            logger.warning("valid! cleaned_data={}".format(str(form.cleaned_data)))
-            mounting_under_edit = get_object_or_404(Mounting, pk=form.cleaned_data['mounting_id'])
-            record = get_object_or_404(Record, pk=form.cleaned_data['selected_record'])
+            logger.warning("valid! cleaned_data={}".format(
+                str(form.cleaned_data)))
+            mounting_under_edit = get_object_or_404(
+                Mounting, pk=form.cleaned_data['mounting_id'])
+            record = get_object_or_404(
+                Record, pk=form.cleaned_data['selected_record'])
             mounting_under_edit.dismount_record = record
 
             mounting_under_edit.save()
@@ -816,7 +849,8 @@ class DismountMaterialView(UpdateView):
 
     @staticmethod
     def select_records(bicycle, mounting):
-        records = Record.objects.filter(bicycle_id=bicycle.id, date__gte=mounting.mount_record.date).order_by("-date")
+        records = Record.objects.filter(
+            bicycle_id=bicycle.id, date__gte=mounting.mount_record.date).order_by("-date")
         record_list = []
         for record in records:
             days = record.date - mounting.mount_record.date
@@ -832,7 +866,8 @@ class DismountMaterialView(UpdateView):
             )
         return record_list
 
-class ExchangeMaterialView(UpdateView):
+
+class ExchangeMaterialView(LoginRequiredMixin,  UpdateView):
     """
     Input: Part.id, Bicycle.id
     """
@@ -880,8 +915,10 @@ class ExchangeMaterialView(UpdateView):
 
         if form.is_valid():
             # logger.warning("selected_material: {}".format(str(form.cleaned_data['selected_material'])))
-            selected_record = get_object_or_404(Record, pk=form.cleaned_data['selected_record'])
-            selected_material = get_object_or_404(Material, pk=form.cleaned_data['selected_material'])
+            selected_record = get_object_or_404(
+                Record, pk=form.cleaned_data['selected_record'])
+            selected_material = get_object_or_404(
+                Material, pk=form.cleaned_data['selected_material'])
             # logger.warning("record_select: {}".format(str(selected_record)))
 
             dis_mounting.dismount_record = selected_record
@@ -894,7 +931,8 @@ class ExchangeMaterialView(UpdateView):
             new_mounting.material = selected_material
             new_mounting.part = part
             new_mounting.save()
-            logger.warning("New mounting created: {}".format(str(new_mounting)))
+            logger.warning(
+                "New mounting created: {}".format(str(new_mounting)))
 
             return HttpResponseRedirect(
                 "%s?message='{} mounted'".format(part.name)
@@ -923,7 +961,8 @@ class ExchangeMaterialView(UpdateView):
 
     @staticmethod
     def select_records(bicycle, mounting):
-        records = Record.objects.filter(bicycle_id=bicycle.id, date__gte=mounting.mount_record.date).order_by("-date")
+        records = Record.objects.filter(
+            bicycle_id=bicycle.id, date__gte=mounting.mount_record.date).order_by("-date")
         record_list = []
         for record in records:
             days = record.date - mounting.mount_record.date
@@ -940,7 +979,7 @@ class ExchangeMaterialView(UpdateView):
         return record_list
 
 
-class EditRecordView(UpdateView):
+class EditRecordView(LoginRequiredMixin, UpdateView):
 
     def get(self, request, *args, **kwargs):
 
@@ -1072,7 +1111,8 @@ def bicycle_detail(request, bicycle_id):
         part_data_list = []
 
         for part in parts:
-            mounting = next((m for m in mountings if m.part.id == part.id), None)
+            mounting = next(
+                (m for m in mountings if m.part.id == part.id), None)
             if mounting is not None:
                 part_material = mounting.material
             else:
@@ -1094,7 +1134,8 @@ def bicycle_detail(request, bicycle_id):
                         # Materials history
                         distance += mounting.dismount_record.km - mounting.mount_record.km
 
-            part_data_list.append(dict(part=part, material=part_material, mounting=mounting, distance=distance, ))
+            part_data_list.append(
+                dict(part=part, material=part_material, mounting=mounting, distance=distance, ))
 
         if component_has_materials:
             component_data['parts'] = part_data_list
@@ -1142,7 +1183,8 @@ def list_bicycle_parts(request, bicycle_id):
         part_data_list = []
 
         for part in parts:
-            mounting = next((m for m in mountings if m.part.id == part.id), None)
+            mounting = next(
+                (m for m in mountings if m.part.id == part.id), None)
             if mounting is not None:
                 part_material = mounting.material
             else:
@@ -1164,7 +1206,8 @@ def list_bicycle_parts(request, bicycle_id):
                         distance += mounting.dismount_record.km - mounting.mount_record.km
 
             # logger.warning("part={}".format(str(part)))
-            part_data_list.append(dict(part=part, material=part_material, distance=distance, mounting=mounting))
+            part_data_list.append(
+                dict(part=part, material=part_material, distance=distance, mounting=mounting))
 
         component_data['parts'] = part_data_list
 
@@ -1217,7 +1260,8 @@ def list_bicycle_history(request, bicycle_id):
         part_data_list = []
 
         for part in parts:
-            mounting = next((m for m in mountings if m.part.id == part.id), None)
+            mounting = next(
+                (m for m in mountings if m.part.id == part.id), None)
             if mounting is not None:
                 part_material = mounting.material
             else:
@@ -1240,7 +1284,8 @@ def list_bicycle_history(request, bicycle_id):
                         distance += mounting.dismount_record.km - mounting.mount_record.km
 
             # logger.warning("part={}".format(str(part)))
-            part_data_list.append(dict(part=part, material=part_material, distance=distance, mounting=mounting))
+            part_data_list.append(
+                dict(part=part, material=part_material, distance=distance, mounting=mounting))
 
         component_data['parts'] = part_data_list
 
@@ -1301,25 +1346,68 @@ def materials(request):
 
     # Existing materials without actual mounted items
     dismounted_materials = Material.objects\
-        .annotate(mounted=Exists(Mounting.objects\
-            .filter(Q(dismount_record__isnull=True), material=OuterRef('pk'))))\
+        .annotate(mounted=Exists(Mounting.objects
+                                 .filter(Q(dismount_record__isnull=True), material=OuterRef('pk'))))\
         .filter(mounted=False)\
         .filter(disposed=False)\
         .order_by('name')
 
     # Existing materials which are dismounted actually
     dismounted_materials = Material.objects\
-        .annotate(mounted=Exists(Mounting.objects.\
-            filter(Q(dismount_record__isnull=True), material=OuterRef('pk'))))\
-        .annotate(hasMountings=Exists(Mounting.objects\
-            .filter(material=OuterRef('pk'))))\
+        .annotate(mounted=Exists(Mounting.objects.
+                                 filter(Q(dismount_record__isnull=True), material=OuterRef('pk'))))\
+        .annotate(hasMountings=Exists(Mounting.objects
+                                      .filter(material=OuterRef('pk'))))\
         .filter(mounted=False)\
         .filter(disposed=False)\
         .filter(hasMountings=True)\
-        .annotate(dismountedAt=Subquery(Mounting.objects\
-            .filter(material=OuterRef('pk'))\
-            .order_by('-dismount_record__date')\
-            .values('dismount_record__date')[:1]))
+        .annotate(dismountedAt=Subquery(Mounting.objects
+                                        .filter(material=OuterRef('pk'))
+                                        .order_by('-dismount_record__date')
+                                        .values('dismount_record__date')[:1]))
+
+    # Materials without actual mounted items
+    disposed_materials = Material.objects\
+        .filter(disposed=True)\
+        .order_by('-disposedAt')
+
+    template = loader.get_template('myequis/materials.html')
+
+    if 'message' in request.GET.keys():
+        context = {
+            'new_materials': new_materials,
+            'dismounted_materials': dismounted_materials,
+            'disposed_materials': disposed_materials,
+            'message': request.GET['message']
+        }
+    else:
+        context = {
+            'new_materials': new_materials,
+            'dismounted_materials': dismounted_materials,
+            'disposed_materials': disposed_materials,
+        }
+
+    return HttpResponse(template.render(context, request))
+
+
+def material(request, material_id):
+    material = Material.objects.get(id=material_id)
+
+    return HttpResponse("You're looking at material %s." % material.name).order_by('name')
+
+    # Existing materials which are dismounted actually
+    dismounted_materials = Material.objects\
+        .annotate(mounted=Exists(Mounting.objects.
+                                 filter(Q(dismount_record__isnull=True), material=OuterRef('pk'))))\
+        .annotate(hasMountings=Exists(Mounting.objects
+                                      .filter(material=OuterRef('pk'))))\
+        .filter(mounted=False)\
+        .filter(disposed=False)\
+        .filter(hasMountings=True)\
+        .annotate(dismountedAt=Subquery(Mounting.objects
+                                        .filter(material=OuterRef('pk'))
+                                        .order_by('-dismount_record__date')
+                                        .values('dismount_record__date')[:1]))
 
     # Materials without actual mounted items
     disposed_materials = Material.objects\

@@ -1,6 +1,4 @@
 {% load static %}
-{% load bootstrap4 %}       {# import bootstrap4/bootstrap3 #}
-{% bootstrap_css %}         {# Embed Bootstrap CSS #}
 
 <link rel="stylesheet" type="text/css" href="{% static 'myequis/style.css' %}">
 
@@ -10,13 +8,16 @@
     </div>
 {% endif %}
 
+
 <div class="clearfix">
-    <div class="button-line-flex-container">
-        <a class="nav-button" href="{% url 'login' %}">Login</a>
-    </div>
-    <div class="button-line-flex-container">
-        <a class="nav-button" href="{% url 'logout' %}">Logout</a>
-    </div>
+  <div class="profile-line">
+    {% if user.is_authenticated %}
+      Hi {{ user.username }}!
+      <a  href="{% url 'logout' %}">Log Out</a>
+    {% else %}
+      <a  href="{% url 'login' %}">Login</a>
+    {% endif %}
+  </div>
 </div>
 
 <h2>Bicycles</h2>
@@ -58,6 +59,7 @@
 <h2>Bulk Operations</h2>
 <div class="clearfix">
     <div class="button-line-flex-container">
+        <a class="nav-button" href="{% url 'admin:index' %}">Admin</a>
         <a class="nav-button" href="{% url 'myequis:export-url' %}">Export</a>
         <a class="nav-button" href="{% url 'myequis:import-url' %}">Import</a>
     </div>
