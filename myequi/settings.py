@@ -25,7 +25,7 @@ SECRET_KEY = '=$^!sda07yc!#^mxjllij+#l&^&_63c@t^1(7-id+d#7^dh(rd'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['kollegen.uber.space']
 
 # Set the default type for ID fields
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
