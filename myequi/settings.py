@@ -118,7 +118,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/2.2/topics/i18n/
 
-#LANGUAGE_CODE = 'en-us'
+# LANGUAGE_CODE = 'en-us'
 LANGUAGE_CODE = 'de-de'
 
 TIME_ZONE = 'UTC'
@@ -138,3 +138,6 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 IMPORT_EXPORT_USE_TRANSACTIONS = True
+
+LOGIN_REDIRECT_URL = '/myequis/'
+LOGOUT_REDIRECT_URL = '/myequis/'
