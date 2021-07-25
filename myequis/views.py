@@ -1115,7 +1115,8 @@ def list_bicycle_parts(request, bicycle_id):
         )
     ).filter(bicycle_found=True, dismount_record=None)
 
-    # logger.warning("mountings={}".format(str(mountings)))
+    logger.warning("mountings={}".format(str(mountings)))
+    logger.warning("records={}".format(str(records)))
 
     component_data_list = []
 
