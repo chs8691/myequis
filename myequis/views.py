@@ -459,18 +459,11 @@ class EditMaterialView(LoginRequiredMixin, CreateView):
             }, request))
 
 
-class CreateMaterialView(CreateView):
+class CreateMaterialView(LoginRequiredMixin, CreateView):
 
     def get(self, request, *args, **kwargs):
         logger.warning(
             "CreateMaterialView GET request: {}".format(str(request)))
-
-        logger.warning(
-            f"user.is_authenticated={request.user.is_authenticated}")
-        if not request.user.is_authenticated:
-            return redirect('%s?next=%s' % (settings.LOGIN_URL, request.path))
-        else:
-            logger.warning(f"User={request.user}")
 
         # Find the best km as default value
         material = Material()

@@ -23,7 +23,7 @@
 <h2>Bicycles</h2>
 {% if bicycles %}
     {% for bicycle in bicycles %}
-        <a class="table-button" href="/myequis/bicycles/{{ bicycle.id }}/">{{ bicycle.name }}</a>
+        <a class="table-button" href="{% url 'myequis:bicycle-detail-url' bicycle.id %}">{{ bicycle.name }}</a>
     {% endfor %}
 {% else %}
     <p>No bicycles yet</p>

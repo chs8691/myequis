@@ -17,7 +17,7 @@ from django.contrib import admin
 from django.urls import include, path
 
 urlpatterns = [
-    path('myequis/', include('myequis.urls')),
-    path('admin/', admin.site.urls),
-    path('accounts/', include('django.contrib.auth.urls')),
+    path('japp/myequis/', include('myequis.urls')),
+    path('japp/admin/', admin.site.urls),
+    path('japp/accounts/', include('django.contrib.auth.urls')),
 ]
