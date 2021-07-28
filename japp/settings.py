@@ -16,7 +16,9 @@ import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Static files will be collected with command collectstatic into this directory
+# 
 STATIC_ROOT = BASE_DIR + '/static'
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
@@ -25,7 +27,7 @@ STATIC_ROOT = BASE_DIR + '/static'
 SECRET_KEY = '=$^!sda07yc!#^mxjllij+#l&^&_63c@t^1(7-id+d#7^dh(rd'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False 
 
 ALLOWED_HOSTS = ['kollegen.uber.space', '127.0.0.1']
 
@@ -135,7 +137,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
-STATIC_URL = '/static/'
+STATIC_URL = '/japp/static/'
 
 IMPORT_EXPORT_USE_TRANSACTIONS = True
 
