@@ -151,11 +151,10 @@ LOGOUT_REDIRECT_URL = '/myequis/'
 
 #### system specific part ####
 
-
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['127.0.0.1']
+ALLOWED_HOSTS = ['kollegen.uber.space']
 
 
-STATIC_URL = '/static/'
+STATIC_URL = '/japp/static/'

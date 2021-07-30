@@ -1,6 +1,7 @@
 body {
   background-color:  #ecf2f9;
-  text-color: black;
+  font-size: 16px;
+  font-family: sans-serif;
 }
 
 .profile-line{
@@ -109,7 +110,12 @@ table td span {
     left: 0;
 }
 /* Simple CSS for flexbox table on mobile */
-@media(max-width: 800px) {
+@media screen and (max-width: 1100px) and (orientation: portrait){
+
+  body {
+    font-size: 30px;
+  }
+
     table thead {
         left: -9999px;
         position: absolute;
@@ -130,11 +136,13 @@ table td span {
         padding-top: 35px; /* additional padding to avoid heading overlap */
         position: relative;
         width: 50%;
+        font-size: 20px;
 
     }
     /* Show the heading span */
     table td span {
         display: block;
+        font-size: 20px;
     }
 }
 
