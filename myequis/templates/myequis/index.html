@@ -1,6 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 {% load static %}
+{% load bootstrap4 %}       {# import bootstrap4/bootstrap3 #}
+{% bootstrap_css %}         {# Embed Bootstrap CSS #}
+{% bootstrap_javascript jquery='full' %}  {# Embed Bootstrap JS+jQuery #}
 
-<link rel="stylesheet" type="text/css"  href="{% static 'myequis/style.css' %}">
+<title>My Equis</title>
+</head>
+<body>
+  <header>
+  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="#">My Equis</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item">
+          {% if user.is_authenticated %}
+            Hi {{ user.username }}!
+            <a class="nav-link" href="{% url 'logout' %}">Log Out</a>
+          {% else %}
+            <a class="nav-link" href="{% url 'login' %}">Login</a>
+          {% endif %}
+        </li>
+      </ul>
+    </div>
+  </nav>
 
 {% if message %}
     <div class="message-line">
@@ -8,47 +38,55 @@
     </div>
 {% endif %}
 
+</<header>
 
-<div class="clearfix">
-  <div class="profile-line">
-    {% if user.is_authenticated %}
-      Hi {{ user.username }}!
-      <a  href="{% url 'logout' %}">Log Out</a>
-    {% else %}
-      <a  href="{% url 'login' %}">Login</a>
-    {% endif %}
-  </div>
-</div>
-
+<main class="main">
 <h2>Bicycles</h2>
 {% if bicycles %}
+  <table class="table table-hover">
+    <thead>
+
+      <tr>
+        <th scope="col">Name</th>
+      </tr>
+    </thead>
+    <tbody>
     {% for bicycle in bicycles %}
-        <a class="table-button" href="{% url 'myequis:bicycle-detail-url' bicycle.id %}">{{ bicycle.name }}</a>
-    {% endfor %}
+      <tr>
+        <td>
+            <a class="nav-link"  href="{% url 'myequis:bicycle-detail-url' bicycle.id %}">{{ bicycle.name }}</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 {% else %}
     <p>No bicycles yet</p>
 {% endif %}
 
 <h2>Materials</h2>
-<div class="clearfix">
-    <div class="button-line-flex-container">
-        <a class="nav-button" href="{% url 'myequis:list-materials-url' %}">Manage</a>
-    </div>
-</div>
+
+
+<ul class="nav justify-content-end">
+  <li class="nav-item">
+    <a class="btn btn-primary" href="{% url 'myequis:list-materials-url' %}">Manage</a>
+  </li>
+</ul>
+
 {% if materials %}
-    <table>
+    <table class="table">
         <thead>
             <tr>
-                <th>Name</th>
-                <th>Manufacture</th>
-                <th>Price</th>
+                <th scope="col">Name</th>
+                <th scope="col">Manufacture</th>
+                <th scope="col" class="d-none d-md-block">Price</th>
             </tr>
         </thead>
         {% for material in materials %}
             <tr>
-                <td><span>Name</span>{{ material.name }}</td>
-                <td><span>Manufacture</span>{{ material.manufacture }}</td>
-                <td><span>Price</span>{{ material.price }}</td>
+                <td>{{ material.name }}</td>
+                <td>{{ material.manufacture }}</td>
+                <td class="d-none d-md-block">{{ material.price }}</td>
             </tr>
         {% endfor %}
     </table>
@@ -57,10 +95,14 @@
 {% endif %}
 
 <h2>Bulk Operations</h2>
-<div class="clearfix">
-    <div class="button-line-flex-container">
-        <a class="nav-button" href="{% url 'admin:index' %}">Admin</a>
-        <a class="nav-button" href="{% url 'myequis:export-url' %}">Export</a>
-        <a class="nav-button" href="{% url 'myequis:import-url' %}">Import</a>
-    </div>
-</div>
+<ul class="nav justify-content-end">
+  <li class="nav-item">
+    <a class="btn btn-primary" href="{% url 'admin:index' %}">Admin</a>
+    <a class="btn btn-primary" href="{% url 'myequis:export-url' %}">Export</a>
+    <a class="btn btn-primary" href="{% url 'myequis:import-url' %}">Import</a>
+  </li>
+</ul>
+</main>
+
+</body>
+  </html>

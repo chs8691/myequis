@@ -1,13 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1", shrink-to-fit=no">
+
 {% load static %}
 {% load bootstrap4 %}       {# import bootstrap4/bootstrap3 #}
 {% bootstrap_css %}         {# Embed Bootstrap CSS #}
 {% bootstrap_javascript jquery='full' %}  {# Embed Bootstrap JS+jQuery #}
 {{ form.media }}            {# Adds date-picker required JS and CSS #}
 
-<link rel="stylesheet" type="text/css" href="{% static 'myequis/style.css' %}">
+<title>Edit Record</title>
+</head>
+<body>
 
 
-<h3 class="myequi-h3">{{ record.bicycle.name }} | Edit Record </h3>
+<h2>{{ record.bicycle.name }} | Edit Record </h2>
 
 
 {% if form.errors %}
@@ -26,14 +34,15 @@
 {% endif %}
 
 
-<form class="record-form" action="" method="post">
+<form action="" method="post">
     {% csrf_token %}
+    {% bootstrap_form form %}
 
-    <div class="record-fields-area">
-        <div class="record-fields">
+    <div >
+        <div >
 
             <div>{{ form.date.label }}</div>
-            <div class="record-field">{{ form.date }}</div>
+            <div >{{ form.date }}</div>
 
             <div>{{ form.km.label }}</div>
             <div>{{ form.km }}</div>
@@ -42,22 +51,22 @@
 
     {{ form.id }}
 
-    <div class="form-button-bar">
-        <input class="form-button" type="submit" name="save" value="Save">
+{% buttons %}
+        <input  type="submit" name="save" value="Save">
         {% if materials > 0 %}
-        <input class="form-button-disabled" type="submit" disabled name="delete" value="Delete"
+        <input  type="submit" disabled name="delete" value="Delete"
                onclick="return confirm('Delete dataset?')">
         {% else %}
-        <input class="form-button" type="submit" name="delete" value="Delete"
+        <input  type="submit" name="delete" value="Delete"
                onclick="return confirm('Delete dataset?')">
         {% endif %}
-        <input class="form-button" type="submit" name="cancel" value="Cancel">
+        <input type="submit" name="cancel" value="Cancel">
 
-    </div>
+    {% endbuttons %}
 </form>
 
 {% if materials > 0 %}
 <b>There are (dis)mounted materials associated with this record ({{ materials }}).</b>
 {% endif %}
-
-
+</body>
+</html>

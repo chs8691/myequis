@@ -1,37 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 {% load static %}
 {% load humanize %}
+{% load bootstrap4 %}       {# import bootstrap4/bootstrap3 #}
+{% bootstrap_css %}         {# Embed Bootstrap CSS #}
+{% bootstrap_javascript jquery='full' %}  {# Embed Bootstrap JS+jQuery #}
 
-<link rel="stylesheet" type="text/css" href="{% static 'myequis/style.css' %}">
+<title>Bicycle</title>
+</head>
+<body>
+
+  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="{% url 'myequis:index-url' %}">My Equis</a>
+
+  </nav>
 
 <h2>{{ bicycle.name }}</h2>
 
-<div class="clearfix">
-    <div class="button-line-flex-container">
-        <a class="nav-button" href="{% url 'myequis:index-url' %}">Home</a>
-    </div>
-</div>
-
 <h3>Last Records</h3>
 
-<div class="clearfix">
-    <div class="button-line-flex-container">
-        <a class="nav-button" href="{% url 'myequis:list-records-url' bicycle.id %}">Manage</a>
-    </div>
-</div>
+<ul class="nav justify-content-end">
+  <li class="nav-item">
+    <a class="nav-link active" href="{% url 'myequis:list-records-url' bicycle.id %}">Manage</a>
+  </li>
+</ul>
 
 <div>
 {% if records %}
-    <table>
+    <table class="table">
         <thead>
             <tr>
-                <th>Date</th>
-                <th>Value</th>
+                <th scope="col">Date</th>
+                <th scope="col">Value</th>
             </tr>
         </thead>
         {% for record in records %}
             <tr>
-                <td><span>Date</span>{{ record.date }}</td>
-                <td><span>Value</span>{{ record.km }}</td>
+                <td>{{ record.date }}</td>
+                <td>{{ record.km }}</td>
             </tr>
         {% endfor %}
     </table>
@@ -42,34 +51,36 @@
 
 <h3>Components in Usage</h3>
 
-<div class="clearfix">
-    <div class="button-line-flex-container">
-        <a class="nav-button" href="{% url 'myequis:list-bicycle-history-url' bicycle.id %}">History</a>
-        <a class="nav-button" href="{% url 'myequis:list-bicycle-parts-url' bicycle.id %}">Manage</a>
-    </div>
-</div>
+<ul class="nav justify-content-end">
+  <li class="nav-item">
+    <a class="nav-link active" href="{% url 'myequis:list-bicycle-history-url' bicycle.id %}">History</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link active" href="{% url 'myequis:list-bicycle-parts-url' bicycle.id %}">Manage</a>
+  </li>
+</ul>
 
 <div>
 {% if componentDataList %}
     {% for componentData in componentDataList %}
         {% if componentData.has_materials %}
             <h4>{{ componentData.component_name }}</h4>
-            <table>
+            <table class="table">
                 <thead>
                     <tr>
-                        <th>Part</th>
-                        <th>Material</th>
-                        <th>Mounted at</th>
-                        <th>KM</th>
+                        <th scope="col">Part</th>
+                        <th scope="col">Material</th>
+                        <th scope="col">Mounted at</th>
+                        <th scope="col">KM</th>
                     </tr>
                 </thead>
                 {% for part in componentData.parts %}
                     {% if part.material %}
                         <tr>
-                            <td><span>Part</span>{{ part.part.name }}</td>
-                            <td><span>Material</span>{{ part.material.name }}</td>
-                            <td><span>Mounted at</span>{{ part.mounting.mount_record.date }}</td>
-                            <td><span>KM</span>{{ part.distance }}</td>
+                            <td>{{ part.part.name }}</td>
+                            <td>{{ part.material.name }}</td>
+                            <td>{{ part.mounting.mount_record.date }}</td>
+                            <td>{{ part.distance }}</td>
                         </tr>
                     {% endif %}
                 {% endfor %}
@@ -80,3 +91,5 @@
     <p>No components with parts with mounted materials yet</p>
 {% endif %}
 </div>
+</body>
+</html>
