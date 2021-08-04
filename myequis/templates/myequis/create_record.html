@@ -1,45 +1,30 @@
-{% load static %}
-{% load bootstrap4 %}       {# import bootstrap4/bootstrap3 #}
-{% bootstrap_css %}         {# Embed Bootstrap CSS #}
-{% bootstrap_javascript jquery='full' %}  {# Embed Bootstrap JS+jQuery #}
-{{ form.media }}            {# Adds date-picker required JS and CSS #}
+{% extends "form-base.html" %}
 
-<link rel="stylesheet" type="text/css" href="{% static 'myequis/style.css' %}">
+{% block nav-items %}
+{% endblock %}
 
-<h3 class="myequi-h3">{{ record.bicycle.name }} | New Record</h3>
+{% block header %}
+  {{ record.bicycle.name }}
+{% endblock %}
 
-<h4></h4>
+{% block main %}
+{% include "article-title.html" with title="New Record" %}
 
-{% if form.errors %}
-    {% for field in form %}
-        {% for error in field.errors %}
-            <div class="alert">
-                <strong>{{ error|escape }}</strong>
-            </div>
-        {% endfor %}
-    {% endfor %}
-    {% for error in form.non_field_errors %}
-        <div class="alert">
-            <strong>{{ error|escape }}</strong>
-        </div>
-    {% endfor %}
-{% endif %}
+  <form  action="" method="post" >
+      {% csrf_token %}
 
+      <div>{{ form.date.label }}</div>
+      <div >{{ form.date }}</div >
 
-<form class="record-form" action="" method="post">
-    {% csrf_token %}
+      <div >{{ form.km.label }}</div>
+      <div >{{ form.km }}</div>
 
-    <div>{{ form.date.label }}</div>
-    <div >{{ form.date }}</div >
-    
-    <div >{{ form.km.label }}</div>
-    <div >{{ form.km }}</div>
-        
-    {{ form.bicycle_id }}
-        
-    <div class="form-button-bar">
-        <input class="form-button" type="submit" value="Create">
-        <input class="form-button" type="submit" name="cancel" value="Cancel">
-    </div>
-</form>
+      {{ form.bicycle_id }}
 
+      {% include "form-buttons-open.html" %}
+        <input  {% include "form-button-class.html" %} type="submit" value="Create">
+        <input  {% include "form-button-class.html" %} type="submit" name="cancel" value="Cancel">
+      {% include "form-buttons-close.html" %}
+  </form>
+
+{% endblock %}

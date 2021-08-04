@@ -1,42 +1,17 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1", shrink-to-fit=no">
+{% extends "form-base.html" %}
 
-{% load static %}
-{% load bootstrap4 %}       {# import bootstrap4/bootstrap3 #}
-{% bootstrap_css %}         {# Embed Bootstrap CSS #}
-{% bootstrap_javascript jquery='full' %}  {# Embed Bootstrap JS+jQuery #}
-{{ form.media }}            {# Adds date-picker required JS and CSS #}
+{% block nav-items %}
+{% endblock %}
 
-<title>Edit Record</title>
-</head>
-<body>
+{% block header %}
+  {{ record.bicycle.name }}
+{% endblock %}
 
-
-<h2>{{ record.bicycle.name }} | Edit Record </h2>
-
-
-{% if form.errors %}
-{% for field in form %}
-{% for error in field.errors %}
-<div class="alert">
-    <strong>{{ error|escape }}</strong>
-</div>
-{% endfor %}
-{% endfor %}
-{% for error in form.non_field_errors %}
-<div class="alert">
-    <strong>{{ error|escape }}</strong>
-</div>
-{% endfor %}
-{% endif %}
-
+{% block main %}
+{% include "article-title.html" with title="Edit Record" %}
 
 <form action="" method="post">
     {% csrf_token %}
-    {% bootstrap_form form %}
 
     <div >
         <div >
@@ -51,22 +26,28 @@
 
     {{ form.id }}
 
-{% buttons %}
-        <input  type="submit" name="save" value="Save">
-        {% if materials > 0 %}
-        <input  type="submit" disabled name="delete" value="Delete"
-               onclick="return confirm('Delete dataset?')">
-        {% else %}
-        <input  type="submit" name="delete" value="Delete"
-               onclick="return confirm('Delete dataset?')">
-        {% endif %}
-        <input type="submit" name="cancel" value="Cancel">
+    {% include "form-buttons-open.html" %}
 
-    {% endbuttons %}
+      <input  {% include "form-button-class.html" %} type="submit" name="save" value="Save">
+
+      {% if materials > 0 %}
+        <input  {% include "form-button-class.html" %} type="submit" disabled name="delete" value="Delete"
+               onclick="return confirm('Delete dataset?')">
+      {% else %}
+        <input  {% include "form-button-class.html" %}  type="submit" name="delete" value="Delete"
+               onclick="return confirm('Delete dataset?')">
+      {% endif %}
+
+      <input  {% include "form-button-class.html" %} type="submit" name="cancel" value="Cancel">
+
+
+    {% include "form-buttons-close.html" %}
+
+
 </form>
 
 {% if materials > 0 %}
-<b>There are (dis)mounted materials associated with this record ({{ materials }}).</b>
+  <b>There are (dis)mounted materials associated with this record ({{ materials }}).</b>
 {% endif %}
-</body>
-</html>
+
+{% endblock %}

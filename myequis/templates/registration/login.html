@@ -1,13 +1,31 @@
-{% load static %}
-<link rel="stylesheet" type="text/css" href="{% static 'myequis/style.css' %}">
+{% extends "form-base.html" %}
 
-{% block content %}
+{% block nav-items %}
+{% endblock %}
 
-  <h2>Login</h2>
+{% block header %}
+  <a class="navbar-brand" href="{% url 'myequis:index-url' %}">My Equis</a>
+{% endblock %}
+
+{% block main %}
+
   <form method="post">
+
     {% csrf_token %}
-    {{ form.as_p }}
-    <button class="form-button" type="submit">Login</button>
+
+    <div class="mb-3">
+      <label for="username" class="form-label">Username</label>
+      <input type="input" class="form-control" name="username" id="inputUsername" placeholder="Username" required >
+    </div>
+
+    <div class="mb-3">
+      <label for="Password" class="form-label">Password</label>
+      <input type="password" class="form-control" name="password" id="inputPass" placeholder="Password" required>
+    </div>
+
+    {% include "form-buttons-open.html" %}
+      {% include "form-button.html" with type="submit" value="Login"%}
+    {% include "form-buttons-close.html" %}
   </form>
 
 {% endblock %}

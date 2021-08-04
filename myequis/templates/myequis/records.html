@@ -1,52 +1,54 @@
-{% load static %}
-{% load humanize %}
+{% extends "base.html" %}
 
-<script language="JavaScript">
-    function tdClick(url){
-        window.open(url, "_self");
-    }
-</script>
+{% block nav-items %}
+{% endblock %}
 
-<link rel="stylesheet" type="text/css" href="{% static 'myequis/style.css' %}">
 
-<h2>{{ bicycle.name }} | Records</h2>
-<div class="clearfix">
-    <div class="button-line-flex-container">
-        <a class="nav-button" href="{% url 'myequis:index-url' %}">Home</a>
-        <a class="nav-button"  href="{% url 'myequis:bicycle-detail-url' bicycle.id %}">Back</a>
-        <!--a class="nav-button"  href="/myequis/bicycles/{{ bicycle.id }}/create-record">Add</a>-->
-        <a class="nav-button"  href="{% url 'myequis:create-record-url' bicycle.id %}">Add</a>
-    </div>
-</div>
+{% block main %}
 
-{% if message %}
-    <div class="message-line">
-        <strong>{{ message|escape }}</strong>
-    </div>
-{% endif %}
+  {% include "page-title.html" with title=bicycle.name %}
 
-<div >
-{% if records %}
-    <table>
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Value</th>
-            </tr>
-        </thead>
-        {% for record in records %}
-            <tr>
-                <td  class="td-button-cell"  onclick="tdClick('{% url 'myequis:edit-record-url' record.id %}');">
-<!--                    <a href="{% url 'myequis:edit-record-url' record.id %}">-->
-                        <span>Date</span>{{ record.date }}
-<!--                    </a>-->
-                </td>
-                <td><span>KM</span>{{ record.km  }}</td>
-            </tr>
-        {% endfor %}
+  {% include "article-title.html" with title="Records" %}
+
+
+  {% include "nav-open.html" %}
+
+    {% url  'myequis:bicycle-detail-url' bicycle.id  as nav_url %}
+    {% include "nav-item.html" with url=nav_url title="Back" %}
+
+    {% url  'myequis:create-record-url' bicycle.id  as nav_url %}
+    {% include "nav-item.html" with url=nav_url title="Add" %}
+
+  {% include "nav-close.html" %}
+
+  <div >
+
+  {% if records %}
+
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th scope="col">Date</th>
+          <th scope="col">Value</th>
+        </tr>
+      </thead>
+      {% for record in records %}
+        <tr>
+
+          <td  class="nav-link"   onclick="tdClick('{% url 'myequis:edit-record-url' record.id %}');">
+            {{ record.date }}
+          </td>
+
+          <td>
+            {{ record.km  }}
+          </td>
+
+        </tr>
+      {% endfor %}
     </table>
-{% else %}
+  {% else %}
     <p>No records yet</p>
-{% endif %}
-</div>
+  {% endif %}
+  </div>
 
+{% endblock %}

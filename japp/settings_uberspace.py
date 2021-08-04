@@ -146,8 +146,8 @@ ROOT_URLCONF = 'japp.urls'
 LOGIN_URL = '/japp/accounts/login'
 
 
-LOGIN_REDIRECT_URL = '/myequis/'
-LOGOUT_REDIRECT_URL = '/myequis/'
+LOGIN_REDIRECT_URL = '/japp/myequis/'
+LOGOUT_REDIRECT_URL = '/japp/myequis/'
 
 #### system specific part ####
 
