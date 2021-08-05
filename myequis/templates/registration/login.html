@@ -24,8 +24,9 @@
     </div>
 
     {% include "form-buttons-open.html" %}
-      {% include "form-button.html" with type="submit" value="Login"%}
+      <input  {% include "form-button-class.html" %} type="submit" value="Login">
     {% include "form-buttons-close.html" %}
+
   </form>
 
 {% endblock %}
