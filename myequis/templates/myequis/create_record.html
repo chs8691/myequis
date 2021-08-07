@@ -4,27 +4,27 @@
 {% endblock %}
 
 {% block header %}
-  {{ record.bicycle.name }}
+{{ record.bicycle.name }}
 {% endblock %}
 
 {% block main %}
 {% include "article-title.html" with title="New Record" %}
 
-  <form  action="" method="post" >
-      {% csrf_token %}
+<form  action="" method="post" >
+  {% csrf_token %}
 
-      <div>{{ form.date.label }}</div>
-      <div >{{ form.date }}</div >
+  <div>{{ form.date.label }}</div>
+  <div >{{ form.date }}</div >
 
-      <div >{{ form.km.label }}</div>
-      <div >{{ form.km }}</div>
+    <div >{{ form.km.label }}</div>
+    <div >{{ form.km }}</div>
 
-      {{ form.bicycle_id }}
+    {{ form.bicycle_id }}
 
-      {% include "form-buttons-open.html" %}
-        <input  {% include "form-button-class.html" %} type="submit" value="Create">
-        <input  {% include "form-button-class.html" %} type="submit" name="cancel" value="Cancel">
-      {% include "form-buttons-close.html" %}
+    {% include "form-buttons-open.html" %}
+    <input  {% include "form-button-class.html" %} type="submit" value="Create">
+    <input  {% include "form-button-class.html" %} type="submit" name="cancel" value="Cancel">
+    {% include "form-buttons-close.html" %}
   </form>
 
-{% endblock %}
+  {% endblock %}

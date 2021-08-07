@@ -6,49 +6,51 @@
 
 {% block main %}
 
-  {% include "page-title.html" with title=bicycle.name %}
+{% include "page-title.html" with title=bicycle.name %}
 
-  {% include "article-title.html" with title="Records" %}
+{% include "article-title.html" with title="Records" %}
 
 
-  {% include "nav-open.html" %}
+{% include "nav-open.html" %}
 
-    {% url  'myequis:bicycle-detail-url' bicycle.id  as nav_url %}
-    {% include "nav-item.html" with url=nav_url title="Back" %}
+{% url  'myequis:bicycle-detail-url' bicycle.id  as nav_url %}
+{% include "nav-item.html" with url=nav_url title="Back" %}
 
-    {% url  'myequis:create-record-url' bicycle.id  as nav_url %}
-    {% include "nav-item.html" with url=nav_url title="Add" %}
+{% url  'myequis:create-record-url' bicycle.id  as nav_url %}
+{% include "nav-item.html" with url=nav_url title="Add" %}
 
-  {% include "nav-close.html" %}
+{% include "nav-close.html" %}
 
-  <div >
+<div >
 
   {% if records %}
 
-    <table class="table table-hover">
-      <thead>
-        <tr>
-          <th scope="col">Date</th>
-          <th scope="col">Value</th>
-        </tr>
-      </thead>
-      {% for record in records %}
-        <tr>
+<div class="table-responsive">
+  <table class="table table-hover">
+    <thead>
+      <tr>
+        <th scope="col">Date</th>
+        <th scope="col">Value</th>
+      </tr>
+    </thead>
+    {% for record in records %}
+    <tr onclick="tdClick('{% url 'myequis:edit-record-url' record.id %}');"  >
 
-          <td  class="nav-link"   onclick="tdClick('{% url 'myequis:edit-record-url' record.id %}');">
-            {{ record.date }}
-          </td>
+      <td>
+        {{ record.date }}
+      </td>
 
-          <td>
-            {{ record.km  }}
-          </td>
+      <td >
+        {{ record.km  }} km
+      </td>
 
-        </tr>
-      {% endfor %}
-    </table>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
   {% else %}
-    <p>No records yet</p>
+  <p>No records yet</p>
   {% endif %}
-  </div>
+</div>
 
 {% endblock %}

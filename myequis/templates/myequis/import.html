@@ -1,22 +1,11 @@
-{% load static %}
-{% load bootstrap4 %}       {# import bootstrap4/bootstrap3 #}
-{% bootstrap_css %}         {# Embed Bootstrap CSS #}
+{% extends "form-base.html" %}
 
-<link rel="stylesheet" type="text/css" href="{% static 'myequis/style.css' %}">
+{% block nav-items %}
+{% endblock %}
 
-<div class="clearfix">
-    <div class="button-line-flex-container">
-      <a class="nav-button" href="{% url 'myequis:index-url' %}">Home</a>
-    </div>
-</div>
+{% block main %}
+{% include "article-title.html" with title="Import Data" %}
 
-{% if message %}
-    <div class="alert">
-        <strong>{{ message|escape }}</strong>
-    </div>
-{% endif %}
-
-<h2>Import Data</h2>
 <p>ATTENTION: All data will be overwritten ! </p>
 <p>Did you make an export to backup your data? It is strongly recommended to make an export before executing the import! </p>
 <p>The import file must be a ZIP file with one file for every model - like export is creating it.</p>
@@ -27,16 +16,18 @@
   {% endfor %}
 {% endif %}
 
-<form class="record-form"  method="post" action="" enctype="multipart/form-data">
+<form  method="post" action="" enctype="multipart/form-data">
     {% csrf_token %}
 
-    {% bootstrap_form form %}
+    <div >
+            <div>{{ form.importData.label }}</div>
+            <div>{{ form.importData }}</div>
+    </div>
 
-    {% buttons %}
-      <!-- <input class="form-button" type="submit" name="import" value="Import"
-            onclick="return confirm('Overwrite all data ?')"> -->
-      <input class="form-button" type="submit" name="import" value="Import"
-            ">
-    {% endbuttons %}
+    {% include "form-buttons-open.html" %}
+    <input  {% include "form-button-class.html" %} type="submit" name="import" value="Import">
+    <input  {% include "form-button-class.html" %} type="submit" name="cancel" value="Close">
+    {% include "form-buttons-close.html" %}
 
   </form>
+{% endblock %}

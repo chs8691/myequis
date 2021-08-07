@@ -332,6 +332,12 @@ def xxximport_data(request):
 
 def export_data(request):
     if request.method == 'POST':
+
+        if 'cancel' in request.POST:
+            return HttpResponseRedirect(
+                "%s?message='Export closed'" % reverse('myequis:index-url'))
+
+
         # Get selected option from form
         file_format = request.POST['file-format']
 

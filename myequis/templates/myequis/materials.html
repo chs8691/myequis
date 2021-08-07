@@ -1,125 +1,120 @@
-{% load static %}
+{% extends "base.html" %}
 
-<link rel="stylesheet" type="text/css" href="{% static 'myequis/style.css' %}">
+{% block nav-items %}
+{% endblock %}
 
-<script language="JavaScript">
-    function tdClick(url){
-        window.open(url, "_self");
-    }
-</script>
 
-<h2>Materials</h2>
+{% block main %}
 
-<div class="clearfix">
-    <div class="button-line-flex-container">
-        <a class="nav-button" href="{% url 'myequis:index-url' %}">Home</a>
-    </div>
+{% include "article-title.html" with title="New Materials" %}
+
+{% include "nav-open.html" %}
+
+{% url  'myequis:create-material-url' as nav_url %}
+{% include "nav-item.html" with url=nav_url title="Add" %}
+
+{% include "nav-close.html" %}
+
+<div >
+
+  {% if new_materials %}
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th scope="col">Name</th>
+          <th scope="col">Manufacture</th>
+          <th scope="col">Size</th>
+          <th scope="col">Weight</th>
+          <th scope="col" class="d-none d-md-block">Price</th>
+          <th scope="col">Comment</th>
+        </tr>
+      </thead>
+      {% for material in new_materials %}
+      <tr onclick="tdClick('{% url 'myequis:edit-material-url' material.id %}');">
+        <td>
+          {{ material.name }}
+        </td>
+
+        <td>{{ material.manufacture }}</td>
+        <td>{{ material.size }}</td>
+        <td>{{ material.weight }}</td>
+        <td   class="d-none d-md-block">{{ material.price }}</td>
+        <td>{{ material.comment }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+  {% else %}
+  <p>No new materials</p>
+  {% endif %}
+
+  {% include "article-title.html" with title="Dismounted Materials" %}
+  {% if dismounted_materials %}
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th scope="col">Date</th>
+          <th scope="col">Name</th>
+          <th scope="col">Manufacture</th>
+          <th scope="col">Size</th>
+          <th scope="col">Weight</th>
+          <th scope="col" class="d-none d-md-block">Price</th>
+          <th scope="col">Comment</th>
+        </tr>
+      </thead>
+      {% for material in dismounted_materials %}
+      <tr onclick="tdClick('{% url 'myequis:edit-material-url' material.id %}');">
+        <td>{{ material.dismountedAt }}</td>
+        <td>{{ material.name }}</td>
+        <td>{{ material.manufacture }}</td>
+        <td>{{ material.size }}</td>
+        <td>{{ material.weight }}</td>
+        <td class="d-none d-md-block">{{ material.price }}</td>
+        <td>{{ material.comment }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+  {% else %}
+  <p>No disposed materials</p>
+  {% endif %}
+
+
+  {% include "article-title.html" with title="Disposed Materials" %}
+
+  {% if disposed_materials %}
+  <div class="table-responsive">
+    <table  class="table table-hover">
+      <thead>
+        <tr>
+          <th scope="col">Date</th>
+          <th scope="col">Name</th>
+          <th scope="col">Manufacture</th>
+          <th scope="col">Size</th>
+          <th scope="col">Weight</th>
+          <th scope="col" class="d-none d-md-block">Price</th>
+          <th scope="col">Comment</th>
+        </tr>
+      </thead>
+      {% for material in disposed_materials %}
+      <tr onclick="tdClick('{% url 'myequis:edit-material-url' material.id %}');">
+        <td>{{ material.disposedAt }}</td>
+        <td>{{ material.name }}</td>
+        <td>{{ material.manufacture }}</td>
+        <td>{{ material.size }}</td>
+        <td>{{ material.weight }}</td>
+        <td class="d-none d-md-block">{{ material.price }}</td>
+        <td>{{ material.comment }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+  {% else %}
+  <p>No disposed materials</p>
+  {% endif %}
+
 </div>
 
-{% if message %}
-    <div class="message-line">
-        <strong>{{ message|escape }}</strong>
-    </div>
-{% endif %}
-
-
-<h3>New Materials</h3>
-<div class="clearfix">
-    <div class="button-line-flex-container">
-      <a class="nav-button"  href="{% url 'myequis:create-material-url' %}">Add</a>
-    </div>
-</div>
-{% if new_materials %}
-    <table>
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Manufacture</th>
-                <th>Size</th>
-                <th>Weight</th>
-                <th>Price</th>
-                <th>Comment</th>
-            </tr>
-        </thead>
-        {% for material in new_materials %}
-            <tr>
-                <td  class="td-button-cell"  onclick="tdClick('{% url 'myequis:edit-material-url' material.id %}');">
-                        <span>Name</span>{{ material.name }}
-                </td>
-
-                <td><span>Manufacture</span>{{ material.manufacture }}</td>
-                <td><span>Size</span>{{ material.size }}</td>
-                <td><span>Weight</span>{{ material.weight }}</td>
-                <td><span>Price</span>{{ material.price }}</td>
-                <td><span>Comment</span>{{ material.comment }}</td>
-            </tr>
-        {% endfor %}
-    </table>
-{% else %}
-    <p>No new materials</p>
-{% endif %}
-
-<h3>Dismounted Materials</h3>
-{% if dismounted_materials %}
-    <table>
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Name</th>
-                <th>Manufacture</th>
-                <th>Size</th>
-                <th>Weight</th>
-                <th>Price</th>
-                <th>Comment</th>
-            </tr>
-        </thead>
-        {% for material in dismounted_materials %}
-            <tr>
-                <td><span>Date</span>{{ material.dismountedAt }}</td>
-                <td  class="td-button-cell"  onclick="tdClick('{% url 'myequis:edit-material-url' material.id %}');">
-                        <span>Name</span>{{ material.name }}
-                </td>
-                <td><span>Manufacture</span>{{ material.manufacture }}</td>
-                <td><span>Size</span>{{ material.size }}</td>
-                <td><span>Weight</span>{{ material.weight }}</td>
-                <td><span>Price</span>{{ material.price }}</td>
-                <td><span>Comment</span>{{ material.comment }}</td>
-            </tr>
-        {% endfor %}
-    </table>
-{% else %}
-    <p>No disposed materials</p>
-{% endif %}
-
-
-<h3>Disposed Materials</h3>
-{% if disposed_materials %}
-    <table>
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Name</th>
-                <th>Manufacture</th>
-                <th>Size</th>
-                <th>Weight</th>
-                <th>Price</th>
-                <th>Comment</th>
-            </tr>
-        </thead>
-        {% for material in disposed_materials %}
-            <tr>
-                <td><span>Date</span>{{ material.disposedAt }}</td>
-                <td  class="td-button-cell"  onclick="tdClick('{% url 'myequis:edit-material-url' material.id %}');">
-                        <span>Name</span>{{ material.name }}
-                </td>
-                <td><span>Manufacture</span>{{ material.manufacture }}</td>
-                <td><span>Size</span>{{ material.size }}</td>
-                <td><span>Weight</span>{{ material.weight }}</td>
-                <td><span>Price</span>{{ material.price }}</td>
-                <td><span>Comment</span>{{ material.comment }}</td>
-            </tr>
-        {% endfor %}
-    </table>
-{% else %}
-    <p>No disposed materials</p>
-{% endif %}
+{% endblock %}

@@ -1,23 +1,6 @@
 {% extends "base.html" %}
 
-
-{% block nav-items %}
-  {% if user.is_authenticated %}
-    <li class="nav-item">
-      <span class="navbar-text"> Hi {{ user.username }}! </span>
-    </li>
-    <li class="nav-item active">
-        <a class="nav-link active" href="{% url 'logout' %}">Log Out</a>
-    </li>
-  {% else %}
-    <li class="nav-item active">
-      <a class="nav-link" href="{% url 'login' %}">Login</a>
-    </li>
-  {% endif %}
-{% endblock %}
-
 {% block main %}
-
 
   {% include "article-title.html" with title="Bicycles" %}
 
