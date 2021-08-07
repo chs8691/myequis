@@ -1,84 +1,84 @@
-{% load static %}
-<link rel="stylesheet" type="text/css" href="{% static 'myequis/style.css' %}">
+{% extends "form-base.html" %}
 
+{% block script %}
 <script language="JavaScript">
     function tdMaterialClick(material_id){
 
         // Django generates the id by defining the hidden field
         document.getElementById("id_selected_material").value = material_id;
 
-        var elements = document.getElementById("material-table").getElementsByClassName("td-radiobutton-cell-checked")
+        var elements = document.getElementById("material-table").getElementsByClassName("table-primary")
         if(elements.length > 0) {
-            elements[0].className = "td-radiobutton-cell";
+            elements[0].className = "";
         }
 
         element = document.getElementById("material-id-" + material_id)
-        element.className = "td-radiobutton-cell-checked";
+        element.className = "table-primary";
     }
 
     function tdRecordClick(record_id, duration, distance){
-
         // Django generates the id by defining the hidden field
         document.getElementById("id_selected_record").value = record_id;
 
-        var elements = document.getElementById("record-table").getElementsByClassName("td-radiobutton-cell-checked")
+        var elements = document.getElementById("record-table").getElementsByClassName("table-primary")
         if(elements.length > 0) {
-            elements[0].className = "td-radiobutton-cell";
+            elements[0].className = "";
         }
 
         element = document.getElementById("record-id-" + record_id)
-        element.className = "td-radiobutton-cell-checked";
+        element.className = "table-primary";
 
         document.getElementById("summary").innerHTML = "Used for " + duration + " days and " + distance + " km"
 
     }
 
 </script>
+{% endblock %}
 
-<h3 class="myequi-h3">{{ bicycle.name }} | {{ part.name }} | Exchange</h3>
 
-<div class="clearfix">
-    <div class="button-line-flex-container">
-        <a class="nav-button"  href="{% url 'myequis:delete-mounting-url' bicycle.id part.id %}">Delete</a>
-        <a class="nav-button-disabled">Exchange</a>
-        <a class="nav-button"  href="{% url 'myequis:dismount-material-url' bicycle.id part.id %}">Dismount</a>
-    </div>
-</div>
+    {% block tabs %}
+    {% endblock %}
 
-<h4></h4>
+{% block main %}
 
-{% if form.errors %}
-    {% for field in form %}
-        {% for error in field.errors %}
-            <div class="alert">
-                <strong>{{ error|escape }}</strong>
-            </div>
-        {% endfor %}
-    {% endfor %}
-    {% for error in form.non_field_errors %}
-        <div class="alert">
-            <strong>{{ error|escape }}</strong>
-        </div>
-    {% endfor %}
-{% endif %}
+{% with bicycle.name|add:" | "|add:part.name|add:" |  Exchange " as title %}
+{% include "article-title.html" with title=title %}
+{% endwith %}
 
-    <table>
+
+<ul class="nav nav-tabs nav-fill">
+  <li class="nav-item">
+    <a class="nav-link" href="{% url 'myequis:delete-mounting-url' bicycle.id part.id %}">Delete</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link active disabled" href="#">Exchange</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="{% url 'myequis:dismount-material-url' bicycle.id part.id %}">Dismount</a>
+  </li>
+</ul>
+
+<div class="table-responsive">
+  <table class="table table-hover">
         <thead>
         <tr>
-            <th>Material</th>
-            <th>Manufacturer</th>
-            <th>Size</th>
-            <th>Price</th>
+            <th scope="col">Material</th>
+            <th scope="col">Manufacturer</th>
+            <th scope="col">Size</th>
+            <th scope="col">Price</th>
         </tr>
         </thead>
         <tr>
-            <td><span>Material</span>{{ mounting.material.name }}</td>
-            <td><span>Manufacturer</span>{{ mounting.material.manufacture }}</td>
-            <td><span>Size</span>{{ mounting.material.size }}</td>
-            <td><span>Price</span>{{ mounting.material.price }}</td>
+            <td>{{ mounting.material.name }}</td>
+            <td>{{ mounting.material.manufacture }}</td>
+            <td>{{ mounting.material.size }}</td>
+            <td>{{ mounting.material.price }}</td>
         </tr>
     </table>
+    </div>
+
 Mounted at {{ mounting.mount_record.date }}, {{ mounting.mount_record.km }} km
+
 <div id="summary">Choose the exchanging record and the new material below</div>
 
 <form class="part-form" action="" method="post">
@@ -86,9 +86,11 @@ Mounted at {{ mounting.mount_record.date }}, {{ mounting.mount_record.km }} km
     <div class="clearfix">
     <div class="columned-area">
         <div class="scrollable-table-area">
-        <h5>Records</h5>
 
-            <table id="record-table">
+        {% include "section-title.html" with title="Records" %}
+
+        <div class="table-responsive">
+          <table id="record-table" class="table table-hover">
                 <thead>
                 <tr>
                     <th>Date</th>
@@ -96,21 +98,20 @@ Mounted at {{ mounting.mount_record.date }}, {{ mounting.mount_record.km }} km
                 </tr>
                 </thead>
                 {% for record in records %}
-                <tr>
-                    <td  id="record-id-{{ record.id }}" class="td-radiobutton-cell"
-                         onclick="tdRecordClick('{{ record.id }}', '{{ record.duration }}', '{{ record.distance }}');">
-                       <span>Date</span>{{ record.date }}
-                    </td>
-                    <td><span>Value</span>{{ record.km }}</td>
+                <tr id="record-id-{{ record.id }}" onclick="tdRecordClick('{{ record.id }}', '{{ record.duration }}', '{{ record.distance }}');">
+                    <td>{{ record.date }}</td>
+                    <td>{{ record.km }}</td>
                 </tr>
                 {% endfor %}
             </table>
         </div>
+      </div>
 
         <div class="scrollable-table-area">
-        <h5>Materials</h5>
+        {% include "section-title.html" with title="Materials" %}
 
-            <table id="material-table">
+        <div class="table-responsive">
+          <table id="material-table" class="table table-hover">
                 <thead>
                 <tr>
                 <th>Material</th>
@@ -120,16 +121,15 @@ Mounted at {{ mounting.mount_record.date }}, {{ mounting.mount_record.km }} km
                 </tr>
                 </thead>
             {% for material in materials %}
-                <tr>
-                    <td  id="material-id-{{ material.id }}" class="td-radiobutton-cell" onclick="tdMaterialClick('{{ material.id }}');">
-                        <span>Material</span>{{ material.name }}
-                    </td>
-                    <td><span>Manufacture</span>{{ material.manufacture }}</td>
-                    <td><span>Size</span>{{ material.size }}</td>
-                    <td><span>Price</span>{{ material.price }}</td>
+                <tr id="material-id-{{ material.id }}"  onclick="tdMaterialClick('{{ material.id }}');">
+                    <td >{{ material.name }}</td>
+                    <td>{{ material.manufacture }}</td>
+                    <td>{{ material.size }}</td>
+                    <td>{{ material.price }}</td>
                 </tr>
             {% endfor %}
             </table>
+          </div>
         </div>
     </div>
     </div>
@@ -140,9 +140,9 @@ Mounted at {{ mounting.mount_record.date }}, {{ mounting.mount_record.km }} km
     {{ form.mounting_id }}
 
 
-    <div class="form-button-bar">
-        <input class="form-button" type="submit" name="save" value="Save">
-        <input class="form-button" type="submit" name="cancel" value="Cancel">
-    </div>
+    {% include "form-buttons-open.html" %}
+    <input  {% include "form-button-class.html" %} type="submit" name="save" value="Save">
+    <input  {% include "form-button-class.html" %} type="submit" name="cancel" value="Cancel">
+    {% include "form-buttons-close.html" %}
 </form>
-
+{% endblock %}

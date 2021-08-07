@@ -1,40 +1,46 @@
-{% load static %}
-<link rel="stylesheet" type="text/css" href="{% static 'myequis/style.css' %}">
+{% extends "form-base.html" %}
 
+{% block script %}
 <script language="JavaScript">
-    function tdClick(material_id){
+  function tdClick(material_id){
 
-        document.getElementById("id_selected_material").value = material_id;
+    // alert(material_id)
+    document.getElementById("id_selected_material").value = material_id;
 
-        var elements = document.getElementsByClassName("td-radiobutton-cell-checked")
-        if(elements.length > 0) {
-            elements[0].className = "td-radiobutton-cell";
-        }
-
-        element = document.getElementById("material-id-" + material_id)
-        element.className = "td-radiobutton-cell-checked";
+    var elements = document.getElementsByClassName("table-primary")
+    if(elements.length > 0) {
+      elements[0].className = "";
     }
-</script>
 
-<h3 class="myequi-h3">{{ bicycle.name }} | {{ part.name }} | Mount</h3>
+    element = document.getElementById("material-id-" + material_id)
+    element.className = "table-primary";
+  }
+</script>
+{% endblock %}
+
+{% block main %}
+
+{% with bicycle.name|add:" | "|add:part.name|add:" |  Mount " as title %}
+{% include "article-title.html" with title=title %}
+{% endwith %}
 
 {% if form.errors %}
-    {% for field in form %}
-        {% for error in field.errors %}
-            <div class="alert">
-                <strong>{{ error|escape }}</strong>
-            </div>
-        {% endfor %}
-    {% endfor %}
-    {% for error in form.non_field_errors %}
-        <div class="alert">
-            <strong>{{ error|escape }}</strong>
-        </div>
-    {% endfor %}
+{% for field in form %}
+{% for error in field.errors %}
+<div class="alert">
+  <strong>{{ error|escape }}</strong>
+</div>
+{% endfor %}
+{% endfor %}
+{% for error in form.non_field_errors %}
+<div class="alert">
+  <strong>{{ error|escape }}</strong>
+</div>
+{% endfor %}
 {% endif %}
 
 <div>
-<form class="part-form" action="" method="post">
+  <form class="part-form" action="" method="post">
     {% csrf_token %}
 
     <div>{{ form.record_select.label }}</div>
@@ -42,34 +48,34 @@
 
     <h5></h5>
     <div>{{ form.material_select.label }}</div>
-    <table>
+    <div class="table-responsive">
+      <table class="table table-hover">
         <thead>
-        <tr>
-            <th>Material</th>
-            <th>Manufacturer</th>
-            <th>Size</th>
-            <th>Price</th>
-        </tr>
+          <tr>
+            <th scope="col">Material</th>
+            <th scope="col">Manufacturer</th>
+            <th scope="col">Size</th>
+            <th scope="col">Price</th>
+          </tr>
         </thead>
         {% for material in materials %}
-        <tr>
-            <td  id="material-id-{{ material.id }}" class="td-radiobutton-cell" onclick="tdClick('{{ material.id }}');">
-                <span>Material</span>{{ material.name }}
-            </td>
-            <td><span>Manufacture</span>{{ material.manufacture }}</td>
-            <td><span>Size</span>{{ material.size }}</td>
-            <td><span>Price</span>{{ material.price }}</td>
+        <tr id="material-id-{{ material.id }}" onclick="tdClick('{{ material.id }}');">
+          <td>{{ material.name }}</td>
+          <td>{{ material.manufacture }}</td>
+          <td>{{ material.size }}</td>
+          <td>{{ material.price }}</td>
         </tr>
         {% endfor %}
-    </table>
-    {{ form.selected_material }}
-    {{ form.bicycle_id }}
+      </table>
+      </div>
+      {{ form.selected_material }}
+      {{ form.bicycle_id }}
 
+      {% include "form-buttons-open.html" %}
+      <input  {% include "form-button-class.html" %} type="submit" name="save" value="Save">
+      <input  {% include "form-button-class.html" %} type="submit" name="cancel" value="Cancel">
+      {% include "form-buttons-close.html" %}
 
-    <div class="form-button-bar">
-        <input class="form-button" type="submit" name="save" value="Save">
-        <input class="form-button" type="submit" name="cancel" value="Cancel">
-    </div>
-</form>
-</div>
-
+    </form>
+  </div>
+  {% endblock %}
