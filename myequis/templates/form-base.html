@@ -26,14 +26,31 @@
 </head>
 
 <body class="bg-light">
+
   <header>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-secondary">
-      <div class="navbar-brand">
-        {% block header %}{% endblock %}
+    <nav class="navbar navbar-expand-lg navbar-dark bg-secondary border-bottom ">
+      <a class="navbar-brand" href="{% url 'myequis:index-url' %}">My Equis</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav ml-3 mr-auto">
+          {% if user.is_authenticated %}
+          <li class="nav-item">
+            <span class="navbar-text"> Hi {{ user.username }}! </span>
+          </li>
+          <li class="nav-item active">
+            <a class="nav-link active" href="{% url 'logout' %}">Log Out</a>
+          </li>
+          {% else %}
+          <li class="nav-item active">
+            <a class="nav-link" href="{% url 'login' %}">Login</a>
+          </li>
+          {% endif %}              {% block nav-items %}{% endblock %}
+        </ul>
       </div>
     </nav>
-
-    {% block tabs %}{% endblock %}
 
     </<header>
 
@@ -67,6 +84,7 @@
 
     </body>
     <footer class="pt-3 pb-1 text-muted text-center text-small bg-secondary">
+      <p class="text-white">© 2021 Christian Schuzlendorff</p>
     </footer>
 
     </html>

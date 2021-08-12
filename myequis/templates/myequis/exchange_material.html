@@ -2,46 +2,42 @@
 
 {% block script %}
 <script language="JavaScript">
-    function tdMaterialClick(material_id){
+  function tdMaterialClick(material_id){
 
-        // Django generates the id by defining the hidden field
-        document.getElementById("id_selected_material").value = material_id;
+    // Django generates the id by defining the hidden field
+    document.getElementById("id_selected_material").value = material_id;
 
-        var elements = document.getElementById("material-table").getElementsByClassName("table-primary")
-        if(elements.length > 0) {
-            elements[0].className = "";
-        }
-
-        element = document.getElementById("material-id-" + material_id)
-        element.className = "table-primary";
+    var elements = document.getElementById("material-table").getElementsByClassName("table-primary")
+    if(elements.length > 0) {
+      elements[0].className = "";
     }
 
-    function tdRecordClick(record_id, duration, distance){
-        // Django generates the id by defining the hidden field
-        document.getElementById("id_selected_record").value = record_id;
+    element = document.getElementById("material-id-" + material_id)
+    element.className = "table-primary";
+  }
 
-        var elements = document.getElementById("record-table").getElementsByClassName("table-primary")
-        if(elements.length > 0) {
-            elements[0].className = "";
-        }
+  function tdRecordClick(record_id, duration, distance){
+    // Django generates the id by defining the hidden field
+    document.getElementById("id_selected_record").value = record_id;
 
-        element = document.getElementById("record-id-" + record_id)
-        element.className = "table-primary";
-
-        document.getElementById("summary").innerHTML = "Used for " + duration + " days and " + distance + " km"
-
+    var elements = document.getElementById("record-table").getElementsByClassName("table-primary")
+    if(elements.length > 0) {
+      elements[0].className = "";
     }
+
+    element = document.getElementById("record-id-" + record_id)
+    element.className = "table-primary";
+
+    document.getElementById("summary").innerHTML = "Used for " + duration + " days and " + distance + " km"
+
+  }
 
 </script>
 {% endblock %}
 
-
-    {% block tabs %}
-    {% endblock %}
-
 {% block main %}
 
-{% with bicycle.name|add:" | "|add:part.name|add:" |  Exchange " as title %}
+{% with bicycle.name|add:" | "|add:part.name|add:" |  Edit Mounting" as title %}
 {% include "article-title.html" with title=title %}
 {% endwith %}
 
@@ -60,89 +56,90 @@
 
 <div class="table-responsive">
   <table class="table table-hover">
-        <thead>
-        <tr>
-            <th scope="col">Material</th>
-            <th scope="col">Manufacturer</th>
-            <th scope="col">Size</th>
-            <th scope="col">Price</th>
-        </tr>
-        </thead>
-        <tr>
-            <td>{{ mounting.material.name }}</td>
-            <td>{{ mounting.material.manufacture }}</td>
-            <td>{{ mounting.material.size }}</td>
-            <td>{{ mounting.material.price }}</td>
-        </tr>
-    </table>
-    </div>
+    <thead>
+      <tr>
+        <th scope="col">Material</th>
+        <th scope="col">Manufacturer</th>
+        <th scope="col">Size</th>
+        <th scope="col">Price</th>
+      </tr>
+    </thead>
+    <tr>
+      <td>{{ mounting.material.name }}</td>
+      <td>{{ mounting.material.manufacture }}</td>
+      <td>{{ mounting.material.size }}</td>
+      <td>{{ mounting.material.price }}</td>
+    </tr>
+  </table>
+</div>
 
 Mounted at {{ mounting.mount_record.date }}, {{ mounting.mount_record.km }} km
 
 <div id="summary">Choose the exchanging record and the new material below</div>
 
-<form class="part-form" action="" method="post">
-    {% csrf_token %}
-    <div class="clearfix">
+<form action="" method="post">
+  {% csrf_token %}
+
+  <div class="clearfix">
     <div class="columned-area">
-        <div class="scrollable-table-area">
+      <div class="scrollable-table-area">
 
         {% include "section-title.html" with title="Records" %}
 
         <div class="table-responsive">
           <table id="record-table" class="table table-hover">
-                <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Value<br>[km]</th>
-                </tr>
-                </thead>
-                {% for record in records %}
-                <tr id="record-id-{{ record.id }}" onclick="tdRecordClick('{{ record.id }}', '{{ record.duration }}', '{{ record.distance }}');">
-                    <td>{{ record.date }}</td>
-                    <td>{{ record.km }}</td>
-                </tr>
-                {% endfor %}
-            </table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Value<br>[km]</th>
+              </tr>
+            </thead>
+            {% for record in records %}
+            <tr id="record-id-{{ record.id }}" onclick="tdRecordClick('{{ record.id }}', '{{ record.duration }}', '{{ record.distance }}');">
+              <td>{{ record.date }}</td>
+              <td>{{ record.km }}</td>
+            </tr>
+            {% endfor %}
+          </table>
         </div>
       </div>
 
-        <div class="scrollable-table-area">
+      <div class="scrollable-table-area">
         {% include "section-title.html" with title="Materials" %}
 
         <div class="table-responsive">
           <table id="material-table" class="table table-hover">
-                <thead>
-                <tr>
+            <thead>
+              <tr>
                 <th>Material</th>
                 <th>Manufacturer</th>
                 <th>Size</th>
                 <th>Price</th>
-                </tr>
-                </thead>
+              </tr>
+            </thead>
             {% for material in materials %}
-                <tr id="material-id-{{ material.id }}"  onclick="tdMaterialClick('{{ material.id }}');">
-                    <td >{{ material.name }}</td>
-                    <td>{{ material.manufacture }}</td>
-                    <td>{{ material.size }}</td>
-                    <td>{{ material.price }}</td>
-                </tr>
+            <tr id="material-id-{{ material.id }}"  onclick="tdMaterialClick('{{ material.id }}');">
+              <td >{{ material.name }}</td>
+              <td>{{ material.manufacture }}</td>
+              <td>{{ material.size }}</td>
+              <td>{{ material.price }}</td>
+            </tr>
             {% endfor %}
-            </table>
-          </div>
+          </table>
         </div>
+      </div>
     </div>
-    </div>
+  </div>
 
-    {{ form.selected_record }}
-    {{ form.selected_material }}
-    {{ form.bicycle_id }}
-    {{ form.mounting_id }}
+  {{ form.selected_record }}
+  {{ form.selected_material }}
+  {{ form.bicycle_id }}
+  {{ form.mounting_id }}
 
 
-    {% include "form-buttons-open.html" %}
-    <input  {% include "form-button-class.html" %} type="submit" name="save" value="Save">
-    <input  {% include "form-button-class.html" %} type="submit" name="cancel" value="Cancel">
-    {% include "form-buttons-close.html" %}
+  {% include "form-buttons-open.html" %}
+  <input  {% include "form-button-class.html" %} type="submit" name="save" value="Save">
+  <input  {% include "form-button-class.html" %} type="submit" name="cancel" value="Cancel">
+  {% include "form-buttons-close.html" %}
 </form>
 {% endblock %}

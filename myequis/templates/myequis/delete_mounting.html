@@ -1,77 +1,71 @@
-{% load static %}
-<link rel="stylesheet" type="text/css" href="{% static 'myequis/style.css' %}">
+{% extends "form-base.html" %}
 
-<h3 class="myequi-h3">{{ bicycle.name }} | {{ part.name }} | Delete Mounting</h3>
+{% block main %}
 
-<div class="clearfix">
-    <div class="button-line-flex-container">
-        <a class="nav-button-disabled">Delete</a>
-        <a class="nav-button"  href="{% url 'myequis:exchange-material-url' bicycle.id part.id %}">Exchange</a>
-        <a class="nav-button"  href="{% url 'myequis:dismount-material-url' bicycle.id part.id %}">Dismount</a>
-    </div>
-</div>
+{% with bicycle.name|add:" | "|add:part.name|add:" |  Edit Mounting " as title %}
+{% include "article-title.html" with title=title %}
+{% endwith %}
 
-<h4></h4>
+<ul class="nav nav-tabs nav-fill">
+  <li class="nav-item">
+    <a class="nav-link active disabled" href="#">Delete</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="{% url 'myequis:exchange-material-url' bicycle.id part.id %}">Exchange</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="{% url 'myequis:dismount-material-url' bicycle.id part.id %}">Dismount</a>
+  </li>
+</ul>
 
-{% if form.errors %}
-    {% for field in form %}
-        {% for error in field.errors %}
-            <div class="alert">
-                <strong>{{ error|escape }}</strong>
-            </div>
-        {% endfor %}
-    {% endfor %}
-    {% for error in form.non_field_errors %}
-        <div class="alert">
-            <strong>{{ error|escape }}</strong>
-        </div>
-    {% endfor %}
-{% endif %}
 
-<div>
-<form class="part-form" action="" method="post">
-    {% csrf_token %}
+<form action="" method="post">
+  {% csrf_token %}
 
-    <h5>Material</h5>
-    <table>
-        <thead>
-            <tr>
-                <th>Material</th>
-                <th>Manufacturer</th>
-                <th>Size</th>
-                <th>Price</th>
-            </tr>
-        </thead>
+  {% include "section-title.html" with title="Materials" %}
+
+  <div class="table-responsive">
+    <table id="material-table" class="table">
+      <thead>
         <tr>
-            <td  id="material-id-{{ actual_mounting.material.id }}" >
-                <span>Material</span>{{ mounting.material.name }}
-            </td>
-            <td><span>Manufacture</span>{{ mounting.material.manufacture }}</td>
-            <td><span>Size</span>{{ mounting.material.size}}</td>
-            <td><span>Price</span>{{ mounting.material.price }}</td>
+          <th>Material</th>
+          <th>Manufacturer</th>
+          <th>Size</th>
+          <th>Price</th>
         </tr>
+      </thead>
+      <tr>
+        <td >{{ mounting.material.name }}</td>
+        <td>{{ mounting.material.manufacture }}</td>
+        <td>{{ mounting.material.size }}</td>
+        <td>{{ mounting.material.price }}</td>
+      </tr>
     </table>
+  </div>
 
-    <h5>Mount Record</h5>
-    <table>
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>KM</th>
-            </tr>
-        </thead>
+  {% include "section-title.html" with title="Record" %}
+
+  <div class="table-responsive">
+    <table id="record-table" class="table">
+      <thead>
         <tr>
-            <td><span>Date</span>{{ mounting.mount_record.date }}</td>
-            <td><span>KM</span>{{ mounting.mount_record.km }}</td>
+          <th>Date</th>
+          <th>Value<br>[km]</th>
         </tr>
+      </thead>
+      <tr>
+        <td>{{ mounting.mount_record.date }}</td>
+        <td>{{ mounting.mount_record.km }}</td>
+      </tr>
     </table>
-    {{ form.bicycle_id }}
-    {{ form.mounting_id }}
+  </div>
 
+  {{ form.bicycle_id }}
+  {{ form.mounting_id }}
 
-    <div class="form-button-bar">
-        <input class="form-button" type="submit" name="delete" value="Delete" onclick="return confirm('Delete dataset?')">
-        <input class="form-button" type="submit" name="cancel" value="Cancel">
-    </div>
+  {% include "form-buttons-open.html" %}
+  <input  {% include "form-button-class.html" %} type="submit" name="delete" value="Delete" onclick="return confirm('Delete dataset?')">
+  <input  {% include "form-button-class.html" %} type="submit" name="cancel" value="Cancel">
+  {% include "form-buttons-close.html" %}
 </form>
-</div>
+{% endblock %}
