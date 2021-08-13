@@ -1,105 +1,104 @@
-{% load static %}
-<link rel="stylesheet" type="text/css" href="{% static 'myequis/style.css' %}">
+{% extends "form-base.html" %}
 
+{% block script %}
 <script language="JavaScript">
-    function tdClick(record_id, duration, distance){
+  function tdClick(record_id, duration, distance){
 
-        document.getElementById("id_selected_record").value = record_id;
+    document.getElementById("id_selected_record").value = record_id;
 
-        var elements = document.getElementsByClassName("td-radiobutton-cell-checked")
-        if(elements.length > 0) {
-            elements[0].className = "td-radiobutton-cell";
-        }
-
-        element = document.getElementById("record-id-" + record_id)
-        element.className = "td-radiobutton-cell-checked";
-
-        document.getElementById("summary").innerHTML = "Used for " + duration + " days and " + distance + " km"
-
+    var elements = document.getElementsByClassName("table-primary")
+    if(elements.length > 0) {
+      elements[0].className = "";
     }
+
+    element = document.getElementById("record-id-" + record_id)
+    element.className = "table-primary";
+
+    document.getElementById("summary").innerHTML = "Used for " + duration + " days and " + distance + " km"
+
+  }
 </script>
+{% endblock %}
 
-<h3 class="myequi-h3">{{ bicycle.name }} | {{ part.name }} | Dismount</h3>
+{% block main %}
 
-<div class="clearfix">
-    <div class="button-line-flex-container">
-        <a class="nav-button"  href="{% url 'myequis:delete-mounting-url' bicycle.id part.id %}">Delete</a>
-        <a class="nav-button"  href="{% url 'myequis:exchange-material-url' bicycle.id part.id %}">Exchange</a>
-        <a class="nav-button-disabled">Dismount</a>
-    </div>
-</div>
+{% with bicycle.name|add:" | "|add:part.name|add:" |  Edit Mounting" as title %}
+{% include "article-title.html" with title=title %}
+{% endwith %}
 
-<h4></h4>
 
-{% if form.errors %}
-    {% for field in form %}
-        {% for error in field.errors %}
-            <div class="alert">
-                <strong>{{ error|escape }}</strong>
-            </div>
-        {% endfor %}
-    {% endfor %}
-    {% for error in form.non_field_errors %}
-        <div class="alert">
-            <strong>{{ error|escape }}</strong>
-        </div>
-    {% endfor %}
-{% endif %}
+<ul class="nav nav-tabs nav-fill">
+  <li class="nav-item">
+    <a class="nav-link" href="{% url 'myequis:delete-mounting-url' bicycle.id part.id %}">Delete</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="{% url 'myequis:exchange-material-url' bicycle.id part.id %}">Exchange</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link active disabled" href="#">Dismount</a>
+  </li>
+</ul>
 
-    <table>
-        <thead>
-        <tr>
-            <th>Material</th>
-            <th>Manufacturer</th>
-            <th>Size</th>
-            <th>Price</th>
-        </tr>
-        </thead>
-        <tr>
-            <td><span>Material</span>{{ mounting.material.name }}</td>
-            <td><span>Manufacturer</span>{{ mounting.material.manufacture }}</td>
-            <td><span>Size</span>{{ mounting.material.size }}</td>
-            <td><span>Price</span>{{ mounting.material.price }}</td>
-        </tr>
-    </table>
-Mounted at {{ mounting.mount_record.date }}, {{ mounting.mount_record.km }} km
-<div id="summary">Choose the dismounting record below</div>
+<div class="table-responsive">
+  <table id="material-table" class="table">
+    <thead>
+      <tr>
+        <th>Material</th>
+        <th>Manufacturer</th>
+        <th>Size</th>
+        <th>Price</th>
+      </tr>
+    </thead>
+    <tr>
+      <td>{{ mounting.material.name }}</td>
+      <td>{{ mounting.material.manufacture }}</td>
+      <td>{{ mounting.material.size }}</td>
+      <td>{{ mounting.material.price }}</td>
+    </tr>
+  </table>
+  Mounted at {{ mounting.mount_record.date }}, {{ mounting.mount_record.km }} km
+  <div id="summary">Choose the dismounting record below</div>
 
-<form class="part-form" action="" method="post">
+  <form class="part-form" action="" method="post">
     {% csrf_token %}
 
-    <div class="scrollable-table-area">
-    <h5>{{ form.selected_record.label }}</h5>
+    {% include "section-title.html" with title=form.selected_record.label %}
 
-        <table>
-            <thead>
-            <tr>
-                <th>Date</th>
-                <th>Value<br>[km]</th>
-                <th>Duration<br>[d]</th>
-                <th>Distance<br>[km]</th>
-            </tr>
-            </thead>
-            {% for record in records %}
-            <tr>
-                <td  id="record-id-{{ record.id }}" class="td-radiobutton-cell"
-                     onclick="tdClick('{{ record.id }}', '{{ record.duration }}', '{{ record.distance }}');">
-                   <span>Date</span>{{ record.date }}
-                </td>
-                <td><span>Value</span>{{ record.km }}</td>
-                <td><span>Duration</span>{{ record.duration }}</td>
-                <td><span>Distance</span>{{ record.distance }}</td>
-            </tr>
-            {% endfor %}
-        </table>
-    </div>
-    {{ form.selected_record }}
-    {{ form.bicycle_id }}
-    {{ form.mounting_id }}
+    <div class="table-responsive">
+      <table id="material-table" class="table table-hover">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Value<br>[km]</th>
+            <th>Duration<br>[d]</th>
+            <th>Distance<br>[km]</th>
+          </tr>
+        </thead>
+        {% for record in records %}
+        <tr>
+          <td  id="record-id-{{ record.id }}" class="td-radiobutton-cell"
+          onclick="tdClick('{{ record.id }}', '{{ record.duration }}', '{{ record.distance }}');">
+          {{ record.date }}
+        </td>
+        <td>{{ record.km }}</td>
+        <td>{{ record.duration }}</td>
+        <td>{{ record.distance }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
 
-    <div class="form-button-bar">
-        <input class="form-button" type="submit" name="save" value="Save">
-        <input class="form-button" type="submit" name="cancel" value="Cancel">
-    </div>
+  {{ form.selected_record }}
+  {{ form.bicycle_id }}
+  {{ form.mounting_id }}
+
+  {% include "form-buttons-open.html" %}
+  <input  {% include "form-button-class.html" %} type="submit" name="save" value="Save">
+  <input  {% include "form-button-class.html" %} type="submit" name="cancel" value="Cancel">
+  {% include "form-buttons-close.html" %}
+
+
 </form>
 
+
+{% endblock %}
