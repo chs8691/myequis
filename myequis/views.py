@@ -786,6 +786,7 @@ class MountMaterialView(LoginRequiredMixin, CreateView):
         return Material.objects.annotate(mounted=Exists(
             Mounting.objects.filter(dismount_record=None, material=OuterRef('pk')))) \
             .filter(mounted=False) \
+            .filter(disposed=False)\
             .order_by('name')
 
 
@@ -979,6 +980,7 @@ class ExchangeMaterialView(LoginRequiredMixin,  UpdateView):
         return Material.objects.annotate(mounted=Exists(
             Mounting.objects.filter(dismount_record=None, material=OuterRef('pk')))) \
             .filter(mounted=False) \
+            .filter(disposed=False)\
             .order_by('name')
 
     @staticmethod
