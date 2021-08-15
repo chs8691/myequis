@@ -1338,6 +1338,7 @@ def index(request):
     materials = Material.objects.annotate(mounted=Exists(
         Mounting.objects.filter(dismount_record=None, material=OuterRef('pk'))))\
         .filter(mounted=False)\
+        .filter(disposed=False)\
         .order_by('name')
 
     template = loader.get_template('myequis/index.html')
