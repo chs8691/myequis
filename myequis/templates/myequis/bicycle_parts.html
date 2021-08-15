@@ -32,14 +32,26 @@
         </tr>
       </thead>
       {% for part in componentData.parts %}
-      {% if part.material %}
-      <tr onclick="tdClick('{% url 'myequis:exchange-material-url' bicycle.id part.part.id %}');">
+      <tr>
+
+        {% if part.material %}
+        <td onclick="tdClick('{% url 'myequis:exchange-material-url' bicycle.id part.part.id %}');">
+          {{ part.part.name }}
+        </td>
         {% else %}
-        <tr onclick="tdClick('{% url 'myequis:mount-material-url' bicycle.id part.part.id %}');">
+        <td onclick="tdClick('{% url 'myequis:mount-material-url' bicycle.id part.part.id %}');">
+          {{ part.part.name }}
+        </td>
           {% endif %}
 
-          <td>{{ part.part.name }}</td>
+          {% if part.material %}
+          <td onclick="tdClick('{% url 'myequis:edit-material-url' part.material.id %}');">
+            {{ part.material.name }}
+          </td>
+          {% else %}
           <td>{{ part.material.name }}</td>
+          {% endif %}
+
           <td>{{ part.mounting.mount_record.date }}</td>
           <td>{{ part.distance }}</td>
         </tr>

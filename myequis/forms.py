@@ -1,7 +1,7 @@
 from django import forms
 from django.forms import Select
 
-from myequis.models import Record, Material
+from myequis.models import Record, Material, Mounting
 from datetime import datetime, timedelta
 from django.utils.translation import ugettext as _
 from bootstrap_datepicker_plus import DatePickerInput
@@ -69,6 +69,22 @@ class EditMaterialForm(forms.Form):
         attrs={'size': '8', 'decimal_places': '2'}), required=False,
         label="Price [€]", min_value=0, max_value=999999)
 
+    disposed = forms.BooleanField(required=False, label="Disposed", widget=forms.CheckboxInput(attrs={'onClick': 'refresh()'}))
+
+    disposedAt = forms.DateField(
+        input_formats=['%Y/%m/%d'],
+
+        # See https://pypi.org/project/django-bootstrap-datepicker-plus/
+        widget=DatePickerInput(format='%Y/%m/%d'),
+
+        label="disposed at",
+
+        required=False
+    )
+
+    mounting_id = forms.CharField(widget=forms.HiddenInput(), required=False)
+
+
     comment = forms.CharField(widget=forms.TextInput(
         attrs={'max_length': '500'}), required=False, label="Comment")
 
@@ -87,11 +103,9 @@ class EditMaterialForm(forms.Form):
         super(EditMaterialForm, self).clean()
 
         # Only if save button pressed
-        if self.is_save:
-            self.check_data()
+        if not self.is_save:
+            return
 
-    #   Check if the give record values against the existing ones
-    def check_data(self):
         logger.warning("check_edit_material() clean_data={}".format(self.cleaned_data))
 
         # get the actual form data we have to check
@@ -101,6 +115,37 @@ class EditMaterialForm(forms.Form):
         weight = self.cleaned_data['weight']
         price = self.cleaned_data['price']
         comment = self.cleaned_data['comment']
+        disposed = self.cleaned_data['disposed']
+        disposedAt = self.cleaned_data['disposedAt']
+
+        if disposed:
+
+            if disposedAt is None :
+                raise forms.ValidationError(
+                    _("A Disposed date must be specified !"),
+                    code="missing_disposed_date",
+                )
+
+            # Value is a string!!!
+            mounting_id = int(self.cleaned_data['mounting_id'])
+
+            if mounting_id > 0:
+
+                mounting = Mounting.objects.get(pk=mounting_id)
+
+                if mounting.active:
+                    raise forms.ValidationError(
+                        _("Cant dispose an used material !"),
+                        code="cant_dispose_and_used_material",
+                        params={'name': name},
+                    )
+
+                if disposedAt < mounting.dismount_record.date:
+                    raise forms.ValidationError(
+                        _("Disposed date may not be before dismount date: %(date)s!"),
+                        code="disposed_date_before_dismounting_date",
+                        params={'date': mounting.dismount_record.date.strftime("%a, %d %b %Y")},
+                    )
 
         if len(name) < 1 :
             raise forms.ValidationError(
@@ -143,7 +188,7 @@ class CreateMaterialForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # logger.warning("__init__() args={}".format(args[0]))
+        logger.warning("__init__() args={}".format(args[0]))
 
         self.is_save = 'save' in args[0]
 
@@ -152,12 +197,11 @@ class CreateMaterialForm(forms.Form):
         logger.warning("clean() self={}".format(str(self)))
         super(CreateMaterialForm, self).clean()
 
-        # Only if save button pressed
-        if self.is_save:
-            self.check_data()
+        # Only if save button pressed. Be prepaired: the save button must
+        # have the name="save" attribut
+        if not self.is_save:
+            return
 
-    #   Check if the give record values against the existing ones
-    def check_data(self):
         logger.warning("check_create_material() clean_data={}".format(self.cleaned_data))
 
         # get the actual form data we have to check

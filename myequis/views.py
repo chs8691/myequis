@@ -405,6 +405,23 @@ class EditMaterialView(LoginRequiredMixin, CreateView):
         # Find the best km as default value
         material = get_object_or_404(Material, pk=kwargs['material_id'])
 
+        mountings = Mounting.objects.filter(material=material.pk).order_by('-mount_record__date')[:1]
+
+        if len(mountings) > 0:
+            mounting_id = mountings[0].pk
+            if mountings[0].active:
+                mounting_info = "Material is in use since " + mountings[0].mount_record.date.strftime("%a, %d %b %Y")
+            else:
+                mounting_info = "Material was dismounted at " + mountings[0].dismount_record.date.strftime("%a, %d %b %Y")
+        else:
+
+            # kind of magic number
+            mounting_id = 0
+
+            mounting_info = "This is an new material."
+
+        logger.warning("EditMaterialView GET mounting_id: {}".format(str(mounting_id)))
+
         # If called with data, clean() will be processed!
         form = EditMaterialForm(
             {
@@ -414,10 +431,13 @@ class EditMaterialView(LoginRequiredMixin, CreateView):
                 'weight': material.weight,
                 'price': material.price,
                 'comment': material.comment,
+                'disposed': material.disposed,
+                'disposedAt': material.disposedAt,
+                'mounting_id': mounting_id, # in form: converted to string
              })
 
         template = loader.get_template('myequis/edit_material.html')
-        return HttpResponse(template.render({'material': material, 'form': form}, request))
+        return HttpResponse(template.render({'material': material, 'mounting_info': mounting_info, 'form': form}, request))
 
     def post(self, request, *args, **kwargs):
         logger.warning(
@@ -436,7 +456,7 @@ class EditMaterialView(LoginRequiredMixin, CreateView):
         if form.is_valid():
             logger.warning("is valid. form.cleaned_data={}".format(
                 str(form.cleaned_data)))
-            form.check_data()
+            # form.check_data()
 
             # process the data in form.cleaned_data as required
             material.name = form.cleaned_data['name']
@@ -445,6 +465,8 @@ class EditMaterialView(LoginRequiredMixin, CreateView):
             material.weight = form.cleaned_data['weight']
             material.price = form.cleaned_data['price']
             material.comment = form.cleaned_data['comment']
+            material.disposed = form.cleaned_data['disposed']
+            material.disposedAt = form.cleaned_data['disposedAt']
 
             material.save()
             logger.warning("New material saved={}".format(str(material)))
@@ -466,6 +488,7 @@ class EditMaterialView(LoginRequiredMixin, CreateView):
 
 
 class CreateMaterialView(LoginRequiredMixin, CreateView):
+
 
     def get(self, request, *args, **kwargs):
         logger.warning(
@@ -505,7 +528,7 @@ class CreateMaterialView(LoginRequiredMixin, CreateView):
         if form.is_valid():
             logger.warning("is valid. form.cleaned_data={}".format(
                 str(form.cleaned_data)))
-            form.check_data()
+            # form.check_data()
 
             # process the data in form.cleaned_data as required
             material.name = form.cleaned_data['name']

@@ -7,33 +7,69 @@
 {{ material.name }}
 {% endblock %}
 
+{% block script %}
+<script language="JavaScript">
+
+  function refresh(){
+
+    var disposedAtFields = document.getElementById("disposedAtFields")
+    var elementCheckBox = document.getElementById("id_disposed")
+
+    if(elementCheckBox.checked == true) {
+      disposedAtFields.style.visibility = "visible";
+    }
+    else{
+      disposedAtFields.style.visibility = "hidden";
+    }
+  }
+
+  window.onload = refresh;
+
+</script>
+{% endblock %}
+
+
 {% block main %}
 {% include "article-title.html" with title="Edit Material" %}
 
+<div>
+{{ mounting_info }}
+</div>
 
 <form action="" method="post">
   {% csrf_token %}
 
   <div>{{ form.name.label }}</div>
-  <div >{{ form.name }}</div >
+  <div>{{ form.name }}</div>
 
   <div>{{ form.manufacture.label }}</div>
-  <div >{{ form.manufacture }}</div >
+  <div>{{ form.manufacture }}</div>
 
   <div>{{ form.size.label }}</div>
-  <div >{{ form.size }}</div >
+  <div>{{ form.size }}</div>
 
   <div>{{ form.weight.label }}</div>
-  <div >{{ form.weight }}</div >
+  <div>{{ form.weight }}</div>
 
   <div>{{ form.price.label }}</div>
-  <div >{{ form.price }}</div >
+  <div>{{ form.price }}</div>
 
   <div>{{ form.comment.label }}</div>
-  <div >{{ form.comment }}</div >
+  <div>{{ form.comment }}</div>
+
+  <div>{{ form.disposed.label }}</div>
+  <div onclick="refresh">{{ form.disposed }}</div>
+
+  <div id="disposedAtFields">
+    <div>{{ form.disposedAt.label }}</div>
+    <div>{{ form.disposedAt }}</div>
+  </div>
+
+  {{ form.mounting_id }}
+    <input type="hidden" name="next" value="{{ request.path }}">
 
   {% include "form-buttons-open.html" %}
-  <input  {% include "form-button-class.html" %} type="submit" value="Save">
+  <input  {% include "form-button-class.html" %} type="submit" name="save" value="Save">
   <input  {% include "form-button-class.html" %} type="submit" name="cancel" value="Cancel">
   {% include "form-buttons-close.html" %}
 
