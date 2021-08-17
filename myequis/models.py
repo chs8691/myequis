@@ -76,6 +76,8 @@ class Mounting(models.Model):
 
     part = models.ForeignKey(Part, on_delete=models.CASCADE)
 
+    comment = models.CharField(max_length=500, blank=True, default="")
+
     # Optional
     dismount_record = models.ForeignKey(Record, related_name="dismount_record", on_delete=models.CASCADE, blank=True,
                                         null=True)
@@ -91,4 +93,5 @@ class Mounting(models.Model):
                                               str(self.material.name),
                                               str(self.mount_record.date),
                                               str(self.active),
+                                              str(self.comment),            
                                               )

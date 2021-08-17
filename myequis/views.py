@@ -762,7 +762,9 @@ class MountMaterialView(LoginRequiredMixin, CreateView):
             mounting.mount_record = record
             mounting.material = material_under_edit
             mounting.part = part
+            mounting.comment = form.cleaned_data['comment']
             mounting.save()
+            # logger.warning("Comment: {}".format(str(mounting.comment)))
             logger.warning("New mounting created: {}".format(str(mounting)))
 
             return HttpResponseRedirect(
@@ -907,7 +909,13 @@ class ExchangeMaterialView(LoginRequiredMixin,  UpdateView):
         part = get_object_or_404(Part, pk=kwargs['part_id'])
 
         my_mounting = get_object_or_404(Mounting, pk=Mounting.objects.filter(part_id=part.id,
+                                                                             mount_record__bicycle_id=bicycle.id,
+                                                                             dismount_record__isnull=True,
                                                                              )[0].id)
+
+        logger.warning("ExchangeMaterialView Mounting {}".format(str(my_mounting)))
+
+
         form = ExchangeMountingForm({
             'bicycle_id': bicycle.id,
             'selected_record': "",

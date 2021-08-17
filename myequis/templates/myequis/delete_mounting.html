@@ -18,6 +18,9 @@
   </li>
 </ul>
 
+{% if mounting.comment %}
+<div>Comment: {{ mounting.comment }}</div>
+{% endif %}
 
 <form action="" method="post">
   {% csrf_token %}

@@ -56,8 +56,14 @@
       <td>{{ mounting.material.price }}</td>
     </tr>
   </table>
-  Mounted at {{ mounting.mount_record.date }}, {{ mounting.mount_record.km }} km
-  <div id="summary">Choose the dismounting record below</div>
+
+<div>Mounted at {{ mounting.mount_record.date }}, {{ mounting.mount_record.km }} km</div>
+
+{% if mounting.comment %}
+<div>Comment: {{ mounting.comment }}</div>
+{% endif %}
+
+<div id="summary">Choose the dismounting record below</div>
 
   <form class="part-form" action="" method="post">
     {% csrf_token %}

@@ -75,6 +75,10 @@
 
 Mounted at {{ mounting.mount_record.date }}, {{ mounting.mount_record.km }} km
 
+{% if mounting.comment %}
+<div>Comment: {{ mounting.comment }}</div>
+{% endif %}
+
 <div id="summary">Choose the exchanging record and the new material below</div>
 
 <form action="" method="post">

@@ -297,6 +297,8 @@ class MountForm(forms.Form):
     record_select = forms.ChoiceField(label="Record", required=False, widget=Select())
     selected_material = forms.CharField(widget=forms.HiddenInput(), required=False)
     bicycle_id = forms.CharField(widget=forms.HiddenInput(), required=False)
+    comment = forms.CharField(widget=forms.TextInput(
+        attrs={'max_length': '500'}), required=False, label="Comment")
 
     # Will be set to true in POST, if save button pressed
     is_save = False

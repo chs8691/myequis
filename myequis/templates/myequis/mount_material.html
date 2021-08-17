@@ -71,6 +71,9 @@
       {{ form.selected_material }}
       {{ form.bicycle_id }}
 
+      <div>{{ form.comment.label }}</div>
+      <div>{{ form.comment}}</div>
+
       {% include "form-buttons-open.html" %}
       <input  {% include "form-button-class.html" %} type="submit" name="save" value="Save">
       <input  {% include "form-button-class.html" %} type="submit" name="cancel" value="Cancel">
