@@ -342,6 +342,7 @@ class ExchangeMountingForm(forms.Form):
     bicycle_id = forms.CharField(widget=forms.HiddenInput(), required=False)
     mounting_id = forms.CharField(widget=forms.HiddenInput(), required=False)
     selected_material = forms.CharField(widget=forms.HiddenInput(), required=False)
+    disposed = forms.BooleanField(required=False, label="Dispose Material")
 
     # Will be set to true in POST, if save button pressed
     is_save = False
@@ -384,6 +385,7 @@ class DismountForm(forms.Form):
     selected_record = forms.CharField(widget=forms.HiddenInput(), label='Records', required=False)
     bicycle_id = forms.CharField(widget=forms.HiddenInput(), required=False)
     mounting_id = forms.CharField(widget=forms.HiddenInput(), required=False)
+    disposed = forms.BooleanField(required=False, label="Dispose Material")
 
     # Will be set to true in POST, if save button pressed
     is_save = False

@@ -849,6 +849,13 @@ class DismountMaterialView(LoginRequiredMixin, UpdateView):
             record = get_object_or_404(
                 Record, pk=form.cleaned_data['selected_record'])
             mounting_under_edit.dismount_record = record
+            material_under_edit = mounting_under_edit.material
+
+            if form.cleaned_data['disposed']:
+                logger.warning("dispose material.")
+                material_under_edit.disposed = True
+                material_under_edit.disposedAt = record.date
+                material_under_edit.save()
 
             mounting_under_edit.save()
             logger.warning("Dismounted: {}".format(str(mounting_under_edit)))
@@ -900,10 +907,7 @@ class ExchangeMaterialView(LoginRequiredMixin,  UpdateView):
         part = get_object_or_404(Part, pk=kwargs['part_id'])
 
         my_mounting = get_object_or_404(Mounting, pk=Mounting.objects.filter(part_id=part.id,
-                                                                             mount_record__bicycle_id=bicycle.id,
-                                                                             dismount_record__isnull=True,
                                                                              )[0].id)
-
         form = ExchangeMountingForm({
             'bicycle_id': bicycle.id,
             'selected_record': "",
@@ -943,6 +947,12 @@ class ExchangeMaterialView(LoginRequiredMixin,  UpdateView):
             selected_material = get_object_or_404(
                 Material, pk=form.cleaned_data['selected_material'])
             # logger.warning("record_select: {}".format(str(selected_record)))
+
+            if form.cleaned_data['disposed']:
+                dis_material = dis_mounting.material
+                dis_material.disposed = True
+                dis_material.disposedAt = selected_record.date
+                dis_material.save()
 
             dis_mounting.dismount_record = selected_record
             dis_mounting.part = part

@@ -92,6 +92,8 @@
   {{ form.bicycle_id }}
   {{ form.mounting_id }}
 
+  <div>{{ form.disposed }} {{ form.disposed.label }}</div>
+
   {% include "form-buttons-open.html" %}
   <input  {% include "form-button-class.html" %} type="submit" name="save" value="Save">
   <input  {% include "form-button-class.html" %} type="submit" name="cancel" value="Cancel">
