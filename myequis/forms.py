@@ -86,7 +86,7 @@ class EditMaterialForm(forms.Form):
 
 
     comment = forms.CharField(widget=forms.TextInput(
-        attrs={'max_length': '500'}), required=False, label="Comment")
+        attrs={'max_length': '50'}), required=False, label="Comment")
 
     # Will be set to true in POST, if save button pressed
     is_save = False
@@ -294,7 +294,7 @@ class DeleteMountingForm(forms.Form):
 
 class MountForm(forms.Form):
 
-    record_select = forms.ChoiceField(label="Record", required=False, widget=Select())
+    selected_record = forms.CharField(widget=forms.HiddenInput(), required=False)
     selected_material = forms.CharField(widget=forms.HiddenInput(), required=False)
     bicycle_id = forms.CharField(widget=forms.HiddenInput(), required=False)
     comment = forms.CharField(widget=forms.TextInput(
@@ -306,16 +306,6 @@ class MountForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # logger.warning("__init__() args={}".format(args[0]))
-        records = Record.objects.filter(bicycle_id=args[0]['bicycle_id']).order_by('-date')
-        # import pdb; pdb.set_trace()
-        tuples = []
-        for record in records:
-            key = record.id
-            value = "{} / {:,} km".format(record.date, record.km)
-            t = (key, value)
-            tuples.append(t)
-
-        self.fields['record_select'].choices = tuples
 
         self.is_save = 'save' in args[0]
 
@@ -331,6 +321,12 @@ class MountForm(forms.Form):
 
     def check_data(self):
 
+        if len(self.cleaned_data['selected_record']) == 0:
+            raise forms.ValidationError(
+                _("No record selected"),
+                code="no_record_selected"
+            )
+
         if len(self.cleaned_data['selected_material']) == 0:
             raise forms.ValidationError(
                 _("No material selected"),
@@ -345,6 +341,10 @@ class ExchangeMountingForm(forms.Form):
     mounting_id = forms.CharField(widget=forms.HiddenInput(), required=False)
     selected_material = forms.CharField(widget=forms.HiddenInput(), required=False)
     disposed = forms.BooleanField(required=False, label="Dispose Material")
+    mounting_comment = forms.CharField(widget=forms.TextInput(
+        attrs={'max_length': '50'}), required=False, label="Mounting Comment")
+    dismounting_comment = forms.CharField(widget=forms.TextInput(
+        attrs={'max_length': '50'}), required=False, label="Dismounting Comment")
 
     # Will be set to true in POST, if save button pressed
     is_save = False
@@ -388,6 +388,9 @@ class DismountForm(forms.Form):
     bicycle_id = forms.CharField(widget=forms.HiddenInput(), required=False)
     mounting_id = forms.CharField(widget=forms.HiddenInput(), required=False)
     disposed = forms.BooleanField(required=False, label="Dispose Material")
+
+    comment = forms.CharField(widget=forms.TextInput(
+        attrs={'max_length': '50'}), required=False, label="Comment")
 
     # Will be set to true in POST, if save button pressed
     is_save = False

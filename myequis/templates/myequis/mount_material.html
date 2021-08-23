@@ -7,7 +7,7 @@
     // alert(material_id)
     document.getElementById("id_selected_material").value = material_id;
 
-    var elements = document.getElementsByClassName("table-primary")
+    var elements = document.getElementById("material-table").getElementsByClassName("table-primary")
     if(elements.length > 0) {
       elements[0].className = "";
     }
@@ -15,6 +15,46 @@
     element = document.getElementById("material-id-" + material_id)
     element.className = "table-primary";
   }
+
+  function tdRecordClick(record_id, distance){
+
+    // Django generates the id by defining the hidden field
+
+    document.getElementById("id_selected_record").value = record_id;
+    var elements = document.getElementById("record-table").getElementsByClassName("table-primary")
+    if(elements.length > 0) {
+      elements[0].className = "";
+    }
+
+    element = document.getElementById("record-id-" + record_id)
+    element.className = "table-primary";
+
+    // document.getElementById("summary").innerHTML = "Used for " + duration + " days and " + distance + " km"
+
+  }
+
+ <!-- After error message, selected items again -->
+  window.onload = function () {
+
+    record_id = document.getElementById("id_selected_record").value;
+
+    if (record_id != ""){
+      var elem = document.getElementById("record-id-" + record_id);
+      if (typeof elem.onclick == "function") {
+          elem.onclick.apply(elem);
+      }
+    }
+
+    material_id = document.getElementById("id_selected_material").value;
+
+    if (material_id != ""){
+      var elem = document.getElementById("material-id-" + material_id);
+      if (typeof elem.onclick == "function") {
+          elem.onclick.apply(elem);
+      }
+    }
+  }
+
 </script>
 {% endblock %}
 
@@ -43,42 +83,62 @@
   <form action="" method="post">
     {% csrf_token %}
 
-    <div>{{ form.record_select.label }}</div>
-    <div>{{ form.record_select }}</div>
+    <div class="table-responsive">
+      <table id="record-table" class="table table-hover">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Value<br>[km]</th>
+          </tr>
+        </thead>
+        {% for record in records %}
+        <tr id="record-id-{{ record.id }}" onclick="tdRecordClick('{{ record.id }}', '{{ record.km }}');">
+          <td>{{ record.date }}</td>
+          <td>{{ record.km }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
 
     <h5></h5>
     <div>{{ form.material_select.label }}</div>
     <div class="table-responsive">
-      <table class="table table-hover">
+      <table  id="material-table" class="table table-hover">
         <thead>
           <tr>
             <th scope="col">Material</th>
-            <th scope="col">Manufacturer</th>
             <th scope="col">Size</th>
             <th scope="col">Price</th>
           </tr>
         </thead>
         {% for material in materials %}
         <tr id="material-id-{{ material.id }}" onclick="tdClick('{{ material.id }}');">
-          <td>{{ material.name }}</td>
-          <td>{{ material.manufacture }}</td>
+          <td>
+            {{ material.name }} /
+            {{ material.manufacture }}
+            <div class="text-muted">
+              {{ material.comment }}
+            </div>
+          </td>
           <td>{{ material.size }}</td>
           <td>{{ material.price }}</td>
         </tr>
         {% endfor %}
       </table>
-      </div>
-      {{ form.selected_material }}
-      {{ form.bicycle_id }}
+    </div>
+    {{ form.selected_material }}
+    {{ form.bicycle_id }}
+    {{ form.selected_record }}
 
-      <div>{{ form.comment.label }}</div>
-      <div>{{ form.comment}}</div>
 
-      {% include "form-buttons-open.html" %}
-      <input  {% include "form-button-class.html" %} type="submit" name="save" value="Save">
-      <input  {% include "form-button-class.html" %} type="submit" name="cancel" value="Cancel">
-      {% include "form-buttons-close.html" %}
+    <div>{{ form.comment.label }}</div>
+    <div>{{ form.comment}}</div>
 
-    </form>
-  </div>
-  {% endblock %}
+    {% include "form-buttons-open.html" %}
+    <input  {% include "form-button-class.html" %} type="submit" name="save" value="Save">
+    <input  {% include "form-button-class.html" %} type="submit" name="cancel" value="Cancel">
+    {% include "form-buttons-close.html" %}
+
+  </form>
+</div>
+{% endblock %}

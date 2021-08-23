@@ -42,26 +42,35 @@
         <td onclick="tdClick('{% url 'myequis:mount-material-url' bicycle.id part.part.id %}');">
           {{ part.part.name }}
         </td>
-          {% endif %}
+        {% endif %}
 
-          {% if part.material %}
-          <td onclick="tdClick('{% url 'myequis:edit-material-url' part.material.id %}');">
-            {{ part.material.name }}
-          </td>
-          {% else %}
-          <td>{{ part.material.name }}</td>
-          {% endif %}
+        {% if part.material %}
+        <td onclick="tdClick('{% url 'myequis:edit-material-url' part.material.id %}');">
+          {{ part.material.name }} /
+          {{ part.material.manufacture }}
+          <div class="text-muted">
+            <div>
+              {{ part.material.comment }}
+            </div>
+            <div>
+              {{ part.mounting.comment }}
+            </div>
+          </div>
+        </td>
+        {% else %}
+        <td>{{ part.material.name }}</td>
+        {% endif %}
 
-          <td>{{ part.mounting.mount_record.date }}</td>
-          <td>{{ part.distance }}</td>
-        </tr>
-        {% endfor %}
-      </table>
-      {% endfor%}
-      {% else %}
-      <p>No components yet</p>
-      {% endif %}
-    </div>
+        <td>{{ part.mounting.mount_record.date }}</td>
+        <td>{{ part.distance }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+    {% endfor%}
+    {% else %}
+    <p>No components yet</p>
+    {% endif %}
   </div>
+</div>
 
-  {% endblock %}
+{% endblock %}

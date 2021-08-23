@@ -2,6 +2,7 @@ import logging
 import io
 import zipfile
 
+
 from datetime import datetime
 from tablib import Dataset, UnsupportedFormat
 from django.db import DatabaseError, transaction
@@ -727,6 +728,7 @@ class MountMaterialView(LoginRequiredMixin, CreateView):
         form = MountForm({
                 'bicycle_id': bicycle.id,
                 'selected_material': "",
+                'selected_record': "",
         })
 
         template = loader.get_template('myequis/mount_material.html')
@@ -735,6 +737,7 @@ class MountMaterialView(LoginRequiredMixin, CreateView):
                 'bicycle': bicycle,
                 'part': part,
                 'materials': self.select_materials(),
+                'records': self.select_records(bicycle, part),
                 'form': form,
             }, request))
 
@@ -755,7 +758,7 @@ class MountMaterialView(LoginRequiredMixin, CreateView):
             material_under_edit = get_object_or_404(
                 Material, pk=form.cleaned_data['selected_material'])
             record = get_object_or_404(
-                Record, pk=form.cleaned_data['record_select'])
+                Record, pk=form.cleaned_data['selected_record'])
             logger.warning("record_select: {}".format(str(record)))
 
             mounting = Mounting()
@@ -780,6 +783,7 @@ class MountMaterialView(LoginRequiredMixin, CreateView):
                     'bicycle': bicycle,
                     'part': part,
                     'materials': self.select_materials(),
+                    'records': self.select_records(bicycle, part),
                     'form': form,
                 }, request))
 
@@ -791,6 +795,42 @@ class MountMaterialView(LoginRequiredMixin, CreateView):
             .filter(disposed=False)\
             .order_by('name')
 
+
+    @staticmethod
+    def select_records(bicycle, part):
+        """
+            Usable Records for a particular bicycle and part
+        """
+
+        # All records
+        records = Record.objects.filter(
+            bicycle_id=bicycle.id).order_by("-date")
+
+        record_list = []
+
+        # Find records that are not within any mounting period of this part
+        for record in records:
+            logger.warning(f"select_records checking record date={record.date}")
+            if Mounting.objects.filter(part_id=part.id,
+                mount_record__bicycle_id=bicycle.id)\
+                    .filter(Q(mount_record__date__lte=record.date))\
+                    .filter(Q(dismount_record__date__gt=record.date))\
+                    .count() == 0:
+
+                logger.warning(f"select_records nothing found, add record")
+
+                record_list.append(
+                    dict(
+                        id=record.id,
+                        date=record.date,
+                        km=record.km,
+                    ))
+
+            else:
+                logger.warning(f"select_records found mountings. Ignore record")
+
+
+        return record_list
 
 class DismountMaterialView(LoginRequiredMixin, UpdateView):
     """
@@ -811,6 +851,7 @@ class DismountMaterialView(LoginRequiredMixin, UpdateView):
             'bicycle_id': bicycle.id,
             'selected_record': "",
             'mounting_id': my_mounting.id,
+            'comment': my_mounting.comment,
         })
 
         template = loader.get_template('myequis/dismount_material.html')
@@ -819,7 +860,7 @@ class DismountMaterialView(LoginRequiredMixin, UpdateView):
                 'bicycle': bicycle,
                 'part': part,
                 'mounting': my_mounting,
-                'records':  self.select_records(bicycle, my_mounting),
+                'records':  self.select_records(bicycle, part, my_mounting),
                 'form': form,
             }, request))
 
@@ -851,6 +892,8 @@ class DismountMaterialView(LoginRequiredMixin, UpdateView):
             record = get_object_or_404(
                 Record, pk=form.cleaned_data['selected_record'])
             mounting_under_edit.dismount_record = record
+            mounting_under_edit.comment = form.cleaned_data['comment']
+
             material_under_edit = mounting_under_edit.material
 
             if form.cleaned_data['disposed']:
@@ -880,10 +923,31 @@ class DismountMaterialView(LoginRequiredMixin, UpdateView):
                 }, request))
 
     @staticmethod
-    def select_records(bicycle, mounting):
-        records = Record.objects.filter(
-            bicycle_id=bicycle.id, date__gte=mounting.mount_record.date).order_by("-date")
+    def select_records(bicycle, part, mounting):
+
+        # There can be mountings afterwards
+        newer_mountings = Mounting.objects.filter(part_id=part.id,
+            mount_record__bicycle_id=bicycle.id,\
+            mount_record__date__gt=mounting.mount_record.date)\
+            .order_by("mount_record__date")
+
+        if len(newer_mountings) > 0:
+            logger.warning(f"newer_mounting={newer_mountings[0]}")
+
+            # All records after mounting but before next mounting
+            records = Record.objects.filter(
+                bicycle_id=bicycle.id, date__gte=mounting.mount_record.date,\
+                date__lte=newer_mountings[0].mount_record.date)\
+                .order_by("-date")
+
+        else:
+
+            # All records after mounting
+            records = Record.objects.filter(
+                bicycle_id=bicycle.id, date__gte=mounting.mount_record.date).order_by("-date")
+
         record_list = []
+
         for record in records:
             days = record.date - mounting.mount_record.date
             # logger.warning("duration={}".format(str(days.days)))
@@ -896,6 +960,7 @@ class DismountMaterialView(LoginRequiredMixin, UpdateView):
                     distance=record.km - mounting.mount_record.km,
                 )
             )
+
         return record_list
 
 
@@ -921,6 +986,8 @@ class ExchangeMaterialView(LoginRequiredMixin,  UpdateView):
             'selected_record': "",
             'selected_material': "",
             'mounting_id': my_mounting.id,
+            'dismounting_comment': my_mounting.comment,
+            'mounting_comment': "",
         })
 
         template = loader.get_template('myequis/exchange_material.html')
@@ -929,8 +996,8 @@ class ExchangeMaterialView(LoginRequiredMixin,  UpdateView):
                 'bicycle': bicycle,
                 'part': part,
                 'mounting': my_mounting,
-                'records': self.select_records(bicycle, my_mounting),
-                'materials': self.select_materials(),
+                'records': DismountMaterialView.select_records(bicycle, part, my_mounting),
+                'materials': MountMaterialView.select_materials(),
                 'form': form,
             }, request))
 
@@ -964,6 +1031,7 @@ class ExchangeMaterialView(LoginRequiredMixin,  UpdateView):
 
             dis_mounting.dismount_record = selected_record
             dis_mounting.part = part
+            dis_mounting.comment = form.cleaned_data['dismounting_comment']
             dis_mounting.save()
             logger.warning("Mounting updated: {}".format(str(dis_mounting)))
 
@@ -971,6 +1039,7 @@ class ExchangeMaterialView(LoginRequiredMixin,  UpdateView):
             new_mounting.mount_record = selected_record
             new_mounting.material = selected_material
             new_mounting.part = part
+            new_mounting.comment = form.cleaned_data['mounting_comment']
             new_mounting.save()
             logger.warning(
                 "New mounting created: {}".format(str(new_mounting)))
@@ -988,37 +1057,11 @@ class ExchangeMaterialView(LoginRequiredMixin,  UpdateView):
                     'bicycle': bicycle,
                     'mounting': dis_mounting,
                     'part': part,
-                    'records': self.select_records(bicycle, dis_mounting),
-                    'materials': self.select_materials(),
+                    'records': DismountMaterialView.select_records(bicycle, part, dis_mounting),
+                    'materials': MountMaterialView.select_materials(),
                     'form': form,
                 }, request))
 
-    @staticmethod
-    def select_materials():
-        return Material.objects.annotate(mounted=Exists(
-            Mounting.objects.filter(dismount_record=None, material=OuterRef('pk')))) \
-            .filter(mounted=False) \
-            .filter(disposed=False)\
-            .order_by('name')
-
-    @staticmethod
-    def select_records(bicycle, mounting):
-        records = Record.objects.filter(
-            bicycle_id=bicycle.id, date__gte=mounting.mount_record.date).order_by("-date")
-        record_list = []
-        for record in records:
-            days = record.date - mounting.mount_record.date
-            # logger.warning("duration={}".format(str(days.days)))
-            record_list.append(
-                dict(
-                    id=record.id,
-                    date=record.date,
-                    km=record.km,
-                    duration=days.days,
-                    distance=record.km - mounting.mount_record.km,
-                )
-            )
-        return record_list
 
 
 class EditRecordView(LoginRequiredMixin, UpdateView):
@@ -1282,57 +1325,64 @@ def list_bicycle_history(request, bicycle_id):
 
     bicycle = Bicycle.objects.get(pk=bicycle_id)
 
-    # All actual Mountings for this bicycle
+    # All Mountings for this bicycle
     mountings = Mounting.objects.annotate(
         bicycle_found=Exists(
             Record.objects.filter(bicycle_id=bicycle.id)
         )
-    ).filter(bicycle_found=True, dismount_record=None)
+    ).filter(bicycle_found=True).order_by('-mount_record__date')
 
-    # logger.warning("mountings={}".format(str(mountings)))
+    logger.warning(f"Found {len(mountings)} mountings")
 
     component_data_list = []
 
     for component in Component.objects.filter(species_id=bicycle.species.id):
         component_data = dict()
 
-        component_data['component_name'] = component.name
+        component_data['name'] = component.name
 
         parts = Part.objects.filter(component__id=component.id)
 
         part_data_list = []
 
         for part in parts:
-            mounting = next(
-                (m for m in mountings if m.part.id == part.id), None)
-            if mounting is not None:
-                part_material = mounting.material
-            else:
-                part_material = None
+            part_mountings = [m for m in mountings if m.part.id == part.id]
 
+            # logger.warning(f"part {part.name} part_mountings={part_mountings}")
+
+            has_mounting = len(part_mountings) > 0
+            mounting_data_list = []
             distance = ""
-            if part_material is not None:
-                distance = 0
-                # logger.warning("part={}".format(str(part)))
-                # logger.warning("partMaterial={}".format(str(part_material)))
+            timedelta = ""
 
-                # Material can be mounted multiple times and in different bicycles
-                for mounting in Mounting.objects.filter(material_id=part_material.id):
-                    if mounting.dismount_record is None:
-                        logger.warning("mounting={}".format(str(mounting)))
-                        # actual mounted
-                        # distance += records[0].km - mounting.mount_record.km
-                    else:
-                        # Materials history
-                        distance += mounting.dismount_record.km - mounting.mount_record.km
+            # logger.warning(f"part {part.name} has {len(part_mountings)} mountings")
 
-            # logger.warning("part={}".format(str(part)))
+            # Material can be mounted multiple times and in different bicycles
+            for mounting in part_mountings:
+                # logger.warning("mounting={}".format(str(mounting)))
+
+                if mounting.dismount_record is None:
+                    # actual mounted
+                    distance = human_distance( mounting.mount_record.km, mountings[0].mount_record.km)
+                    delta = human_delta(mounting.mount_record.date, mountings[0].mount_record.date)
+                else:
+                    # Materials history
+                    distance = human_distance(mounting.mount_record.km, mounting.dismount_record.km)
+                    delta = human_delta(mounting.mount_record.date, mounting.dismount_record.date)
+
+                    logger.warning(f"mounting's delta={delta}")
+
+                mounting_data_list.append(
+                    dict(mounting=mounting, distance=distance, delta=delta ))
+
             part_data_list.append(
-                dict(part=part, material=part_material, distance=distance, mounting=mounting))
+                dict(part=part, has_mounting=has_mounting, mounting_data_list=mounting_data_list ))
 
-        component_data['parts'] = part_data_list
+        component_data['part_data_list'] = part_data_list
 
         component_data_list.append(component_data)
+
+    # logger.warning(f"component_data_list={component_data_list}")
 
     template = loader.get_template('myequis/bicycle_history.html')
 
@@ -1349,6 +1399,47 @@ def list_bicycle_history(request, bicycle_id):
         }
 
     return HttpResponse(template.render(context, request))
+
+
+def human_distance(low, high):
+    """
+        Readable distance as String of two integer values
+    """
+    return f"{(high - low):,}"
+
+
+def human_delta(start, end):
+    """
+        Readable distance as String of two integer values
+    """
+    delta = end - start
+
+    if delta.days < 31:
+        return f"{delta.days} d"
+
+    logger.warning(f"delta={delta}")
+
+    years = end.year - start.year
+    months = end.month - start.month
+
+    logger.warning(f"years={years}")
+    logger.warning(f"month={months}")
+
+    if months < 0:
+        years -= 1
+        months += 12
+
+        logger.warning(f"years'={years}")
+        logger.warning(f"months'={months}")
+
+    if years == 0:
+        return f"{months} m"
+
+    if months == 0:
+        return f"{years} y"
+
+    return f"{years} y {months} m"
+
 
 
 def index(request):

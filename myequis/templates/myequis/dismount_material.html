@@ -44,26 +44,30 @@
     <thead>
       <tr>
         <th>Material</th>
-        <th>Manufacturer</th>
         <th>Size</th>
         <th>Price</th>
       </tr>
     </thead>
     <tr>
-      <td>{{ mounting.material.name }}</td>
-      <td>{{ mounting.material.manufacture }}</td>
+      <td >
+        {{ mounting.material.name }} /
+        {{ mounting.material.manufacture }}
+        <div class="text-muted">
+          {{ mounting.material.comment }}
+        </div>
+      </td>
       <td>{{ mounting.material.size }}</td>
       <td>{{ mounting.material.price }}</td>
     </tr>
   </table>
 
-<div>Mounted at {{ mounting.mount_record.date }}, {{ mounting.mount_record.km }} km</div>
+  <div>Mounted at {{ mounting.mount_record.date }}, {{ mounting.mount_record.km }} km</div>
 
-{% if mounting.comment %}
-<div>Comment: {{ mounting.comment }}</div>
-{% endif %}
+  {% if mounting.comment %}
+  <div>Comment: {{ mounting.comment }}</div>
+  {% endif %}
 
-<div id="summary">Choose the dismounting record below</div>
+  <div id="summary">Choose the dismounting record below</div>
 
   <form class="part-form" action="" method="post">
     {% csrf_token %}
@@ -97,6 +101,9 @@
   {{ form.selected_record }}
   {{ form.bicycle_id }}
   {{ form.mounting_id }}
+
+  <div>{{ form.comment.label }}</div>
+  <div>{{ form.comment }}</div>
 
   <div>{{ form.disposed }} {{ form.disposed.label }}</div>
 

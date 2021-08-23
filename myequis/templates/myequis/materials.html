@@ -22,25 +22,23 @@
     <table class="table table-hover">
       <thead>
         <tr>
-          <th scope="col">Name</th>
-          <th scope="col">Manufacture</th>
+          <th scope="col">Material</th>
           <th scope="col">Size</th>
           <th scope="col">Weight</th>
           <th scope="col" class="d-none d-md-block">Price</th>
-          <th scope="col">Comment</th>
         </tr>
       </thead>
       {% for material in new_materials %}
       <tr onclick="tdClick('{% url 'myequis:edit-material-url' material.id %}');">
-        <td>
-          {{ material.name }}
+        <td>{{ material.name }} /
+          {{ material.manufacture }}
+          <div class="text-muted">
+            {{ material.comment }}
+          </div>
         </td>
-
-        <td>{{ material.manufacture }}</td>
         <td>{{ material.size }}</td>
         <td>{{ material.weight }}</td>
         <td   class="d-none d-md-block">{{ material.price }}</td>
-        <td>{{ material.comment }}</td>
       </tr>
       {% endfor %}
     </table>
@@ -56,23 +54,24 @@
       <thead>
         <tr>
           <th scope="col">Date</th>
-          <th scope="col">Name</th>
-          <th scope="col">Manufacture</th>
+          <th scope="col">Material</th>
           <th scope="col">Size</th>
           <th scope="col">Weight</th>
           <th scope="col" class="d-none d-md-block">Price</th>
-          <th scope="col">Comment</th>
         </tr>
       </thead>
       {% for material in dismounted_materials %}
       <tr onclick="tdClick('{% url 'myequis:edit-material-url' material.id %}');">
         <td>{{ material.dismountedAt }}</td>
-        <td>{{ material.name }}</td>
-        <td>{{ material.manufacture }}</td>
+        <td>{{ material.name }} /
+          {{ material.manufacture }}
+          <div class="text-muted">
+            {{ material.comment }}
+          </div>
+        </td>
         <td>{{ material.size }}</td>
         <td>{{ material.weight }}</td>
         <td class="d-none d-md-block">{{ material.price }}</td>
-        <td>{{ material.comment }}</td>
       </tr>
       {% endfor %}
     </table>
@@ -90,23 +89,24 @@
       <thead>
         <tr>
           <th scope="col">Date</th>
-          <th scope="col">Name</th>
-          <th scope="col">Manufacture</th>
+          <th scope="col">Material</th>
           <th scope="col">Size</th>
           <th scope="col">Weight</th>
           <th scope="col" class="d-none d-md-block">Price</th>
-          <th scope="col">Comment</th>
         </tr>
       </thead>
       {% for material in disposed_materials %}
       <tr onclick="tdClick('{% url 'myequis:edit-material-url' material.id %}');">
         <td>{{ material.disposedAt }}</td>
-        <td>{{ material.name }}</td>
-        <td>{{ material.manufacture }}</td>
+        <td>{{ material.name }} /
+          {{ material.manufacture }}
+          <div class="text-muted">
+            {{ material.comment }}
+          </div>
+        </td>
         <td>{{ material.size }}</td>
         <td>{{ material.weight }}</td>
         <td class="d-none d-md-block">{{ material.price }}</td>
-        <td>{{ material.comment }}</td>
       </tr>
       {% endfor %}
     </table>

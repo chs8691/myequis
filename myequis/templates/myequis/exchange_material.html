@@ -32,6 +32,28 @@
 
   }
 
+  <!-- After error message, selected items again -->
+   window.onload = function () {
+
+     record_id = document.getElementById("id_selected_record").value;
+
+     if (record_id != ""){
+       var elem = document.getElementById("record-id-" + record_id);
+       if (typeof elem.onclick == "function") {
+           elem.onclick.apply(elem);
+       }
+     }
+
+     material_id = document.getElementById("id_selected_material").value;
+
+     if (material_id != ""){
+       var elem = document.getElementById("material-id-" + material_id);
+       if (typeof elem.onclick == "function") {
+           elem.onclick.apply(elem);
+       }
+     }
+   }
+
 </script>
 {% endblock %}
 
@@ -55,18 +77,22 @@
 </ul>
 
 <div class="table-responsive">
-  <table class="table table-hover">
+  <table class="table">
     <thead>
       <tr>
         <th scope="col">Material</th>
-        <th scope="col">Manufacturer</th>
         <th scope="col">Size</th>
         <th scope="col">Price</th>
       </tr>
     </thead>
     <tr>
-      <td>{{ mounting.material.name }}</td>
-      <td>{{ mounting.material.manufacture }}</td>
+      <td >
+        {{ mounting.material.name }} /
+        {{ mounting.material.manufacture }}
+        <div class="text-muted">
+          {{ mounting.material.comment }}
+        </div>
+      </td>
       <td>{{ mounting.material.size }}</td>
       <td>{{ mounting.material.price }}</td>
     </tr>
@@ -110,15 +136,19 @@ Mounted at {{ mounting.mount_record.date }}, {{ mounting.mount_record.km }} km
       <thead>
         <tr>
           <th>Material</th>
-          <th>Manufacturer</th>
           <th>Size</th>
           <th>Price</th>
         </tr>
       </thead>
       {% for material in materials %}
       <tr id="material-id-{{ material.id }}"  onclick="tdMaterialClick('{{ material.id }}');">
-        <td >{{ material.name }}</td>
-        <td>{{ material.manufacture }}</td>
+        <td >
+          {{ material.name }} /
+          {{ material.manufacture }}
+          <div class="text-muted">
+            {{ material.comment }}
+          </div>
+        </td>
         <td>{{ material.size }}</td>
         <td>{{ material.price }}</td>
       </tr>
@@ -130,6 +160,12 @@ Mounted at {{ mounting.mount_record.date }}, {{ mounting.mount_record.km }} km
   {{ form.selected_material }}
   {{ form.bicycle_id }}
   {{ form.mounting_id }}
+
+  <div>{{ form.dismounting_comment.label }}</div>
+  <div>{{ form.dismounting_comment}}</div>
+
+  <div>{{ form.mounting_comment.label }}</div>
+  <div>{{ form.mounting_comment}}</div>
 
   <div>{{ form.disposed }} {{ form.disposed.label }}</div>
 

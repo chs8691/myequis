@@ -32,14 +32,19 @@
       <thead>
         <tr>
           <th>Material</th>
-          <th>Manufacturer</th>
           <th>Size</th>
           <th>Price</th>
         </tr>
       </thead>
       <tr>
-        <td >{{ mounting.material.name }}</td>
-        <td>{{ mounting.material.manufacture }}</td>
+        <td >
+          {{ mounting.material.name }} /
+          {{ mounting.material.manufacture }}
+          <div class="text-muted">
+            {{ mounting.material.comment }}
+          </div>
+        </td>
+
         <td>{{ mounting.material.size }}</td>
         <td>{{ mounting.material.price }}</td>
       </tr>

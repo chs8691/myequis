@@ -1,50 +1,83 @@
-{% load static %}
-{% load humanize %}
+{% extends "base.html" %}
 
-<link rel="stylesheet" type="text/css" href="{% static 'myequis/style.css' %}">
+{% block nav-items %}
+{% endblock %}
 
-<h2>{{ bicycle.name }} | Part History</h2>
 
-<div class="clearfix">
-    <div class="button-line-flex-container">
-        <a class="nav-button" href="{% url 'myequis:index-url' %}">Home</a>
-        <a class="nav-button"  href="{% url 'myequis:bicycle-detail-url' bicycle.id %}">Back</a>
-    </div>
-</div>
+{% block main %}
 
-<h3>Components </h3>
+{% with var=bicycle.name|add:" Mounting Historty"  %}
+{% include "page-title.html" with title=var  %}
+{% endwith %}
 
-<div>
+{% include "nav-open.html" %}
+
+{% url  'myequis:bicycle-detail-url' bicycle.id  as nav_url %}
+{% include "nav-item.html" with url=nav_url title="Back" %}
+
+{% include "nav-close.html" %}
+
 {% if componentDataList %}
-    {% for componentData in componentDataList %}
-        {% if componentData.has_materials %}
-            <h4>{{ componentData.component_name }}</h4>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Part</th>
-                        <th>Materials</th>
-                        <th>Mountings</th>
-                        <th>Total Duration</th>
-                        <th>Total KM</th>
-                    </tr>
-                </thead>
-                {% for part in componentData.parts %}
-                    {% if part.material %}
-                        <tr>
-                            <td><span>Part</span>{{ part.part.name }}</td>
-                            <td><span>Materials</span>{{ part.materials }}</td>
-                            <td><span>Mountings</span>{{ part.mountings }}</td>
-                            <td><span>Total Duration</span>{{ part.duration }}</td>
-                            <td><span>Total KM</span>{{ part.distance }}</td>
-                        </tr>
-                    {% endif %}
-                {% endfor %}
-            </table>
-        {% endif %}
-    {% endfor%}
-{% else %}
-    <p>No components with parts with mounted materials yet</p>
-{% endif %}
-</div>
+{% for componentData in componentDataList %}
 
+{% include "article-title.html" with title=componentData.name %}
+
+{% for partData in componentData.part_data_list %}
+
+{% if partData.has_mounting %}
+
+{% include "section-title.html" with title=partData.part.name %}
+
+{% for mountingData in partData.mounting_data_list %}
+<div class="card m-1">
+  <div class="card-body">
+    <div class="card-title">
+      <h5>
+        <div class="d-flex justify-content-between">
+          <span>
+            {{ mountingData.mounting.material.name }} /
+            {{ mountingData.mounting.material.manufacture }}
+          </span>
+          <span>
+            {{ mountingData.distance }} km
+          </span>
+        </div>
+      </h5>
+    </div>
+    <h6 class="card-subtitle mb-2">
+
+      <div class="d-flex justify-content-between">
+        <span>
+          {{ mountingData.mounting.mount_record.date }} -
+          {{ mountingData.mounting.dismount_record.date }}
+        </span>
+        <span>
+          {{ mountingData.delta }}
+        </span>
+      </div>
+
+
+    </h6>
+
+    <div class="card-text text-muted">
+      <div>
+        {{ mountingData.mounting.material.comment }}
+      </div>
+      <div>
+        {{ mountingData.mounting.comment }}
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+{% else %}
+{% endif %}
+{% endfor %}
+{% endfor%}
+
+{% else %}
+<p>No components with parts with mounted materials yet</p>
+{% endif %}
+
+
+{% endblock %}

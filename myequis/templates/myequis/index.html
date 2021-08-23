@@ -2,77 +2,81 @@
 
 {% block main %}
 
-  {% include "article-title.html" with title="Bicycles" %}
+{% include "article-title.html" with title="Bicycles" %}
 
-  {% if bicycles %}
-    <table class="table table-hover">
-      <thead>
+{% if bicycles %}
+<table class="table table-hover">
+  <thead>
 
-        <tr>
-          <th scope="col">Name</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for bicycle in bicycles %}
-          <tr>
-            <td>
-                <a class="nav-link"  href="{% url 'myequis:bicycle-detail-url' bicycle.id %}">{{ bicycle.name }}</a>
-            </td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+    <tr>
+      <th scope="col">Name</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for bicycle in bicycles %}
+    <tr>
+      <td>
+        <a class="nav-link"  href="{% url 'myequis:bicycle-detail-url' bicycle.id %}">{{ bicycle.name }}</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
 
-  {% else %}
+{% else %}
 
-      <p>No bicycles yet</p>
+<p>No bicycles yet</p>
 
-  {% endif %}
+{% endif %}
 
-  {% include "article-title.html" with title="Materials" %}
+{% include "article-title.html" with title="Materials" %}
 
-  {% include "nav-open.html" %}
-    {% url 'myequis:list-materials-url' as nav_url %}
-    {% include "nav-item.html" with url=nav_url title="Manage" %}
-  {% include "nav-close.html" %}
+{% include "nav-open.html" %}
+{% url 'myequis:list-materials-url' as nav_url %}
+{% include "nav-item.html" with url=nav_url title="Manage" %}
+{% include "nav-close.html" %}
 
-  {% if materials %}
+{% if materials %}
 
-      <table class="table">
-          <thead>
-              <tr>
-                  <th scope="col">Name</th>
-                  <th scope="col">Manufacture</th>
-                  <th scope="col" class="d-none d-md-block">Price</th>
-              </tr>
-          </thead>
-          {% for material in materials %}
-              <tr>
-                  <td>{{ material.name }}</td>
-                  <td>{{ material.manufacture }}</td>
-                  <td class="d-none d-md-block">{{ material.price }}</td>
-              </tr>
-          {% endfor %}
-      </table>
+<div class="table-responsive">
+  <table class="table">
+    <thead>
+      <tr>
+        <th scope="col">Material</th>
+        <th scope="col" class="d-none d-md-block">Price</th>
+      </tr>
+    </thead>
+    {% for material in materials %}
+    <tr>
+      <td>{{ material.name }} /
+        {{ material.manufacture }}
+        <div class="text-muted">
+          {{ material.comment }}
+        </div>
+      </td>
+      <td class="d-none d-md-block">{{ material.price }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% else %}
 
-  {% else %}
+<p>No unused materials</p>
 
-      <p>No unused materials</p>
-
-  {% endif %}
+{% endif %}
 
 {% include "article-title.html" with title="Bulk Operations"%}
 
 {% include "nav-open.html" %}
 
-  {% url 'admin:index' as nav_url %}
-  {% include "nav-item.html" with url=nav_url title="Admin" %}
+{% url 'admin:index' as nav_url %}
+{% include "nav-item.html" with url=nav_url title="Admin" %}
 
-  {% url 'myequis:export-url' as nav_url %}
-  {% include "nav-item.html" with url=nav_url title="Export" %}
+{% url 'myequis:export-url' as nav_url %}
+{% include "nav-item.html" with url=nav_url title="Export" %}
 
-  {% url 'myequis:import-url' as nav_url %}
-  {% include "nav-item.html" with url=nav_url title="Import" %}
+{% url 'myequis:import-url' as nav_url %}
+{% include "nav-item.html" with url=nav_url title="Import" %}
 
 {% include "nav-close.html" %}
 

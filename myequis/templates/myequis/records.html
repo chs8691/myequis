@@ -25,29 +25,29 @@
 
   {% if records %}
 
-<div class="table-responsive">
-  <table class="table table-hover">
-    <thead>
-      <tr>
-        <th scope="col">Date</th>
-        <th scope="col">Value</th>
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th scope="col">Date</th>
+          <th scope="col">Value</th>
+        </tr>
+      </thead>
+      {% for record in records %}
+      <tr onclick="tdClick('{% url 'myequis:edit-record-url' record.id %}');"  >
+
+        <td>
+          {{ record.date }}
+        </td>
+
+        <td >
+          {{ record.km  }} km
+        </td>
+
       </tr>
-    </thead>
-    {% for record in records %}
-    <tr onclick="tdClick('{% url 'myequis:edit-record-url' record.id %}');"  >
-
-      <td>
-        {{ record.date }}
-      </td>
-
-      <td >
-        {{ record.km  }} km
-      </td>
-
-    </tr>
-    {% endfor %}
-  </table>
-</div>
+      {% endfor %}
+    </table>
+  </div>
   {% else %}
   <p>No records yet</p>
   {% endif %}

@@ -2,80 +2,85 @@
 
 {% block main %}
 
-  {% include "page-title.html" with title=bicycle.name %}
+{% include "page-title.html" with title=bicycle.name %}
 
-  {% include "article-title.html" with title="Last Records" %}
+{% include "article-title.html" with title="Last Records" %}
 
-  {% include "nav-open.html" %}
-    {% url 'myequis:list-records-url' bicycle.id as nav_url %}
-    {% include "nav-item.html" with url=nav_url title="Manage" %}
-  {% include "nav-close.html" %}
-
-
-  <div>
-    {% if records %}
-        <table class="table">
-            <thead>
-                <tr>
-                    <th scope="col">Date</th>
-                    <th scope="col">Value</th>
-                </tr>
-            </thead>
-            {% for record in records %}
-                <tr>
-                    <td>{{ record.date }}</td>
-                    <td>{{ record.km }}</td>
-                </tr>
-            {% endfor %}
-        </table>
-    {% else %}
-        <p>No records yet</p>
-    {% endif %}
-  </div>
-
-  {% include "article-title.html" with title="Components in Usage" %}
+{% include "nav-open.html" %}
+{% url 'myequis:list-records-url' bicycle.id as nav_url %}
+{% include "nav-item.html" with url=nav_url title="Manage" %}
+{% include "nav-close.html" %}
 
 
-  {% include "nav-open.html" %}
-
-    {% url 'myequis:list-bicycle-history-url' bicycle.id  as nav_url %}
-    {% include "nav-item.html" with url=nav_url title="History" %}
-
-    {% url 'myequis:list-bicycle-parts-url' bicycle.id  as nav_url %}
-    {% include "nav-item.html" with url=nav_url title="Manage" %}
-
-  {% include "nav-close.html" %}
-
-  <div>
-  {% if componentDataList %}
-    {% for componentData in componentDataList %}
-      {% if componentData.has_materials %}
-        <h4>{{ componentData.component_name }}</h4>
-        <table class="table">
-          <thead>
-            <tr>
-              <th scope="col">Part</th>
-              <th scope="col">Material</th>
-              <th scope="col" class="d-none d-md-block">Mounted at</th>
-              <th scope="col">KM</th>
-            </tr>
-          </thead>
-          {% for part in componentData.parts %}
-            {% if part.material %}
-              <tr>
-                <td>{{ part.part.name }}</td>
-                <td>{{ part.material.name }}</td>
-                <td class="d-none d-md-block">{{ part.mounting.mount_record.date }}</td>
-                <td>{{ part.distance }}</td>
-              </tr>
-            {% endif %}
-          {% endfor %}
-        </table>
-      {% endif %}
-    {% endfor%}
+<div>
+  {% if records %}
+  <table class="table">
+    <thead>
+      <tr>
+        <th scope="col">Date</th>
+        <th scope="col">Value</th>
+      </tr>
+    </thead>
+    {% for record in records %}
+    <tr>
+      <td>{{ record.date }}</td>
+      <td>{{ record.km }}</td>
+    </tr>
+    {% endfor %}
+  </table>
   {% else %}
-    <p>No components with parts with mounted materials yet</p>
+  <p>No records yet</p>
   {% endif %}
-  </div>
+</div>
+
+{% include "article-title.html" with title="Components in Usage" %}
+
+
+{% include "nav-open.html" %}
+
+{% url 'myequis:list-bicycle-history-url' bicycle.id  as nav_url %}
+{% include "nav-item.html" with url=nav_url title="History" %}
+
+{% url 'myequis:list-bicycle-parts-url' bicycle.id  as nav_url %}
+{% include "nav-item.html" with url=nav_url title="Manage" %}
+
+{% include "nav-close.html" %}
+
+<div>
+  {% if componentDataList %}
+  {% for componentData in componentDataList %}
+  {% if componentData.has_materials %}
+  <h4>{{ componentData.component_name }}</h4>
+  <table class="table">
+    <thead>
+      <tr>
+        <th scope="col">Part</th>
+        <th scope="col">Material</th>
+        <th scope="col" class="d-none d-md-block">Mounted at</th>
+        <th scope="col">KM</th>
+      </tr>
+    </thead>
+    {% for part in componentData.parts %}
+    {% if part.material %}
+    <tr>
+      <td>{{ part.part.name }}</td>
+      <td>{{ part.material.name }} /
+        {{ part.material.manufacture }}
+        <div class="text-muted">
+          {{ part.material.comment }}
+        </div>
+      </td>
+      <td class="d-none d-md-block">{{ part.mounting.mount_record.date }}</td>
+      <td>{{ part.distance }}</td>
+    </tr>
+    {% endif %}
+    {% endfor %}
+  </table>
+  {% endif %}
+  {% endfor%}
+  {% else %}
+  <p>No components with parts with mounted materials yet</p>
+  {% endif %}
+</div>
 
 {% endblock %}

@@ -59,7 +59,7 @@ class Material(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     weight = models.DecimalField(max_digits=10, decimal_places=3, blank=True, null=True)
 
-    comment = models.CharField(max_length=500, blank=True, default="")
+    comment = models.CharField(max_length=50, blank=True, default="")
 
     disposed = models.BooleanField(default=False)
     disposedAt = models.DateField(blank=True, null=True)
@@ -76,7 +76,7 @@ class Mounting(models.Model):
 
     part = models.ForeignKey(Part, on_delete=models.CASCADE)
 
-    comment = models.CharField(max_length=500, blank=True, default="")
+    comment = models.CharField(max_length=50, blank=True, default="")
 
     # Optional
     dismount_record = models.ForeignKey(Record, related_name="dismount_record", on_delete=models.CASCADE, blank=True,
@@ -93,5 +93,5 @@ class Mounting(models.Model):
                                               str(self.material.name),
                                               str(self.mount_record.date),
                                               str(self.active),
-                                              str(self.comment),            
+                                              str(self.comment),
                                               )
