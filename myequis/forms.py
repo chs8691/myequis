@@ -3,6 +3,8 @@ from django.forms import Select
 
 from myequis.models import Record, Material, Mounting
 from datetime import datetime, timedelta
+from django.db.models import Q
+from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext as _
 from bootstrap_datepicker_plus import DatePickerInput
 
@@ -333,6 +335,28 @@ class MountForm(forms.Form):
                 code="no_material_selected"
             )
 
+        self.validate_material_mountings(\
+            get_object_or_404(Material, pk=self.cleaned_data['selected_material']),\
+            get_object_or_404(Record, pk=self.cleaned_data['selected_record']))
+
+
+    @staticmethod
+    def validate_material_mountings(material, record):
+        """
+            Checks, if there is no overlapping time period of the Existing
+            mountings for the material.
+        """
+
+        mountings = Mounting.objects.filter(material_id=material.id)\
+                .filter(Q(mount_record__date__lte=record.date))\
+                .filter(Q(dismount_record__date__gt=record.date))
+
+        if len(mountings) > 0:
+            raise forms.ValidationError(
+                _(f"Material was already mounted_between {mountings[0].mount_record.date} and {mountings[0].dismount_record.date}"),
+                code="material_was_already_mounted_between_dates"
+            )
+
 
 class ExchangeMountingForm(forms.Form):
 
@@ -380,6 +404,10 @@ class ExchangeMountingForm(forms.Form):
                 _("No material selected"),
                 code="no_material_selected"
             )
+
+        MountForm.validate_material_mountings(\
+            get_object_or_404(Material, pk=self.cleaned_data['selected_material']),\
+            get_object_or_404(Record, pk=self.cleaned_data['selected_record']))
 
 
 class DismountForm(forms.Form):

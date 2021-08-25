@@ -918,18 +918,22 @@ class DismountMaterialView(LoginRequiredMixin, UpdateView):
                     'bicycle': bicycle,
                     'mounting': my_mounting,
                     'part': part,
-                    'records': self.select_records(bicycle, my_mounting),
+                    'records': self.select_records(bicycle, part, my_mounting),
                     'form': form,
                 }, request))
 
     @staticmethod
     def select_records(bicycle, part, mounting):
 
-        # There can be mountings afterwards
-        newer_mountings = Mounting.objects.filter(part_id=part.id,
-            mount_record__bicycle_id=bicycle.id,\
-            mount_record__date__gt=mounting.mount_record.date)\
+        # There can be mountings afterwards for the part or for the material
+        newer_mountings = Mounting.objects.filter(\
+            Q(part_id=part.id) &\
+            Q(mount_record__bicycle_id=bicycle.id) |\
+            Q(material_id=mounting.material.id))\
+            .filter(mount_record__date__gt=mounting.mount_record.date)\
             .order_by("mount_record__date")
+
+        logger.warning(f"newer_mounting={newer_mountings}")
 
         if len(newer_mountings) > 0:
             logger.warning(f"newer_mounting={newer_mountings[0]}")
@@ -1503,7 +1507,11 @@ def materials(request):
         .annotate(dismountedAt=Subquery(Mounting.objects
                                         .filter(material=OuterRef('pk'))
                                         .order_by('-dismount_record__date')
-                                        .values('dismount_record__date')[:1]))
+                                        .values('dismount_record__date')[:1]))\
+        .annotate(dismountingComment=Subquery(Mounting.objects
+                                        .filter(material=OuterRef('pk'))
+                                        .order_by('-dismount_record__date')
+                                        .values('comment')[:1]))
 
     # Materials without actual mounted items
     disposed_materials = Material.objects\
