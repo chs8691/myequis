@@ -1332,7 +1332,11 @@ def list_bicycle_history(request, bicycle_id):
         )
     ).filter(bicycle_found=True).order_by('-mount_record__date')
 
+    records = Record.objects.filter(bicycle_id=bicycle.id).order_by('-date')
+
     logger.warning(f"Found {len(mountings)} mountings")
+
+    # logger.warning(f"Mountings:{mountings}")
 
     component_data_list = []
 
@@ -1363,8 +1367,8 @@ def list_bicycle_history(request, bicycle_id):
 
                 if mounting.dismount_record is None:
                     # actual mounted
-                    distance = human_distance( mounting.mount_record.km, mountings[0].mount_record.km)
-                    delta = human_delta(mounting.mount_record.date, mountings[0].mount_record.date)
+                    distance = human_distance( mounting.mount_record.km, records.first().km)
+                    delta = human_delta(mounting.mount_record.date, records.first().date)
                 else:
                     # Materials history
                     distance = human_distance(mounting.mount_record.km, mounting.dismount_record.km)
