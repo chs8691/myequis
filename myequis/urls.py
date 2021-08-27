@@ -55,6 +55,9 @@ urlpatterns = [
     # ex: myequis/materials
     path('materials/', views.materials, name='list-materials-url'),
 
+    # ex: myequis/materials/4/history
+    path('materials/<int:material_id>/history/', views.list_material_history, name='material-history-url'),
+
     # ex: myequis/materials/create
     path('materials/create', views.CreateMaterialView.as_view(), name='create-material-url'),
 

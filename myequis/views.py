@@ -1322,6 +1322,66 @@ def list_bicycle_parts(request, bicycle_id):
     return HttpResponse(template.render(context, request))
 
 
+def list_material_history(request, material_id):
+
+    logger.warning(f"list_material_history material_id={material_id}")
+
+    material = get_object_or_404(Material, pk=material_id)
+
+    logger.warning(f"material={material}")
+
+    mounting_list = []
+
+    mountings = Mounting.objects.filter(material__id=material.id)\
+        .order_by('-mount_record__date')
+
+    total_distance = 0
+    total_days = 0
+
+    for mounting in mountings:
+
+        mounting_data = dict()
+        mounting_data["mounting"]=mounting
+
+        if mounting.dismount_record is None:
+
+            # newest record for this bicycle
+            record = Record.objects.filter(bicycle_id=mounting.mount_record.bicycle.id).order_by('-date').first()
+
+            mounting_data["distance"] = human_distance( mounting.mount_record.km, record.km)
+            mounting_data["duration"] = human_delta(mounting.mount_record.date, record.date)
+
+            total_distance += record.km - mounting.mount_record.km
+            total_days += (record.date - mounting.mount_record.date).days
+
+        else:
+            mounting_data["distance"] = human_distance(mounting.mount_record.km, mounting.dismount_record.km)
+            mounting_data["duration"] = human_delta(mounting.mount_record.date, mounting.dismount_record.date)
+
+            total_distance += mounting.dismount_record.km - mounting.mount_record.km
+            total_days += (mounting.dismount_record.date - mounting.mount_record.date).days
+
+        mounting_list.append(mounting_data)
+
+    data = dict(material=material, distance=total_distance, duration=human_days(total_days), mountings=mounting_list)
+
+    logger.warning(f"data={data}")
+
+    template = loader.get_template('myequis/material_history.html')
+
+    if 'message' in request.GET.keys():
+        context = {
+            'data': data,
+            'message': request.GET['message']
+        }
+    else:
+        context = {
+            'data': data,
+        }
+
+    return HttpResponse(template.render(context, request))
+
+
 def list_bicycle_history(request, bicycle_id):
     """
     bicycle_history.html
@@ -1409,45 +1469,6 @@ def list_bicycle_history(request, bicycle_id):
     return HttpResponse(template.render(context, request))
 
 
-def human_distance(low, high):
-    """
-        Readable distance as String of two integer values
-    """
-    return f"{(high - low):,}"
-
-
-def human_delta(start, end):
-    """
-        Readable distance as String of two integer values
-    """
-    delta = end - start
-
-    if delta.days < 31:
-        return f"{delta.days} d"
-
-    logger.warning(f"delta={delta}")
-
-    years = end.year - start.year
-    months = end.month - start.month
-
-    logger.warning(f"years={years}")
-    logger.warning(f"month={months}")
-
-    if months < 0:
-        years -= 1
-        months += 12
-
-        logger.warning(f"years'={years}")
-        logger.warning(f"months'={months}")
-
-    if years == 0:
-        return f"{months} m"
-
-    if months == 0:
-        return f"{years} y"
-
-    return f"{years} y {months} m"
-
 
 
 def index(request):
@@ -1487,13 +1508,26 @@ def materials(request):
         .filter(disposed=False)\
         .order_by('name')
 
-    # Existing materials without actual mounted items
-    dismounted_materials = Material.objects\
-        .annotate(mounted=Exists(Mounting.objects
-                                 .filter(Q(dismount_record__isnull=True), material=OuterRef('pk'))))\
-        .filter(mounted=False)\
+    # Existing materials which are dismounted actually
+    mounted_materials = Material.objects\
+        .annotate(mounted=Exists(Mounting.objects.
+                                 filter(Q(dismount_record__isnull=True), material=OuterRef('pk'))))\
+        .annotate(hasMountings=Exists(Mounting.objects
+                                      .filter(material=OuterRef('pk'))))\
+        .filter(mounted=True)\
         .filter(disposed=False)\
-        .order_by('name')
+        .filter(hasMountings=True)\
+        .annotate(mountedAt=Subquery(Mounting.objects
+                                        .filter(Q(dismount_record__isnull=True), material=OuterRef('pk'))\
+                                        .order_by('-mount_record__date')
+                                        .values('mount_record__date')[:1]))\
+        .annotate(mountingComment=Subquery(Mounting.objects
+                                        .filter(Q(dismount_record__isnull=True), material=OuterRef('pk'))\
+                                        .order_by('-mount_record__date')
+                                        .values('comment')[:1]))
+
+    for mounted in mounted_materials:
+        logger.warning(f"mounted_material={mounted.name}, {mounted.mountedAt}, {mounted.mountingComment}")
 
     # Existing materials which are dismounted actually
     dismounted_materials = Material.objects\
@@ -1523,6 +1557,7 @@ def materials(request):
     if 'message' in request.GET.keys():
         context = {
             'new_materials': new_materials,
+            'mounted_materials': mounted_materials,
             'dismounted_materials': dismounted_materials,
             'disposed_materials': disposed_materials,
             'message': request.GET['message']
@@ -1530,6 +1565,7 @@ def materials(request):
     else:
         context = {
             'new_materials': new_materials,
+            'mounted_materials': mounted_materials,
             'dismounted_materials': dismounted_materials,
             'disposed_materials': disposed_materials,
         }
@@ -1584,3 +1620,70 @@ def material(request, material_id):
     material = Material.objects.get(id=material_id)
 
     return HttpResponse("You're looking at material %s." % material.name)
+
+
+def human_distance(low, high):
+    """
+        Readable distance as String of two integer values
+    """
+    return f"{(high - low):,}"
+
+
+def human_delta(start, end):
+    """
+        Readable time delta as String of two integer values
+    """
+    delta = end - start
+
+    if delta.days < 31:
+        return human_time_delta(delta.days, 0, 0)
+
+    logger.warning(f"delta={delta}")
+
+    years = end.year - start.year
+    months = end.month - start.month
+
+    return human_time_delta(0, months, years)
+
+
+def human_days(days):
+    """
+        Readable time delta as an approximated value as String of days
+    """
+
+    years = int(days / 365)
+
+    days_of_year = int(days - years * 365)
+
+    months = int(days_of_year / 30)
+
+    days_of_month = int(days_of_year - months * 30)
+
+    return human_time_delta(days_of_month, months, years)
+
+
+def human_time_delta(days, months, years):
+    """
+        Readable time delta as a nice readable String with years, months and days
+    """
+
+    logger.warning(f"human_time_delta days, month, years={days}, {months}, {years}")
+
+    if months == 0 and years == 0:
+        return f"{days} d"
+
+    if months < 0:
+        years -= 1
+        months += 12
+
+    if years == 0:
+        return f"{months} m"
+
+    if months == 0:
+        return f"{years} y"
+
+    res = f"{years} y {months} m"
+
+    logger.warning(f"human_time_delta returns={res}")
+
+    return res

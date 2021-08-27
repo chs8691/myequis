@@ -32,17 +32,25 @@
 <div class="card m-1">
   <div class="card-body">
     <div class="card-title">
-      <h5>
-        <div class="d-flex justify-content-between">
-          <span>
-            {{ mountingData.mounting.material.name }} /
+      <div class="d-flex justify-content-between">
+        <span>
+          <div class="text-uppercase">
             {{ mountingData.mounting.material.manufacture }}
-          </span>
-          <span>
+          </div>
+          <h5>
+            <div class="font-weight-bold">
+              <span>
+                {{ mountingData.mounting.material.name }}
+              </span>
+            </div>
+          </h5>
+        </span>
+        <span>
+          <h5>
             {{ mountingData.distance }} km
-          </span>
-        </div>
-      </h5>
+          </h5>
+        </span>
+      </div>
     </div>
     <h6 class="card-subtitle mb-2">
 

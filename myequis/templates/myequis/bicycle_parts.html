@@ -46,8 +46,14 @@
 
         {% if part.material %}
         <td onclick="tdClick('{% url 'myequis:edit-material-url' part.material.id %}');">
-          {{ part.material.name }} /
-          {{ part.material.manufacture }}
+          <div class="text-uppercase">
+            {{ part.material.manufacture }}
+          </div>
+            <div class="font-weight-bold">
+              <span>
+                {{ part.material.name }}
+              </span>
+            </div>
           <div class="text-muted">
             <div>
               {{ part.material.comment }}
