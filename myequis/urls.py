@@ -26,6 +26,9 @@ urlpatterns = [
     # ex: myequis/bicycles/5/history
     path('bicycles/<int:bicycle_id>/history', views.list_bicycle_history, name='list-bicycle-history-url'),
 
+    # ex: myequis/bicycles/5/history
+    path('bicycles/<int:bicycle_id>/timeline', views.list_bicycle_timeline, name='list-bicycle-timeline-url'),
+
     # ex: myequis/bicycles/5/part/4/mount
     path('bicycles/<int:bicycle_id>/part/<int:part_id>/mount', views.MountMaterialView.as_view(),
          name='mount-material-url'),

@@ -1,0 +1,119 @@
+m.materialm.material{% extends "base.html" %}
+{% load static %}
+
+{% block nav-items %}
+{% endblock %}
+
+
+{% block main %}
+
+{% with var=bicycle.name  %}
+{% include "page-title.html" with title=var  %}
+{% endwith %}
+
+{% include "article-title.html" with title='Timeline'  %}
+
+{% include "nav-open.html" %}
+{% include "nav-back-item.html" %}
+{% include "nav-close.html" %}
+
+{% if data_list %}
+{% for d in data_list %}
+
+<div class="d-flex justify-content-between bg-secondary text-white pt-2 pl-2 pr-2 ">
+  <div>
+    <H3>
+      {{ d.record.date }}
+    </H3>
+  </div>
+  <div>
+    {{ d.record.km }} km
+  </div>
+
+</div>
+{% for p in d.part_list %}
+<H3>
+  {{ p.part.component.name }} / {{ p.part.name }}
+</H3>
+{% for m in p.mounting_list %}
+
+<div class="card m-1">
+  <div class="card-body">
+    <div class="d-flex justify-left">
+      <div class="pr-5">
+        {% if m.mount_record.date == d.record.date%}
+        {% if m.dismount_record.date == d.record.date%}
+        <img src= "{% static '/myequis/arrow-left-right.svg' %}" width="40" height="40" alt="EXCHANGE ">
+        {% else %}
+        <img src= "{% static '/myequis/file-earmark-plus.svg' %}" width="40" height="40" alt="IN">
+        {% endif %}
+        {% else %}
+        <img src= "{% static '/myequis/file-earmark-minus-fill.svg' %}" width="40" height="40" alt="OUT">
+        {% endif %}
+      </div>
+      <div class="pr-5">
+        <div class="card-title">
+          <div class="d-flex justify-content-between">
+            <span>
+              <div class="text-uppercase">
+                {{ m.material.manufacture }}
+              </div>
+              <h5>
+                <div class="font-weight-bold">
+                  <span>
+                    {{ m.material.name }}
+                  </span>
+                </div>
+              </h5>
+            </span>
+          </div>
+        </div>
+      </div>
+      <div>
+
+        <div class="card-text">
+          <div>
+            {% if m.material.size %}
+            Size: {{ m.material.size }}
+            {% endif %}
+          </div>
+
+          <div>
+            {% if m.material.weight %}
+            Weight: {{ m.material.weight }}
+            {% endif %}
+          </div>
+          <div>
+            {% if m.material.price %}
+            Price: {{ m.material.price }}
+            {% endif %}
+          </div>
+          <div>
+            {% if m.material.disposed %}
+            {{ m.material.disposedAt }}
+            {% endif %}
+          </div>
+          <div class="text-muted">
+            <div>
+              {{ m.material.comment }}
+            </div>
+            <div>
+              {{ m.comment }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+{% endfor%}
+{% endfor%}
+{% endfor%}
+
+{% else %}
+<p>Nothing recorded yet</p>
+{% endif %}
+
+
+{% endblock %}

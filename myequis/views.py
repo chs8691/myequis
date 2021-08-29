@@ -1565,6 +1565,88 @@ def list_bicycle_history(request, bicycle_id):
 
     return HttpResponse(template.render(context, request))
 
+def full_part_name(part):
+    return f"{part.component.name}/{part.name}"
+
+
+def list_bicycle_timeline(request, bicycle_id):
+    """
+    bicycle_timeline.html
+    """
+
+    bicycle = Bicycle.objects.get(pk=bicycle_id)
+
+    # All Mountings for this bicycle
+    mountings = Mounting.objects.annotate(
+        bicycle_found=Exists(
+            Record.objects.filter(bicycle_id=bicycle.id)
+        )
+    ).filter(bicycle_found=True).order_by('-mount_record__date')
+
+    records = Record.objects.filter(bicycle_id=bicycle.id).order_by('-date')
+
+    logger.warning(f"Found {len(mountings)} mountings")
+
+    # logger.warning(f"Mountings:{mountings}")
+
+    data_list = []
+
+    for record in records:
+
+        mountings = Mounting.objects.annotate(
+            bicycle_found=Exists(
+                Record.objects.filter(bicycle_id=bicycle.id)
+            )
+        ).filter(bicycle_found=True)\
+        .filter(Q(mount_record__date=record.date) | Q(dismount_record__date=record.date))\
+        .order_by('part__name')
+
+        partnames = []
+
+        #  all parts
+        for mounting in mountings:
+            partnames.append(full_part_name(mounting.part))
+
+        # delete duplicates
+        partnames = list(dict.fromkeys(partnames))
+
+        # logger.warning(f"list_bicycle_timeline() partnames= {partnames}.")
+
+        part_list = []
+        for partname in partnames:
+            mounting_list = []
+            for m2 in [m for m in mountings if partname == full_part_name(m.part)]:
+                mounting_list.append(m2)
+                part = m2.part
+
+            # logger.warning(f"list_bicycle_timeline() mounting_list= {mounting_list}.")
+            part_list.append(dict(part=part, mounting_list=mounting_list))
+
+        if len(part_list) > 0:
+            data_list.append(dict(record=record, part_list=part_list))
+
+    logger.warning(f"list_bicycle_timeline() data_list= {data_list}.")
+
+
+    # logger.warning(f"data_list count= {len(data_list)}.")
+    # logger.warning(f"data_list= {data_list}.")
+
+    template = loader.get_template('myequis/bicycle_timeline.html')
+
+    if 'message' in request.GET.keys():
+        context = {
+            'bicycle': bicycle,
+            'data_list': data_list,
+            'message': request.GET['message']
+        }
+    else:
+        context = {
+            'bicycle': bicycle,
+            'data_list': data_list,
+        }
+
+    return HttpResponse(template.render(context, request))
+
 
 
 

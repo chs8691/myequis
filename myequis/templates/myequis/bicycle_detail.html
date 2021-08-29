@@ -45,6 +45,9 @@
 {% url 'myequis:index-url' as nav_url %}
 {% include "nav-item.html" with url=nav_url title="Back" %}
 
+{% url 'myequis:list-bicycle-timeline-url' bicycle.id  as nav_url %}
+{% include "nav-item.html" with url=nav_url title="Timeline" %}
+
 {% url 'myequis:list-bicycle-history-url' bicycle.id  as nav_url %}
 {% include "nav-item.html" with url=nav_url title="History" %}
 
