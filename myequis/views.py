@@ -25,8 +25,12 @@ from .resources import BicycleResource, ComponentResource, MaterialResource, Mou
 logger = logging.getLogger(__name__)
 
 # Keys for request.session items
-KEY_FROM = 'JAPP_SESSION_FROM'
 KEY_MESSAGE = 'JAPP_SESSION_MESSAGE'
+
+KEY_FROM = 'JAPP_SESSION_FROM'
+
+# For Mounting tabs
+KEY_MOUNTING_TABS = 'JAPP_SESSION_MOUNTING_TABS'
 
 def zip_files(files, suffix):
     outfile = io.BytesIO()
@@ -417,14 +421,24 @@ class EditMaterialView(LoginRequiredMixin, CreateView):
         # Find the best km as default value
         material = get_object_or_404(Material, pk=kwargs['material_id'])
 
-        mountings = Mounting.objects.filter(material=material.pk).order_by('-mount_record__date')[:1]
+        # Find actual mounting or last mounting
+
+        mountings = Mounting.objects.filter(material=material.pk)\
+            .filter(dismount_record=None)
+
+        if len(mountings) == 0:
+
+            mountings = Mounting.objects.filter(material=material.pk)\
+                .order_by('-mount_record__date')[:1]
 
         if len(mountings) > 0:
             mounting_id = mountings[0].pk
             if mountings[0].active:
-                mounting_info = "Material is in use since " + mountings[0].mount_record.date.strftime("%a, %d %b %Y")
+                mounting_info = f"Material mounted into {mountings[0].mount_record.bicycle.name}/{mountings[0].part.name} at "\
+                    + mountings[0].mount_record.date.strftime("%a, %d %b %Y")
             else:
-                mounting_info = "Material was dismounted at " + mountings[0].dismount_record.date.strftime("%a, %d %b %Y")
+                mounting_info = f"Material was dismounted from {mountings[0].mount_record.bicycle.name}/{mountings[0].part.name} at "\
+                    + mountings[0].dismount_record.date.strftime("%a, %d %b %Y")
         else:
 
             # kind of magic number
@@ -503,6 +517,12 @@ class CreateMaterialView(LoginRequiredMixin, CreateView):
         logger.warning(
             "CreateMaterialView GET request: {}".format(str(request)))
 
+        # Where did I come from
+        request.session[KEY_FROM] = request.META.get('HTTP_REFERER', '/')
+
+        # Init message
+        request.session[KEY_MESSAGE] = None
+
         # Find the best km as default value
         material = Material()
 
@@ -525,8 +545,9 @@ class CreateMaterialView(LoginRequiredMixin, CreateView):
             "CreateMaterialView POST request.POST: {}".format(str(request.POST)))
 
         if 'cancel' in request.POST:
-            return HttpResponseRedirect(
-                "%s?message='Create material canceled'" % reverse('myequis:list-materials-url'))
+
+            request.session[KEY_MESSAGE] = f"Create material canceled."
+            return HttpResponseRedirect(request.session[KEY_FROM])
 
         form = CreateMaterialForm(request.POST)
         # logger.warning("form: " + str(form))
@@ -550,12 +571,9 @@ class CreateMaterialView(LoginRequiredMixin, CreateView):
             material.save()
             logger.warning("New material saved={}".format(str(material)))
 
-            # redirect to a new URL:
-            # see https://docs.djangoproject.com/en/dev/ref/urlresolvers/#django.core.urlresolvers.reverse
-            # return HttpResponseRedirect(reverse('url_records', args=(record.bicycle.id,)))
-            return HttpResponseRedirect(
-                "%s?message='{} created'".format(material.name)
-                % reverse('myequis:list-materials-url'))
+            # Redirect to previus page
+            request.session[KEY_MESSAGE] = f"Material '{material.name}' created."
+            return HttpResponseRedirect(request.session[KEY_FROM])
 
         else:
             logger.warning("is not valid")
@@ -655,8 +673,22 @@ class CreateRecordView(LoginRequiredMixin, CreateView):
 
 
 class DeleteMountingView(LoginRequiredMixin, UpdateView):
+    """
+        Part of the Tabs 'Edit Mounting'
+    """
 
     def get(self, request, *args, **kwargs):
+
+        # Entering tab dialog
+        if KEY_MOUNTING_TABS not in request.session:
+
+            # Where did I come from
+            request.session[KEY_FROM] = request.META.get('HTTP_REFERER', '/')
+
+            # Init message
+            request.session[KEY_MESSAGE] = None
+
+            request.session[KEY_MOUNTING_TABS] = True
 
         bicycle = get_object_or_404(Bicycle, pk=kwargs['bicycle_id'])
         part = get_object_or_404(Part, pk=kwargs['part_id'])
@@ -683,16 +715,16 @@ class DeleteMountingView(LoginRequiredMixin, UpdateView):
                 }, request))
 
     def post(self, request, *args, **kwargs):
+
         # logger.warning("post={}".format(request.POST))
         bicycle = get_object_or_404(Bicycle, pk=kwargs['bicycle_id'])
         part = get_object_or_404(Part, pk=kwargs['part_id'])
 
+        # Leave tab dialog
         if 'cancel' in request.POST:
-            return HttpResponseRedirect(
-                "%s?message='Delete mounting for Part {} canceled'".format(
-                    part.name)
-                % reverse('myequis:list-bicycle-parts-url',
-                          args=(kwargs['bicycle_id'],)))
+            request.session[KEY_MOUNTING_TABS] = None
+            request.session[KEY_MESSAGE] = f"Edit mounting for part '{part.name}' canceled."
+            return HttpResponseRedirect(request.session[KEY_FROM])
 
         # logger.warning("Before mounting")
         mounting = get_object_or_404(Mounting, pk=request.POST['mounting_id'])
@@ -701,14 +733,14 @@ class DeleteMountingView(LoginRequiredMixin, UpdateView):
         form = DeleteMountingForm(request.POST)
 
         if 'delete' in request.POST:
-            logger.warning("Delete Mounting : {}".format(str(mounting)))
+            logger.warning("Delete mounting : {}".format(str(mounting)))
             mounting.delete()
             logger.warning("Done.")
-            # redirect to a new URL:
-            return HttpResponseRedirect(
-                "%s?message='Mounting deleted from part {}'".format(part.name)
-                % reverse('myequis:list-bicycle-parts-url',
-                          args=(kwargs['bicycle_id'],)))
+
+            # Redirect to previus page
+            request.session[KEY_MOUNTING_TABS] = None
+            request.session[KEY_MESSAGE] = f"Mounting '{mounting.material.name}' deleted for part '{part.name}'."
+            return HttpResponseRedirect(request.session[KEY_FROM])
 
         else:
             # logger.warning("delete not in POST")
@@ -736,14 +768,15 @@ class MountMaterialView(LoginRequiredMixin, CreateView):
     """
 
     def get(self, request, *args, **kwargs):
-        bicycle = get_object_or_404(Bicycle, pk=kwargs['bicycle_id'])
-        part = get_object_or_404(Part, pk=kwargs['part_id'])
 
         # Where did I come from
         request.session[KEY_FROM] = request.META.get('HTTP_REFERER', '/')
 
         # Init message
         request.session[KEY_MESSAGE] = None
+
+        bicycle = get_object_or_404(Bicycle, pk=kwargs['bicycle_id'])
+        part = get_object_or_404(Part, pk=kwargs['part_id'])
 
         form = MountForm({
                 'bicycle_id': bicycle.id,
@@ -762,6 +795,7 @@ class MountMaterialView(LoginRequiredMixin, CreateView):
             }, request))
 
     def post(self, request, *args, **kwargs):
+
         bicycle = get_object_or_404(Bicycle, pk=kwargs['bicycle_id'])
         part = get_object_or_404(Part, pk=kwargs['part_id'])
 
@@ -852,10 +886,23 @@ class MountMaterialView(LoginRequiredMixin, CreateView):
 
 class DismountMaterialView(LoginRequiredMixin, UpdateView):
     """
-    Input: Part.id, Bicycle.id
+        Part of the Tabs 'Edit Mounting'
+        Input: Part.id, Bicycle.id
     """
 
     def get(self, request, *args, **kwargs):
+
+        # Entering tab dialog
+        if KEY_MOUNTING_TABS not in request.session:
+
+            # Where did I come from
+            request.session[KEY_FROM] = request.META.get('HTTP_REFERER', '/')
+
+            # Init message
+            request.session[KEY_MESSAGE] = None
+
+            request.session[KEY_MOUNTING_TABS] = True
+
         bicycle = get_object_or_404(Bicycle, pk=kwargs['bicycle_id'])
         part = get_object_or_404(Part, pk=kwargs['part_id'])
 
@@ -894,11 +941,11 @@ class DismountMaterialView(LoginRequiredMixin, UpdateView):
         logger.warning(
             f"POST: bycicle={bicycle} part={part} my_mounting={my_mounting}")
 
+        # Leave tab dialog
         if 'cancel' in request.POST:
-            return HttpResponseRedirect(
-                "%s?message='Dismounting {} canceled'".format(part.name)
-                % reverse('myequis:list-bicycle-parts-url',
-                          args=(kwargs['bicycle_id'],)))
+            request.session[KEY_MOUNTING_TABS] = None
+            request.session[KEY_MESSAGE] = f"Edit mounting for part '{part.name}' canceled."
+            return HttpResponseRedirect(request.session[KEY_FROM])
 
         form = DismountForm(request.POST)
 
@@ -923,10 +970,10 @@ class DismountMaterialView(LoginRequiredMixin, UpdateView):
             mounting_under_edit.save()
             logger.warning("Dismounted: {}".format(str(mounting_under_edit)))
 
-            return HttpResponseRedirect(
-                "%s?message='{} dismounted'".format(part.name)
-                % reverse('myequis:list-bicycle-parts-url',
-                          args=(kwargs['bicycle_id'],)))
+            # Redirect to previus page
+            request.session[KEY_MOUNTING_TABS] = None
+            request.session[KEY_MESSAGE] = f"Dismounted '{material_under_edit.name}' from part '{part.name}'."
+            return HttpResponseRedirect(request.session[KEY_FROM])
 
         else:
             logger.warning("is not valid")
@@ -988,10 +1035,24 @@ class DismountMaterialView(LoginRequiredMixin, UpdateView):
 
 class ExchangeMaterialView(LoginRequiredMixin,  UpdateView):
     """
-    Input: Part.id, Bicycle.id
+        Part of the Tabs 'Edit Mounting'
+        Input: Part.id, Bicycle.id
     """
 
     def get(self, request, *args, **kwargs):
+
+        # Entering tab dialog
+        if KEY_MOUNTING_TABS not in request.session:
+
+            # Where did I come from
+            request.session[KEY_FROM] = request.META.get('HTTP_REFERER', '/')
+
+            # Init message
+            request.session[KEY_MESSAGE] = None
+
+            request.session[KEY_MOUNTING_TABS] = True
+
+
         bicycle = get_object_or_404(Bicycle, pk=kwargs['bicycle_id'])
         part = get_object_or_404(Part, pk=kwargs['part_id'])
 
@@ -1027,11 +1088,11 @@ class ExchangeMaterialView(LoginRequiredMixin,  UpdateView):
         bicycle = get_object_or_404(Bicycle, pk=kwargs['bicycle_id'])
         part = get_object_or_404(Part, pk=kwargs['part_id'])
 
+        # Leave tab dialog
         if 'cancel' in request.POST:
-            return HttpResponseRedirect(
-                "%s?message='Exchanging {} canceled'".format(part.name)
-                % reverse('myequis:list-bicycle-parts-url',
-                          args=(kwargs['bicycle_id'],)))
+            request.session[KEY_MOUNTING_TABS] = None
+            request.session[KEY_MESSAGE] = f"Edit mounting for part '{part.name}' canceled."
+            return HttpResponseRedirect(request.session[KEY_FROM])
 
         form = ExchangeMountingForm(request.POST)
         # logger.warning("form: {}".format(str(form.data)))
@@ -1066,10 +1127,10 @@ class ExchangeMaterialView(LoginRequiredMixin,  UpdateView):
             logger.warning(
                 "New mounting created: {}".format(str(new_mounting)))
 
-            return HttpResponseRedirect(
-                "%s?message='{} mounted'".format(part.name)
-                % reverse('myequis:list-bicycle-parts-url',
-                          args=(kwargs['bicycle_id'],)))
+            # Redirect to previus page
+            request.session[KEY_MOUNTING_TABS] = None
+            request.session[KEY_MESSAGE] = f"Mounted part '{part.name}'."
+            return HttpResponseRedirect(request.session[KEY_FROM])
 
         else:
             logger.warning("is not valid")
@@ -1535,7 +1596,7 @@ def index(request):
     return HttpResponse(template.render(context, request))
 
 
-def materials(request):
+def list_active_materials(request):
 
     # Existing materials without any mountings
     new_materials = Material.objects.annotate(used=Exists(
@@ -1583,26 +1644,51 @@ def materials(request):
                                         .order_by('-dismount_record__date')
                                         .values('comment')[:1]))
 
-    # Materials without actual mounted items
-    disposed_materials = Material.objects\
-        .filter(disposed=True)\
-        .order_by('-disposedAt')
+    template = loader.get_template('myequis/active_materials.html')
 
-    template = loader.get_template('myequis/materials.html')
+    # Pick up message to show once
+    if KEY_MESSAGE in request.session:
 
-    if 'message' in request.GET.keys():
         context = {
             'new_materials': new_materials,
             'mounted_materials': mounted_materials,
             'dismounted_materials': dismounted_materials,
-            'disposed_materials': disposed_materials,
-            'message': request.GET['message']
+            'message': request.session[KEY_MESSAGE]
         }
+
+        request.session[KEY_MESSAGE] = None
+
     else:
         context = {
             'new_materials': new_materials,
             'mounted_materials': mounted_materials,
             'dismounted_materials': dismounted_materials,
+        }
+
+    return HttpResponse(template.render(context, request))
+
+
+def list_disposed_materials(request):
+
+    # Materials without actual mounted items
+    disposed_materials = Material.objects\
+        .filter(disposed=True)\
+        .order_by('-disposedAt')
+
+    template = loader.get_template('myequis/disposed_materials.html')
+
+    # Pick up message to show once
+    if KEY_MESSAGE in request.session:
+
+        context = {
+            'disposed_materials': disposed_materials,
+            'message': request.session[KEY_MESSAGE]
+        }
+
+        request.session[KEY_MESSAGE] = None
+
+    else:
+        context = {
             'disposed_materials': disposed_materials,
         }
 

@@ -53,10 +53,10 @@ urlpatterns = [
     # ### MATERIALS ##############################
 
     # ex: myequis/materials
-    path('materials/', views.materials, name='list-materials-url'),
+    path('materials/', views.list_active_materials, name='list-active-materials-url'),
 
-    # ex: myequis/materials/4/history
-    path('materials/<int:material_id>/history/', views.list_material_history, name='material-history-url'),
+    # ex: myequis/materials/disposed
+    path('materials/disposed', views.list_disposed_materials, name='list-disposed-materials-url'),
 
     # ex: myequis/materials/create
     path('materials/create', views.CreateMaterialView.as_view(), name='create-material-url'),
@@ -64,5 +64,7 @@ urlpatterns = [
     # ex: myequis/materials/4
     path('materials/<int:material_id>/', views.EditMaterialView.as_view(), name='edit-material-url'),
 
+    # ex: myequis/materials/4/history
+    path('materials/<int:material_id>/history/', views.list_material_history, name='material-history-url'),
 
 ]

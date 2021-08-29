@@ -32,8 +32,13 @@
 {% include "article-title.html" with title="Materials" %}
 
 {% include "nav-open.html" %}
-{% url 'myequis:list-materials-url' as nav_url %}
-{% include "nav-item.html" with url=nav_url title="Manage" %}
+
+{% url 'myequis:list-disposed-materials-url' as nav_url %}
+{% include "nav-item.html" with url=nav_url title="Disposed" %}
+
+{% url 'myequis:list-active-materials-url' as nav_url %}
+{% include "nav-item.html" with url=nav_url title="Active" %}
+
 {% include "nav-close.html" %}
 
 {% if materials %}
