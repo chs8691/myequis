@@ -11,10 +11,8 @@
 {% include "article-title.html" with title="Parts"  %}
 
 {% include "nav-open.html" %}
-
 {% url 'myequis:bicycle-detail-url' bicycle.id as nav_url %}
 {% include "nav-item.html" with url=nav_url title="Back" %}
-
 {% include "nav-close.html" %}
 
 <div>

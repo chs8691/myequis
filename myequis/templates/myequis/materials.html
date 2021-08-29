@@ -10,6 +10,9 @@
 
 {% include "nav-open.html" %}
 
+{% url  'myequis:index-url' as nav_url %}
+{% include "nav-item.html" with url=nav_url title="Back" %}
+
 {% url  'myequis:create-material-url' as nav_url %}
 {% include "nav-item.html" with url=nav_url title="Add" %}
 

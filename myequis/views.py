@@ -24,6 +24,9 @@ from .resources import BicycleResource, ComponentResource, MaterialResource, Mou
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
+# Keys for request.session items
+KEY_FROM = 'JAPP_SESSION_FROM'
+KEY_MESSAGE = 'JAPP_SESSION_MESSAGE'
 
 def zip_files(files, suffix):
     outfile = io.BytesIO()
@@ -403,6 +406,14 @@ class EditMaterialView(LoginRequiredMixin, CreateView):
     def get(self, request, *args, **kwargs):
         logger.warning("EditMaterialView GET request: {}".format(str(request)))
 
+        # Where did I come from
+        request.session[KEY_FROM] = request.META.get('HTTP_REFERER', '/')
+
+        # Init message
+        request.session[KEY_MESSAGE] = None
+
+        # logger.warning(f"EditMaterialView FROM in request.session: {request.session[KEY_FROM]}")
+
         # Find the best km as default value
         material = get_object_or_404(Material, pk=kwargs['material_id'])
 
@@ -421,7 +432,7 @@ class EditMaterialView(LoginRequiredMixin, CreateView):
 
             mounting_info = "This is an new material."
 
-        logger.warning("EditMaterialView GET mounting_id: {}".format(str(mounting_id)))
+        # logger.warning("EditMaterialView GET mounting_id: {}".format(str(mounting_id)))
 
         # If called with data, clean() will be processed!
         form = EditMaterialForm(
@@ -441,18 +452,18 @@ class EditMaterialView(LoginRequiredMixin, CreateView):
         return HttpResponse(template.render({'material': material, 'mounting_info': mounting_info, 'form': form}, request))
 
     def post(self, request, *args, **kwargs):
-        logger.warning(
-            "EditMaterialView POST request.POST: {}".format(str(request.POST)))
+        # logger.warning("EditMaterialView POST request.POST: {}".format(str(request.POST)))
+
+        material = get_object_or_404(Material, pk=kwargs['material_id'])
 
         if 'cancel' in request.POST:
-            return HttpResponseRedirect(
-                "%s?message='Edit material canceled'" % reverse('myequis:list-materials-url'))
+
+            request.session[KEY_MESSAGE] = f"Editing '{material.name}' canceled."
+            return HttpResponseRedirect(request.session[KEY_FROM])
 
         form = EditMaterialForm(request.POST)
         # logger.warning("form: " + str(form))
         # logger.warning("form cleaned_data: " + str(form.cleaned_data))
-
-        material = get_object_or_404(Material, pk=kwargs['material_id'])
 
         if form.is_valid():
             logger.warning("is valid. form.cleaned_data={}".format(
@@ -472,12 +483,9 @@ class EditMaterialView(LoginRequiredMixin, CreateView):
             material.save()
             logger.warning("New material saved={}".format(str(material)))
 
-            # redirect to a new URL:
-            # see https://docs.djangoproject.com/en/dev/ref/urlresolvers/#django.core.urlresolvers.reverse
-            # return HttpResponseRedirect(reverse('url_records', args=(record.bicycle.id,)))
-            return HttpResponseRedirect(
-                "%s?message='{} updated'".format(material.name)
-                % reverse('myequis:list-materials-url'))
+            # Redirect to previus page
+            request.session[KEY_MESSAGE] = f"Material '{material.name}' saved."
+            return HttpResponseRedirect(request.session[KEY_FROM])
 
         else:
             logger.warning("is not valid")
@@ -563,6 +571,12 @@ class CreateRecordView(LoginRequiredMixin, CreateView):
     def get(self, request, *args, **kwargs):
         # logger.warning("CreateRecordView GET request: {}".format(str(request)))
 
+        # Where did I come from
+        request.session[KEY_FROM] = request.META.get('HTTP_REFERER', '/')
+
+        # Init message
+        request.session[KEY_MESSAGE] = None
+
         bicycle = get_object_or_404(Bicycle, pk=kwargs['bicycle_id'])
 
         # Find the best km as default value
@@ -582,9 +596,10 @@ class CreateRecordView(LoginRequiredMixin, CreateView):
         # logger.warning("CreateRecordView POST request.POST: {}".format(str(request.POST)))
 
         if 'cancel' in request.POST:
-            return HttpResponseRedirect(
-                "%s?message='Create record canceled'" % reverse('myequis:list-records-url',
-                                                                args=(kwargs['bicycle_id'],)))
+
+            request.session[KEY_MESSAGE] = "Create record canceled."
+            return HttpResponseRedirect(request.session[KEY_FROM])
+
 
         form = CreateRecordForm(request.POST)
         logger.warning("form: " + str(form))
@@ -604,10 +619,9 @@ class CreateRecordView(LoginRequiredMixin, CreateView):
             record.save()
             logger.warning("New record saved={}".format(str(record)))
 
-            # redirect to a new URL:
-            # see https://docs.djangoproject.com/en/dev/ref/urlresolvers/#django.core.urlresolvers.reverse
-            # return HttpResponseRedirect(reverse('url_records', args=(record.bicycle.id,)))
-            return HttpResponseRedirect(reverse('myequis:list-records-url', args=(record.bicycle.id,)))
+            # Redirect to previus page
+            request.session[KEY_MESSAGE] = f"Record '{record.date}' created."
+            return HttpResponseRedirect(request.session[KEY_FROM])
 
         else:
             logger.warning("is not valid")
@@ -725,6 +739,12 @@ class MountMaterialView(LoginRequiredMixin, CreateView):
         bicycle = get_object_or_404(Bicycle, pk=kwargs['bicycle_id'])
         part = get_object_or_404(Part, pk=kwargs['part_id'])
 
+        # Where did I come from
+        request.session[KEY_FROM] = request.META.get('HTTP_REFERER', '/')
+
+        # Init message
+        request.session[KEY_MESSAGE] = None
+
         form = MountForm({
                 'bicycle_id': bicycle.id,
                 'selected_material': "",
@@ -746,10 +766,9 @@ class MountMaterialView(LoginRequiredMixin, CreateView):
         part = get_object_or_404(Part, pk=kwargs['part_id'])
 
         if 'cancel' in request.POST:
-            return HttpResponseRedirect(
-                "%s?message='Mounting {} canceled'".format(part.name)
-                % reverse('myequis:list-bicycle-parts-url',
-                          args=(kwargs['bicycle_id'],)))
+
+            request.session[KEY_MESSAGE] = f"Mounting '{part.name}' canceled."
+            return HttpResponseRedirect(request.session[KEY_FROM])
 
         form = MountForm(request.POST)
 
@@ -770,10 +789,9 @@ class MountMaterialView(LoginRequiredMixin, CreateView):
             # logger.warning("Comment: {}".format(str(mounting.comment)))
             logger.warning("New mounting created: {}".format(str(mounting)))
 
-            return HttpResponseRedirect(
-                "%s?message='{} mounted'".format(part.name)
-                % reverse('myequis:list-bicycle-parts-url',
-                          args=(kwargs['bicycle_id'],)))
+            # Redirect to previus page
+            request.session[KEY_MESSAGE] = f"Part '{part.name}' mounted."
+            return HttpResponseRedirect(request.session[KEY_FROM])
 
         else:
             logger.warning("is not valid")
@@ -1074,6 +1092,12 @@ class EditRecordView(LoginRequiredMixin, UpdateView):
 
         # logger.warning("EditRecordView GET request: {}".format(str(request)))
 
+        # Where did I come from
+        request.session[KEY_FROM] = request.META.get('HTTP_REFERER', '/')
+
+        # Init message
+        request.session[KEY_MESSAGE] = None
+
         record = get_object_or_404(Record, pk=kwargs['record_id'])
 
         form = EditRecordForm({
@@ -1097,19 +1121,18 @@ class EditRecordView(LoginRequiredMixin, UpdateView):
         record = get_object_or_404(Record, pk=kwargs['record_id'])
 
         if 'cancel' in request.POST:
-            return HttpResponseRedirect(
-                "%s?message='Edit record canceled'" % reverse('myequis:list-records-url',
-                                                              args=(record.bicycle.id,)))
 
-        record = get_object_or_404(Record, pk=kwargs['record_id'])
+            request.session[KEY_MESSAGE] = f"Edit '{record.date}' canceled."
+            return HttpResponseRedirect(request.session[KEY_FROM])
 
         if 'delete' in request.POST:
+
             logger.warning("Delete Record : {}".format(str(record)))
             record.delete()
             logger.warning("Done.")
-            # redirect to a new URL:
-            return HttpResponseRedirect(
-                "%s?message='Dataset deleted'" % reverse('myequis:list-records-url', args=(record.bicycle.id,)))
+
+            request.session[KEY_MESSAGE] = f"Record '{record.date}' deleted."
+            return HttpResponseRedirect(request.session[KEY_FROM])
 
         form = EditRecordForm(request.POST)
 
@@ -1123,9 +1146,9 @@ class EditRecordView(LoginRequiredMixin, UpdateView):
             record.save()
             logger.warning("Record saved={}".format(str(record)))
 
-            # redirect to a new URL:
-            return HttpResponseRedirect(
-                "%s?message='Dataset saved'" % reverse('myequis:list-records-url', args=(record.bicycle.id,)))
+            # Redirect to previus page
+            request.session[KEY_MESSAGE] = f"Record '{record.date}' saved."
+            return HttpResponseRedirect(request.session[KEY_FROM])
 
         else:
             # logger.warning("is not valid" )
@@ -1150,12 +1173,17 @@ def list_records(request, bicycle_id):
     bicycle = Bicycle.objects.get(pk=bicycle_id)
     template = loader.get_template('myequis/records.html')
 
-    if 'message' in request.GET.keys():
+    # Pick up message to show once
+    if KEY_MESSAGE in request.session:
+
         context = {
             'bicycle': bicycle,
             'records': records,
-            'message': request.GET['message']
+            'message': request.session[KEY_MESSAGE]
         }
+
+        request.session[KEY_MESSAGE] = None
+
     else:
         context = {
             'bicycle': bicycle,
@@ -1258,8 +1286,8 @@ def list_bicycle_parts(request, bicycle_id):
         )
     ).filter(bicycle_found=True, dismount_record=None)
 
-    logger.warning("mountings={}".format(str(mountings)))
-    logger.warning("records={}".format(str(records)))
+    # logger.warning("mountings={}".format(str(mountings)))
+    # logger.warning("records={}".format(str(records)))
 
     component_data_list = []
 
@@ -1305,13 +1333,21 @@ def list_bicycle_parts(request, bicycle_id):
 
     template = loader.get_template('myequis/bicycle_parts.html')
 
-    if 'message' in request.GET.keys():
+    message = None
+
+    # Pick up message to show once
+    if KEY_MESSAGE in request.session:
+
         context = {
             'bicycle': bicycle,
             'records': records[:2],  # Last two
             'componentDataList': component_data_list,
-            'message': request.GET['message']
+            'message': request.session[KEY_MESSAGE]
         }
+
+        request.session[KEY_MESSAGE] = None
+
+
     else:
         context = {
             'bicycle': bicycle,

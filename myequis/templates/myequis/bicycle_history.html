@@ -11,10 +11,7 @@
 {% endwith %}
 
 {% include "nav-open.html" %}
-
-{% url  'myequis:bicycle-detail-url' bicycle.id  as nav_url %}
-{% include "nav-item.html" with url=nav_url title="Back" %}
-
+{% include "nav-back-item.html" %}
 {% include "nav-close.html" %}
 
 {% if componentDataList %}
