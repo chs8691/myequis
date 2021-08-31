@@ -411,7 +411,7 @@ class EditMaterialView(LoginRequiredMixin, CreateView):
         logger.warning("EditMaterialView GET request: {}".format(str(request)))
 
         # Where did I come from
-        request.session[KEY_FROM] = request.META.get('HTTP_REFERER', '/')
+        request.session[type(self).__name__] = request.META.get('HTTP_REFERER', '/')
 
         # Init message
         request.session[KEY_MESSAGE] = None
@@ -473,7 +473,7 @@ class EditMaterialView(LoginRequiredMixin, CreateView):
         if 'cancel' in request.POST:
 
             request.session[KEY_MESSAGE] = f"Editing '{material.name}' canceled."
-            return HttpResponseRedirect(request.session[KEY_FROM])
+            return HttpResponseRedirect(request.session[type(self).__name__])
 
         form = EditMaterialForm(request.POST)
         # logger.warning("form: " + str(form))
@@ -499,7 +499,7 @@ class EditMaterialView(LoginRequiredMixin, CreateView):
 
             # Redirect to previus page
             request.session[KEY_MESSAGE] = f"Material '{material.name}' saved."
-            return HttpResponseRedirect(request.session[KEY_FROM])
+            return HttpResponseRedirect(request.session[type(self).__name__])
 
         else:
             logger.warning("is not valid")
@@ -518,7 +518,7 @@ class CreateMaterialView(LoginRequiredMixin, CreateView):
             "CreateMaterialView GET request: {}".format(str(request)))
 
         # Where did I come from
-        request.session[KEY_FROM] = request.META.get('HTTP_REFERER', '/')
+        request.session[type(self).__name__] = request.META.get('HTTP_REFERER', '/')
 
         # Init message
         request.session[KEY_MESSAGE] = None
@@ -547,7 +547,7 @@ class CreateMaterialView(LoginRequiredMixin, CreateView):
         if 'cancel' in request.POST:
 
             request.session[KEY_MESSAGE] = f"Create material canceled."
-            return HttpResponseRedirect(request.session[KEY_FROM])
+            return HttpResponseRedirect(request.session[type(self).__name__])
 
         form = CreateMaterialForm(request.POST)
         # logger.warning("form: " + str(form))
@@ -573,7 +573,7 @@ class CreateMaterialView(LoginRequiredMixin, CreateView):
 
             # Redirect to previus page
             request.session[KEY_MESSAGE] = f"Material '{material.name}' created."
-            return HttpResponseRedirect(request.session[KEY_FROM])
+            return HttpResponseRedirect(request.session[type(self).__name__])
 
         else:
             logger.warning("is not valid")
@@ -590,7 +590,7 @@ class CreateRecordView(LoginRequiredMixin, CreateView):
         # logger.warning("CreateRecordView GET request: {}".format(str(request)))
 
         # Where did I come from
-        request.session[KEY_FROM] = request.META.get('HTTP_REFERER', '/')
+        request.session[type(self).__name__] = request.META.get('HTTP_REFERER', '/')
 
         # Init message
         request.session[KEY_MESSAGE] = None
@@ -616,7 +616,7 @@ class CreateRecordView(LoginRequiredMixin, CreateView):
         if 'cancel' in request.POST:
 
             request.session[KEY_MESSAGE] = "Create record canceled."
-            return HttpResponseRedirect(request.session[KEY_FROM])
+            return HttpResponseRedirect(request.session[type(self).__name__])
 
 
         form = CreateRecordForm(request.POST)
@@ -639,7 +639,7 @@ class CreateRecordView(LoginRequiredMixin, CreateView):
 
             # Redirect to previus page
             request.session[KEY_MESSAGE] = f"Record '{record.date}' created."
-            return HttpResponseRedirect(request.session[KEY_FROM])
+            return HttpResponseRedirect(request.session[type(self).__name__])
 
         else:
             logger.warning("is not valid")
@@ -679,16 +679,19 @@ class DeleteMountingView(LoginRequiredMixin, UpdateView):
 
     def get(self, request, *args, **kwargs):
 
+        url = request.META.get('HTTP_REFERER', '/')
+        logger.warning(f"DeleteMaterialView HTTP_REFERRER={url}")
+
         # Entering tab dialog
-        if KEY_MOUNTING_TABS not in request.session:
+        if is_mounting_tabs_entry(url):
 
             # Where did I come from
-            request.session[KEY_FROM] = request.META.get('HTTP_REFERER', '/')
+            request.session[get_key_from(KEY_MOUNTING_TABS)] = url
 
             # Init message
             request.session[KEY_MESSAGE] = None
 
-            request.session[KEY_MOUNTING_TABS] = True
+            logger.warning(f"DeleteMaterialView set session value {get_key_from(KEY_MOUNTING_TABS)}={request.session[get_key_from(KEY_MOUNTING_TABS)]}")
 
         bicycle = get_object_or_404(Bicycle, pk=kwargs['bicycle_id'])
         part = get_object_or_404(Part, pk=kwargs['part_id'])
@@ -722,9 +725,8 @@ class DeleteMountingView(LoginRequiredMixin, UpdateView):
 
         # Leave tab dialog
         if 'cancel' in request.POST:
-            request.session[KEY_MOUNTING_TABS] = None
             request.session[KEY_MESSAGE] = f"Edit mounting for part '{part.name}' canceled."
-            return HttpResponseRedirect(request.session[KEY_FROM])
+            return HttpResponseRedirect(request.session[get_key_from(KEY_MOUNTING_TABS)])
 
         # logger.warning("Before mounting")
         mounting = get_object_or_404(Mounting, pk=request.POST['mounting_id'])
@@ -738,9 +740,8 @@ class DeleteMountingView(LoginRequiredMixin, UpdateView):
             logger.warning("Done.")
 
             # Redirect to previus page
-            request.session[KEY_MOUNTING_TABS] = None
             request.session[KEY_MESSAGE] = f"Mounting '{mounting.material.name}' deleted for part '{part.name}'."
-            return HttpResponseRedirect(request.session[KEY_FROM])
+            return HttpResponseRedirect(request.session[get_key_from(KEY_MOUNTING_TABS)])
 
         else:
             # logger.warning("delete not in POST")
@@ -761,6 +762,12 @@ class DeleteMountingView(LoginRequiredMixin, UpdateView):
             .filter(mounted=False) \
             .order_by('name')
 
+def get_key_from(prefix):
+    """
+        Returns specific KEY instead of general KEY_FROM for storing
+        the referrer address.
+    """
+    return f"{prefix}_{KEY_FROM}"
 
 class MountMaterialView(LoginRequiredMixin, CreateView):
     """
@@ -770,7 +777,7 @@ class MountMaterialView(LoginRequiredMixin, CreateView):
     def get(self, request, *args, **kwargs):
 
         # Where did I come from
-        request.session[KEY_FROM] = request.META.get('HTTP_REFERER', '/')
+        request.session[get_key_from(type(self).__name__)] = request.META.get('HTTP_REFERER', '/')
 
         # Init message
         request.session[KEY_MESSAGE] = None
@@ -802,7 +809,7 @@ class MountMaterialView(LoginRequiredMixin, CreateView):
         if 'cancel' in request.POST:
 
             request.session[KEY_MESSAGE] = f"Mounting '{part.name}' canceled."
-            return HttpResponseRedirect(request.session[KEY_FROM])
+            return HttpResponseRedirect(request.session[get_key_from(type(self).__name__)])
 
         form = MountForm(request.POST)
 
@@ -825,7 +832,7 @@ class MountMaterialView(LoginRequiredMixin, CreateView):
 
             # Redirect to previus page
             request.session[KEY_MESSAGE] = f"Part '{part.name}' mounted."
-            return HttpResponseRedirect(request.session[KEY_FROM])
+            return HttpResponseRedirect(request.session[get_key_from(type(self).__name__)])
 
         else:
             logger.warning("is not valid")
@@ -892,16 +899,19 @@ class DismountMaterialView(LoginRequiredMixin, UpdateView):
 
     def get(self, request, *args, **kwargs):
 
+        url = request.META.get('HTTP_REFERER', '/')
+        logger.warning(f"DismountMaterialView HTTP_REFERRER={url}")
+
         # Entering tab dialog
-        if KEY_MOUNTING_TABS not in request.session:
+        if is_mounting_tabs_entry(url):
 
             # Where did I come from
-            request.session[KEY_FROM] = request.META.get('HTTP_REFERER', '/')
+            request.session[get_key_from(KEY_MOUNTING_TABS)] = url
 
             # Init message
             request.session[KEY_MESSAGE] = None
 
-            request.session[KEY_MOUNTING_TABS] = True
+            logger.warning(f"DismountMaterialView set session value {get_key_from(KEY_MOUNTING_TABS)}={request.session[get_key_from(KEY_MOUNTING_TABS)]}")
 
         bicycle = get_object_or_404(Bicycle, pk=kwargs['bicycle_id'])
         part = get_object_or_404(Part, pk=kwargs['part_id'])
@@ -943,9 +953,8 @@ class DismountMaterialView(LoginRequiredMixin, UpdateView):
 
         # Leave tab dialog
         if 'cancel' in request.POST:
-            request.session[KEY_MOUNTING_TABS] = None
             request.session[KEY_MESSAGE] = f"Edit mounting for part '{part.name}' canceled."
-            return HttpResponseRedirect(request.session[KEY_FROM])
+            return HttpResponseRedirect(request.session[get_key_from(KEY_MOUNTING_TABS)])
 
         form = DismountForm(request.POST)
 
@@ -971,9 +980,8 @@ class DismountMaterialView(LoginRequiredMixin, UpdateView):
             logger.warning("Dismounted: {}".format(str(mounting_under_edit)))
 
             # Redirect to previus page
-            request.session[KEY_MOUNTING_TABS] = None
             request.session[KEY_MESSAGE] = f"Dismounted '{material_under_edit.name}' from part '{part.name}'."
-            return HttpResponseRedirect(request.session[KEY_FROM])
+            return HttpResponseRedirect(request.session[get_key_from(KEY_MOUNTING_TABS)])
 
         else:
             logger.warning("is not valid")
@@ -1032,6 +1040,22 @@ class DismountMaterialView(LoginRequiredMixin, UpdateView):
 
         return record_list
 
+def is_mounting_tabs_entry(http_referer):
+    """
+        Checks, if the given URL is one of the mounting dialog tabs.
+        Returns true, if URL seems not to be one of the mounting tabs pages
+        otherwise false
+    """
+
+    parts = http_referer.rsplit('/', 1)
+
+    if len(parts) < 1:
+        return True
+
+    last = parts[-1]
+
+    return last != 'exchange' and last != 'dismount' and last != 'delete-mounting'
+
 
 class ExchangeMaterialView(LoginRequiredMixin,  UpdateView):
     """
@@ -1041,16 +1065,19 @@ class ExchangeMaterialView(LoginRequiredMixin,  UpdateView):
 
     def get(self, request, *args, **kwargs):
 
+        url = request.META.get('HTTP_REFERER', '/')
+        logger.warning(f" ExchangeMaterialView HTTP_REFERRER={url}")
+
         # Entering tab dialog
-        if KEY_MOUNTING_TABS not in request.session:
+        if is_mounting_tabs_entry(url):
 
             # Where did I come from
-            request.session[KEY_FROM] = request.META.get('HTTP_REFERER', '/')
+            request.session[get_key_from(KEY_MOUNTING_TABS)] = url
 
             # Init message
             request.session[KEY_MESSAGE] = None
 
-            request.session[KEY_MOUNTING_TABS] = True
+            logger.warning(f" ExchangeMaterialView set session value {get_key_from(KEY_MOUNTING_TABS)}={request.session[get_key_from(KEY_MOUNTING_TABS)]}")
 
 
         bicycle = get_object_or_404(Bicycle, pk=kwargs['bicycle_id'])
@@ -1090,9 +1117,8 @@ class ExchangeMaterialView(LoginRequiredMixin,  UpdateView):
 
         # Leave tab dialog
         if 'cancel' in request.POST:
-            request.session[KEY_MOUNTING_TABS] = None
             request.session[KEY_MESSAGE] = f"Edit mounting for part '{part.name}' canceled."
-            return HttpResponseRedirect(request.session[KEY_FROM])
+            return HttpResponseRedirect(request.session[get_key_from(KEY_MOUNTING_TABS)])
 
         form = ExchangeMountingForm(request.POST)
         # logger.warning("form: {}".format(str(form.data)))
@@ -1128,9 +1154,8 @@ class ExchangeMaterialView(LoginRequiredMixin,  UpdateView):
                 "New mounting created: {}".format(str(new_mounting)))
 
             # Redirect to previus page
-            request.session[KEY_MOUNTING_TABS] = None
             request.session[KEY_MESSAGE] = f"Mounted part '{part.name}'."
-            return HttpResponseRedirect(request.session[KEY_FROM])
+            return HttpResponseRedirect(request.session[get_key_from(KEY_MOUNTING_TABS)])
 
         else:
             logger.warning("is not valid")
@@ -1154,7 +1179,7 @@ class EditRecordView(LoginRequiredMixin, UpdateView):
         # logger.warning("EditRecordView GET request: {}".format(str(request)))
 
         # Where did I come from
-        request.session[KEY_FROM] = request.META.get('HTTP_REFERER', '/')
+        request.session[type(self).__name__] = request.META.get('HTTP_REFERER', '/')
 
         # Init message
         request.session[KEY_MESSAGE] = None
@@ -1184,7 +1209,7 @@ class EditRecordView(LoginRequiredMixin, UpdateView):
         if 'cancel' in request.POST:
 
             request.session[KEY_MESSAGE] = f"Edit '{record.date}' canceled."
-            return HttpResponseRedirect(request.session[KEY_FROM])
+            return HttpResponseRedirect(request.session[type(self).__name__])
 
         if 'delete' in request.POST:
 
@@ -1193,7 +1218,7 @@ class EditRecordView(LoginRequiredMixin, UpdateView):
             logger.warning("Done.")
 
             request.session[KEY_MESSAGE] = f"Record '{record.date}' deleted."
-            return HttpResponseRedirect(request.session[KEY_FROM])
+            return HttpResponseRedirect(request.session[type(self).__name__])
 
         form = EditRecordForm(request.POST)
 
@@ -1209,7 +1234,7 @@ class EditRecordView(LoginRequiredMixin, UpdateView):
 
             # Redirect to previus page
             request.session[KEY_MESSAGE] = f"Record '{record.date}' saved."
-            return HttpResponseRedirect(request.session[KEY_FROM])
+            return HttpResponseRedirect(request.session[type(self).__name__])
 
         else:
             # logger.warning("is not valid" )
