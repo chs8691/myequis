@@ -679,19 +679,14 @@ class DeleteMountingView(LoginRequiredMixin, UpdateView):
 
     def get(self, request, *args, **kwargs):
 
-        url = request.META.get('HTTP_REFERER', '/')
-        logger.warning(f"DeleteMaterialView HTTP_REFERRER={url}")
+        logger.warning(f" DeleteMountingView GET={request.GET}")
 
-        # Entering tab dialog
-        if is_mounting_tabs_entry(url):
-
-            # Where did I come from
-            request.session[get_key_from(KEY_MOUNTING_TABS)] = url
+        if 'tabchange' not in request.GET:
+            logger.warning(f"DeleteMountingView:  not a tabchange")
+            request.session[get_key_from(KEY_MOUNTING_TABS)] = request.META.get('HTTP_REFERER', '/')
 
             # Init message
             request.session[KEY_MESSAGE] = None
-
-            logger.warning(f"DeleteMaterialView set session value {get_key_from(KEY_MOUNTING_TABS)}={request.session[get_key_from(KEY_MOUNTING_TABS)]}")
 
         bicycle = get_object_or_404(Bicycle, pk=kwargs['bicycle_id'])
         part = get_object_or_404(Part, pk=kwargs['part_id'])
@@ -899,19 +894,15 @@ class DismountMaterialView(LoginRequiredMixin, UpdateView):
 
     def get(self, request, *args, **kwargs):
 
-        url = request.META.get('HTTP_REFERER', '/')
-        logger.warning(f"DismountMaterialView HTTP_REFERRER={url}")
+        logger.warning(f" DeleteMountingView GET={request.GET}")
 
-        # Entering tab dialog
-        if is_mounting_tabs_entry(url):
-
-            # Where did I come from
-            request.session[get_key_from(KEY_MOUNTING_TABS)] = url
+        if 'tabchange' not in request.GET:
+            logger.warning(f"DismountMaterialView:  not a tabchange")
+            request.session[get_key_from(KEY_MOUNTING_TABS)] = request.META.get('HTTP_REFERER', '/')
 
             # Init message
             request.session[KEY_MESSAGE] = None
 
-            logger.warning(f"DismountMaterialView set session value {get_key_from(KEY_MOUNTING_TABS)}={request.session[get_key_from(KEY_MOUNTING_TABS)]}")
 
         bicycle = get_object_or_404(Bicycle, pk=kwargs['bicycle_id'])
         part = get_object_or_404(Part, pk=kwargs['part_id'])
@@ -1040,23 +1031,6 @@ class DismountMaterialView(LoginRequiredMixin, UpdateView):
 
         return record_list
 
-def is_mounting_tabs_entry(http_referer):
-    """
-        Checks, if the given URL is one of the mounting dialog tabs.
-        Returns true, if URL seems not to be one of the mounting tabs pages
-        otherwise false
-    """
-
-    parts = http_referer.rsplit('/', 1)
-
-    if len(parts) < 1:
-        return True
-
-    last = parts[-1]
-
-    return last != 'exchange' and last != 'dismount' and last != 'delete-mounting'
-
-
 class ExchangeMaterialView(LoginRequiredMixin,  UpdateView):
     """
         Part of the Tabs 'Edit Mounting'
@@ -1065,20 +1039,17 @@ class ExchangeMaterialView(LoginRequiredMixin,  UpdateView):
 
     def get(self, request, *args, **kwargs):
 
-        url = request.META.get('HTTP_REFERER', '/')
-        logger.warning(f" ExchangeMaterialView HTTP_REFERRER={url}")
+        logger.warning(f" ExchangeMaterialView GET={request.GET}")
 
-        # Entering tab dialog
-        if is_mounting_tabs_entry(url):
-
-            # Where did I come from
-            request.session[get_key_from(KEY_MOUNTING_TABS)] = url
+        #     logger.warning(f" ExchangeMaterialView set session value {get_key_from(KEY_MOUNTING_TABS)}={request.session[get_key_from(KEY_MOUNTING_TABS)]}")
+        if 'tabchange' not in request.GET:
+            logger.warning(f" ExchangeMaterialView: not a tabchange")
+            request.session[get_key_from(KEY_MOUNTING_TABS)] = request.META.get('HTTP_REFERER', '/')
 
             # Init message
             request.session[KEY_MESSAGE] = None
 
-            logger.warning(f" ExchangeMaterialView set session value {get_key_from(KEY_MOUNTING_TABS)}={request.session[get_key_from(KEY_MOUNTING_TABS)]}")
-
+            # logger.warning(f" ExchangeMaterialView set session value {get_key_from(KEY_MOUNTING_TABS)}={request.session[get_key_from(KEY_MOUNTING_TABS)]}")
 
         bicycle = get_object_or_404(Bicycle, pk=kwargs['bicycle_id'])
         part = get_object_or_404(Part, pk=kwargs['part_id'])
@@ -1375,12 +1346,12 @@ def list_bicycle_parts(request, bicycle_id):
     # logger.warning("mountings={}".format(str(mountings)))
     # logger.warning("records={}".format(str(records)))
 
-    component_data_list = []
+    data_list = []
 
     for component in Component.objects.filter(species_id=bicycle.species.id):
-        component_data = dict()
+        data = dict()
 
-        component_data['component_name'] = component.name
+        data['name'] = component.name
 
         parts = Part.objects.filter(component__id=component.id)
 
@@ -1413,9 +1384,26 @@ def list_bicycle_parts(request, bicycle_id):
             part_data_list.append(
                 dict(part=part, material=part_material, distance=distance, mounting=mounting))
 
-        component_data['parts'] = part_data_list
+        data['parts'] = part_data_list
 
-        component_data_list.append(component_data)
+        data_list.append(data)
+
+    # add navigation
+    for i in range(len(data_list)):
+
+        if i > 0:
+            nav_prev = data_list[i-1]['name']
+        else:
+            nav_prev = None
+
+        if (i+1) < len(data_list):
+            nav_next = data_list[i+1]['name']
+        else:
+            nav_next = None
+
+        data_list[i]['prev'] = nav_prev
+        data_list[i]['next'] = nav_next
+
 
     template = loader.get_template('myequis/bicycle_parts.html')
 
@@ -1427,7 +1415,7 @@ def list_bicycle_parts(request, bicycle_id):
         context = {
             'bicycle': bicycle,
             'records': records[:2],  # Last two
-            'componentDataList': component_data_list,
+            'data_list': data_list,
             'message': request.session[KEY_MESSAGE]
         }
 
@@ -1438,7 +1426,7 @@ def list_bicycle_parts(request, bicycle_id):
         context = {
             'bicycle': bicycle,
             'records': records[:2],  # Last two
-            'componentDataList': component_data_list,
+            'data_list': data_list,
         }
 
     return HttpResponse(template.render(context, request))
@@ -1524,12 +1512,12 @@ def list_bicycle_history(request, bicycle_id):
 
     # logger.warning(f"Mountings:{mountings}")
 
-    component_data_list = []
+    data_list = []
 
     for component in Component.objects.filter(species_id=bicycle.species.id):
-        component_data = dict()
+        data = dict()
 
-        component_data['name'] = component.name
+        data['name'] = component.name
 
         parts = Part.objects.filter(component__id=component.id)
 
@@ -1568,24 +1556,40 @@ def list_bicycle_history(request, bicycle_id):
             part_data_list.append(
                 dict(part=part, has_mounting=has_mounting, mounting_data_list=mounting_data_list ))
 
-        component_data['part_data_list'] = part_data_list
+        data['part_data_list'] = part_data_list
 
-        component_data_list.append(component_data)
+        data_list.append(data)
 
-    # logger.warning(f"component_data_list={component_data_list}")
+    # add navigation
+    for i in range(len(data_list)):
+
+        if i > 0:
+            prev = data_list[i-1]['name']
+        else:
+            prev = None
+
+        if (i+1) < len(data_list):
+            next = data_list[i+1]['name']
+        else:
+            next = None
+
+        data_list[i]['prev'] = prev
+        data_list[i]['next'] = next
+
+    logger.warning(f"data_list={data_list}")
 
     template = loader.get_template('myequis/bicycle_history.html')
 
     if 'message' in request.GET.keys():
         context = {
             'bicycle': bicycle,
-            'componentDataList': component_data_list,
+            'data_list': data_list,
             'message': request.GET['message']
         }
     else:
         context = {
             'bicycle': bicycle,
-            'componentDataList': component_data_list,
+            'data_list': data_list,
         }
 
     return HttpResponse(template.render(context, request))
@@ -1613,6 +1617,7 @@ def list_bicycle_timeline(request, bicycle_id):
     logger.warning(f"Found {len(mountings)} mountings")
 
     # logger.warning(f"Mountings:{mountings}")
+
 
     data_list = []
 
@@ -1650,7 +1655,39 @@ def list_bicycle_timeline(request, bicycle_id):
         if len(part_list) > 0:
             data_list.append(dict(record=record, part_list=part_list))
 
-    logger.warning(f"list_bicycle_timeline() data_list= {data_list}.")
+    years = []
+
+    # Get all years
+    for data in data_list:
+        year = data['record'].date.year
+        if(year) not in years:
+            years.append(year)
+
+    logger.warning(f"list_bicycle_timeline() years= {years}.")
+
+    year_data_list = []
+
+    # add navigation
+    for i in range(len(years)):
+
+        if i > 0:
+            prev = years[i-1]
+        else:
+            prev = None
+
+        if (i+1) < len(years):
+            next = years[i+1]
+        else:
+            next = None
+
+        year_data_list.append(dict(year=str(years[i]), prev=str(prev), next=str(next), data_list=[]))
+
+    # add data items
+    for year_data in year_data_list:
+        year_data['data_list'] = [d for d in data_list if str(d['record'].date.year)==year_data['year']]
+
+
+    logger.warning(f"list_bicycle_timeline() year_data_list= {year_data_list}.")
 
 
     # logger.warning(f"data_list count= {len(data_list)}.")
@@ -1661,13 +1698,13 @@ def list_bicycle_timeline(request, bicycle_id):
     if 'message' in request.GET.keys():
         context = {
             'bicycle': bicycle,
-            'data_list': data_list,
+            'year_data_list': year_data_list,
             'message': request.GET['message']
         }
     else:
         context = {
             'bicycle': bicycle,
-            'data_list': data_list,
+            'year_data_list': year_data_list,
         }
 
     return HttpResponse(template.render(context, request))

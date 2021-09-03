@@ -29,10 +29,10 @@
 
 <ul class="nav nav-tabs nav-fill">
   <li class="nav-item">
-    <a class="nav-link" href="{% url 'myequis:delete-mounting-url' bicycle.id part.id %}">Delete</a>
+    <a class="nav-link" href="{% url 'myequis:delete-mounting-url' bicycle.id part.id %}?tabchange=true"">Delete</a>
   </li>
   <li class="nav-item">
-    <a class="nav-link" href="{% url 'myequis:exchange-material-url' bicycle.id part.id %}">Exchange</a>
+    <a class="nav-link" href="{% url 'myequis:exchange-material-url' bicycle.id part.id %}?tabchange=true"">Exchange</a>
   </li>
   <li class="nav-item">
     <a class="nav-link active disabled" href="#">Dismount</a>

@@ -66,13 +66,13 @@
 
 <ul class="nav nav-tabs nav-fill">
   <li class="nav-item">
-    <a class="nav-link" href="{% url 'myequis:delete-mounting-url' bicycle.id part.id %}">Delete</a>
+    <a class="nav-link" href="{% url 'myequis:delete-mounting-url' bicycle.id part.id %}?tabchange=true">Delete</a>
   </li>
   <li class="nav-item">
     <a class="nav-link active disabled" href="#">Exchange</a>
   </li>
   <li class="nav-item">
-    <a class="nav-link" href="{% url 'myequis:dismount-material-url' bicycle.id part.id %}">Dismount</a>
+    <a class="nav-link" href="{% url 'myequis:dismount-material-url' bicycle.id part.id %}?tabchange=true"">Dismount</a>
   </li>
 </ul>
 

@@ -11,10 +11,10 @@
     <a class="nav-link active disabled" href="#">Delete</a>
   </li>
   <li class="nav-item">
-    <a class="nav-link" href="{% url 'myequis:exchange-material-url' bicycle.id part.id %}">Exchange</a>
+    <a class="nav-link" href="{% url 'myequis:exchange-material-url' bicycle.id part.id %}?tabchange=true"">Exchange</a>
   </li>
   <li class="nav-item">
-    <a class="nav-link" href="{% url 'myequis:dismount-material-url' bicycle.id part.id %}">Dismount</a>
+    <a class="nav-link" href="{% url 'myequis:dismount-material-url' bicycle.id part.id %}?tabchange=true"">Dismount</a>
   </li>
 </ul>
 
