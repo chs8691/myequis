@@ -61,7 +61,7 @@
       </thead>
       {% for material in mounted_materials %}
       <tr>
-        <td onclick="tdClick('{% url 'myequis:material-history-url' material.id %}');">
+        <td onclick="tdClick('{% url 'myequis:material-detail-url' material.id %}');">
           {{ material.mountedAt }}</td>
           <td onclick="tdClick('{% url 'myequis:edit-material-url' material.id %}');">
             {{ material.name }} /
@@ -101,7 +101,7 @@
         </thead>
         {% for material in dismounted_materials %}
         <tr>
-          <td onclick="tdClick('{% url 'myequis:material-history-url' material.id %}');">
+          <td onclick="tdClick('{% url 'myequis:material-detail-url' material.id %}');">
             {{ material.dismountedAt }}</td>
             <td onclick="tdClick('{% url 'myequis:edit-material-url' material.id %}');">
               {{ material.name }} /

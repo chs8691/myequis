@@ -1449,9 +1449,9 @@ def list_bicycle_parts(request, bicycle_id):
     return HttpResponse(template.render(context, request))
 
 
-def list_material_history(request, material_id):
+def list_material_detail(request, material_id):
 
-    logger.warning(f"list_material_history material_id={material_id}")
+    logger.warning(f"list_material_detail material_id={material_id}")
 
     material = get_object_or_404(Material, pk=material_id)
 
@@ -1494,7 +1494,7 @@ def list_material_history(request, material_id):
 
     logger.warning(f"data={data}")
 
-    template = loader.get_template('myequis/material_history.html')
+    template = loader.get_template('myequis/material_detail.html')
 
     if 'message' in request.GET.keys():
         context = {

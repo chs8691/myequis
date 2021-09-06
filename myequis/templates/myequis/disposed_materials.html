@@ -29,7 +29,7 @@
       </thead>
       {% for material in disposed_materials %}
       <tr>
-        <td onclick="tdClick('{% url 'myequis:material-history-url' material.id %}');">
+        <td onclick="tdClick('{% url 'myequis:material-detail-url' material.id %}');">
           {{ material.disposedAt }}</td>
           <td onclick="tdClick('{% url 'myequis:edit-material-url' material.id %}');">
             {{ material.name }} /

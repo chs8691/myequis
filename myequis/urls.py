@@ -67,7 +67,7 @@ urlpatterns = [
     # ex: myequis/materials/4
     path('materials/<int:material_id>/', views.EditMaterialView.as_view(), name='edit-material-url'),
 
-    # ex: myequis/materials/4/history
-    path('materials/<int:material_id>/history/', views.list_material_history, name='material-history-url'),
+    # ex: myequis/materials/4/detail
+    path('materials/<int:material_id>/detail/', views.list_material_detail, name='material-detail-url'),
 
 ]
