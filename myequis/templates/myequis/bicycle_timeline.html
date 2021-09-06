@@ -15,174 +15,149 @@
 {% if year_data_list %}
 {% for y in year_data_list %}
 
-{% include "article-title.html" with title=y.year id=y.year %}
+{% url 'myequis:bicycle-detail-url' bicycle.id as back_url %}
+{% if y.prev == "None" %}
+{% firstof "disabled" as prev_status  %}
+{% else %}
+{% firstof "" as prev_status  %}
+{% endif %}
 
-{% include "nav-open.html" %}
+{% if y.next == "None" %}
+{% firstof "disabled" as next_status  %}
+{% else %}
+{% firstof "" as next_status  %}
+{% endif %}
 
-{% url 'myequis:bicycle-detail-url' bicycle.id as nav_url %}
-{% include "nav-item.html" with url=nav_url title="Back" %}
-
-<li class="nav-item">
-
-  {% if y.prev == "None" %}
-  {% firstof "disabled" as status  %}
-  {% else %}
-  {% firstof "" as status  %}
-  {% endif %}
-  <a class='btn btn-outline-primary mr-2 {{ status }}' href='#{{ y.prev }}'>
-    <div class="text-primary">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-caret-up-fill" viewBox="0 0 16 16">
-        <path d="m7.247 4.86-4.796 5.481c-.566.647-.106 1.659.753 1.659h9.592a1 1 0 0 0 .753-1.659l-4.796-5.48a1 1 0 0 0-1.506 0z"/>
-      </svg>
-    </div>
-  </a>
-</li>
-
-<li class="nav-item">
-  {% if y.next == "None" %}
-  {% firstof "disabled" as status  %}
-  {% else %}
-  {% firstof "" as status  %}
-  {% endif %}
-  <a class='btn btn-outline-primary mr-2 {{status}}' href='#{{ y.next }}'>
-      <div class="text-primary">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-caret-down-fill" viewBox="0 0 16 16">
-          <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
-        </svg>
-      </div>
-    </a>
-  </li>
+{% include "nav-line.html" with title=y.year back_url=back_url prev_url=y.prev prev_status=prev_status next_url=y.next next_status=next_status %}
 
 
-  {% include "nav-close.html" %}
+{% for d in y.data_list %}
 
-  {% for d in y.data_list %}
-
-  <div class="d-flex justify-content-between  pt-4 pl-2 pr-2 border-bottom border-primary">
-    <div>
-      <H3>
-        {{ d.record.date }}
-      </H3>
-    </div>
-    <div>
-      {{ d.record.km }} km
-    </div>
-
-  </div>
-  {% for p in d.part_list %}
-  <div class="pt-4">
+<div class="d-flex justify-content-between  pt-4 pl-2 pr-2 border-bottom border-primary">
+  <div>
     <H3>
-      {{ p.part.component.name }} / {{ p.part.name }}
+      {{ d.record.date }}
     </H3>
   </div>
+  <div>
+    {{ d.record.km }} km
+  </div>
 
-  <div class="d-flex flex-wrap" >
-    {% for m in p.mounting_list %}
+</div>
+{% for p in d.part_list %}
+<div class="pt-4">
+  <H3>
+    {{ p.part.component.name }} / {{ p.part.name }}
+  </H3>
+</div>
+
+<div class="d-flex flex-wrap" >
+  {% for m in p.mounting_list %}
 
 
-    <div class="card m-1" style="width: 30rem;">
-      <div class="card-body">
-        <div class="container">
-          <div class="row justify-content-start">
-            <div class="col-3 justify-content-start">
-              {% if m.mount_record.date == d.record.date%}
-              {% if m.dismount_record.date == d.record.date%}
-              <img src= "{% static '/myequis/arrow-left-right.svg' %}" width="40" height="40" alt="EXCHANGE ">
-              {% else %}
-              <img src= "{% static '/myequis/file-earmark-plus.svg' %}" width="40" height="40" alt="IN">
-              {% endif %}
-              {% else %}
-              <img src= "{% static '/myequis/file-earmark-minus-fill.svg' %}" width="40" height="40" alt="OUT">
-              {% endif %}
+  <div class="card m-1" style="width: 30rem;">
+    <div class="card-body">
+      <div class="container">
+        <div class="row justify-content-start">
+          <div class="col-3 justify-content-start">
+            {% if m.mount_record.date == d.record.date%}
+            {% if m.dismount_record.date == d.record.date%}
+            <img src= "{% static '/myequis/arrow-left-right.svg' %}" width="40" height="40" alt="EXCHANGE ">
+            {% else %}
+            <img src= "{% static '/myequis/file-earmark-plus.svg' %}" width="40" height="40" alt="IN">
+            {% endif %}
+            {% else %}
+            <img src= "{% static '/myequis/file-earmark-minus-fill.svg' %}" width="40" height="40" alt="OUT">
+            {% endif %}
+          </div>
+          <div class="col-9" onclick="tdClick('{% url 'myequis:edit-material-url' m.material.id %}');">
+            <div class="text-uppercase">
+              {{ m.material.manufacture }}
             </div>
-            <div class="col-9" onclick="tdClick('{% url 'myequis:edit-material-url' m.material.id %}');">
-              <div class="text-uppercase">
-                {{ m.material.manufacture }}
+            <h5>
+              <div class="font-weight-bold">
+                <span>
+                  {{ m.material.name }}
+                </span>
               </div>
-              <h5>
-                <div class="font-weight-bold">
-                  <span>
-                    {{ m.material.name }}
-                  </span>
-                </div>
-              </h5>
-            </div>
-          </div>
-
-          {% if m.material.size %}
-          <div class="row justify-content-start">
-            <div class="col-3 text-right">
-              Size
-            </div>
-            <div class="col-9">
-              {{ m.material.size }}
-            </div>
-          </div>
-          {% endif %}
-
-
-          {% if m.material.weight %}
-          <div class="row justify-content-start">
-            <div class="col-3 text-right">
-              Weight
-            </div>
-            <div class="col-9">
-              {{ m.material.weight }}
-            </div>
-          </div>
-          {% endif %}
-
-          {% if m.material.price %}
-          <div class="row justify-content-start">
-            <div class="col-3 text-right">
-              Price
-            </div>
-            <div class="col-9">
-              {{ m.material.price }}
-            </div>
-          </div>
-          {% endif %}
-
-          {% if m.material.disposed %}
-          <div class="row justify-content-start">
-            <div class="col-3 text-right">
-              Disposed at
-            </div>
-            <div class="col-9">
-              {{ m.material.disposedAt }}
-            </div>
-          </div>
-          {% endif %}
-
-          <div class="row justify-content-start">
-          </div>
-
-
-        </div>
-
-        <div>
-          <div class="text-muted">
-            <div>
-              {{ m.material.comment }}
-            </div>
-            <div>
-              {{ m.comment }}
-            </div>
+            </h5>
           </div>
         </div>
+
+        {% if m.material.size %}
+        <div class="row justify-content-start">
+          <div class="col-3 text-right">
+            Size
+          </div>
+          <div class="col-9">
+            {{ m.material.size }}
+          </div>
+        </div>
+        {% endif %}
+
+
+        {% if m.material.weight %}
+        <div class="row justify-content-start">
+          <div class="col-3 text-right">
+            Weight
+          </div>
+          <div class="col-9">
+            {{ m.material.weight }}
+          </div>
+        </div>
+        {% endif %}
+
+        {% if m.material.price %}
+        <div class="row justify-content-start">
+          <div class="col-3 text-right">
+            Price
+          </div>
+          <div class="col-9">
+            {{ m.material.price }}
+          </div>
+        </div>
+        {% endif %}
+
+        {% if m.material.disposed %}
+        <div class="row justify-content-start">
+          <div class="col-3 text-right">
+            Disposed at
+          </div>
+          <div class="col-9">
+            {{ m.material.disposedAt }}
+          </div>
+        </div>
+        {% endif %}
+
+        <div class="row justify-content-start">
+        </div>
+
 
       </div>
+
+      <div>
+        <div class="text-muted">
+          <div>
+            {{ m.material.comment }}
+          </div>
+          <div>
+            {{ m.comment }}
+          </div>
+        </div>
+      </div>
+
     </div>
-    {% endfor%}
   </div>
   {% endfor%}
-  {% endfor%}
-  {% endfor%}
+</div>
+{% endfor%}
+{% endfor%}
+{% endfor%}
 
-  {% else %}
-  <p>Nothing recorded yet</p>
-  {% endif %}
+{% else %}
+<p>Nothing recorded yet</p>
+{% endif %}
 
 
-  {% endblock %}
+{% endblock %}
 `

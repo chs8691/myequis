@@ -15,7 +15,7 @@ urlpatterns = [
     # ### BICYCLES ##############################
 
     # ex: myequis/bicycles/5/
-    path('bicycles/<int:bicycle_id>/', views.bicycle_detail, name='bicycle-detail-url'),
+    path('bicycles/<int:bicycle_id>/', views.list_bicycle_detail, name='bicycle-detail-url'),
 
     # ex: myequis/bicycles/5/records
     path('bicycles/<int:bicycle_id>/records', views.list_records, name='list-records-url'),
@@ -56,7 +56,7 @@ urlpatterns = [
     # ### MATERIALS ##############################
 
     # ex: myequis/materials
-    path('materials/', views.list_active_materials, name='list-active-materials-url'),
+    path('materials/active', views.list_active_materials, name='list-active-materials-url'),
 
     # ex: myequis/materials/disposed
     path('materials/disposed', views.list_disposed_materials, name='list-disposed-materials-url'),

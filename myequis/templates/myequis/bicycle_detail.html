@@ -42,9 +42,6 @@
 
 {% include "nav-open.html" %}
 
-{% url 'myequis:index-url' as nav_url %}
-{% include "nav-item.html" with url=nav_url title="Back" %}
-
 {% url 'myequis:list-bicycle-timeline-url' bicycle.id  as nav_url %}
 {% include "nav-item.html" with url=nav_url title="Timeline" %}
 
@@ -57,10 +54,27 @@
 {% include "nav-close.html" %}
 
 <div>
-  {% if componentDataList %}
-  {% for componentData in componentDataList %}
-  {% if componentData.has_materials %}
-  <h4>{{ componentData.component_name }}</h4>
+  {% if data_list %}
+  {% for data in data_list %}
+  {% if data.has_materials %}
+
+  {% url 'myequis:index-url' as back_url %}
+  {% if not data.prev %}
+  {% firstof "disabled" as prev_status  %}
+  {% else %}
+  {% firstof "" as prev_status  %}
+  {% endif %}
+
+  {% if not data.next %}
+  {% firstof "disabled" as next_status  %}
+  {% else %}
+  {% firstof "" as next_status  %}
+  {% endif %}
+
+  {% include "section-nav-line.html" with title=data.component_name back_url=back_url prev_url=data.prev prev_status=prev_status next_url=data.next next_status=next_status %}
+
+
+
   <table class="table">
     <thead>
       <tr>
@@ -70,7 +84,7 @@
         <th scope="col">KM</th>
       </tr>
     </thead>
-    {% for part in componentData.parts %}
+    {% for part in data.parts %}
     {% if part.material %}
     <tr>
       <td>{{ part.part.name }}</td>

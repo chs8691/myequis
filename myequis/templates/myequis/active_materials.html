@@ -6,17 +6,10 @@
 
 {% block main %}
 
-{% include "article-title.html" with title="New Materials" %}
 
-{% include "nav-open.html" %}
+{% url 'myequis:index-url' as back_url %}
 
-{% url  'myequis:index-url' as nav_url %}
-{% include "nav-item.html" with url=nav_url title="Back" %}
-
-{% url  'myequis:create-material-url' as nav_url %}
-{% include "nav-item.html" with url=nav_url title="Add" %}
-
-{% include "nav-close.html" %}
+{% include "nav-line.html" with title='New' back_url=back_url prev_url='' prev_status='disabled' next_url='Mounted' next_status='' %}
 
 <div >
 
@@ -51,7 +44,9 @@
   <p>Currently no new materials created.</p>
   {% endif %}
 
-  {% include "article-title.html" with title="Mounted Materials" %}
+  {% include "nav-line.html" with title='Mounted' back_url=back_url prev_url='New' prev_status='' next_url='Dismounted' next_status='' %}
+
+
   {% if mounted_materials %}
   <div class="table-responsive">
     <table class="table table-hover">
@@ -90,7 +85,8 @@
     {% endif %}
 
 
-    {% include "article-title.html" with title="Dismounted Materials" %}
+    {% include "nav-line.html" with title='Dismounted' back_url=back_url prev_url='Mounted' prev_status='' next_url='' next_status='disabled' %}
+
     {% if dismounted_materials %}
     <div class="table-responsive">
       <table class="table table-hover">

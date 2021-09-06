@@ -14,47 +14,22 @@
 {% if data_list %}
 {% for data in data_list %}
 
-{% include "article-title.html" with title=data.name id=data.name %}
-
-{% include "nav-open.html" %}
-
-{% url 'myequis:bicycle-detail-url' bicycle.id as nav_url %}
-{% include "nav-item.html" with url=nav_url title="Back" %}
-
-<li class="nav-item">
-
-  {% if data.prev %}
-  {% firstof "" as status  %}
-  {% else %}
-  {% firstof "disabled" as status  %}
-  {% endif %}
-  <a class='btn btn-outline-primary mr-2 {{ status }}' href='#{{ data.prev }}'>
-    <div class="text-primary">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-caret-up-fill" viewBox="0 0 16 16">
-        <path d="m7.247 4.86-4.796 5.481c-.566.647-.106 1.659.753 1.659h9.592a1 1 0 0 0 .753-1.659l-4.796-5.48a1 1 0 0 0-1.506 0z"/>
-      </svg>
-    </div>
-  </a>
-</li>
-
-<li class="nav-item">
-  {% if data.next %}
-  {% firstof "" as status  %}
-  {% else %}
-  {% firstof "disabled" as status  %}
-  {% endif %}
-  <a class='btn btn-outline-primary mr-2 {{status}}' href='#{{ data.next }}'>
-    <div class="text-primary">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-caret-down-fill" viewBox="0 0 16 16">
-        <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
-      </svg>
-    </div>
-  </a>
-</li>
 
 
-{% include "nav-close.html" %}
+{% url 'myequis:bicycle-detail-url' bicycle.id as back_url %}
+{% if not data.prev %}
+{% firstof "disabled" as prev_status  %}
+{% else %}
+{% firstof "" as prev_status  %}
+{% endif %}
 
+{% if not data.next %}
+{% firstof "disabled" as next_status  %}
+{% else %}
+{% firstof "" as next_status  %}
+{% endif %}
+
+{% include "nav-line.html" with title=data.name back_url=back_url prev_url=data.prev prev_status=prev_status next_url=data.next next_status=next_status %}
 
 {% for partData in data.part_data_list %}
 

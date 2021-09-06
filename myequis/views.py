@@ -1250,7 +1250,7 @@ def list_records(request, bicycle_id):
     return HttpResponse(template.render(context, request))
 
 
-def bicycle_detail(request, bicycle_id):
+def list_bicycle_detail(request, bicycle_id):
     """
     bicycle_detail.html
     """
@@ -1272,7 +1272,7 @@ def bicycle_detail(request, bicycle_id):
     ).filter(bicycle_found=True, dismount_record=None)
     logger.warning("mountings={}".format(str(mountings)))
 
-    component_data_list = []
+    data_list = []
 
     for component in Component.objects.filter(species_id=bicycle.species.id):
         component_data = dict()
@@ -1315,14 +1315,31 @@ def bicycle_detail(request, bicycle_id):
             component_data['parts'] = part_data_list
             component_data['has_materials'] = component_has_materials
 
-            component_data_list.append(component_data)
+            data_list.append(component_data)
+
+    # add navigation
+    for i in range(len(data_list)):
+
+        if i > 0:
+            nav_prev = data_list[i-1]['component_name']
+        else:
+            nav_prev = None
+
+        if (i+1) < len(data_list):
+            nav_next = data_list[i+1]['component_name']
+        else:
+            nav_next = None
+
+        data_list[i]['prev'] = nav_prev
+        data_list[i]['next'] = nav_next
+
 
     template = loader.get_template('myequis/bicycle_detail.html')
 
     context = {
         'bicycle': bicycle,
         'records': records[:2],  # Last two
-        'componentDataList': component_data_list,
+        'data_list': data_list,
     }
 
     return HttpResponse(template.render(context, request))
@@ -1576,7 +1593,7 @@ def list_bicycle_history(request, bicycle_id):
         data_list[i]['prev'] = prev
         data_list[i]['next'] = next
 
-    logger.warning(f"data_list={data_list}")
+    # logger.warning(f"data_list={data_list}")
 
     template = loader.get_template('myequis/bicycle_history.html')
 
