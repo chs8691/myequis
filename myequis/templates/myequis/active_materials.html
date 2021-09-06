@@ -11,6 +11,13 @@
 
 {% include "nav-line.html" with title='New' back_url=back_url prev_url='' prev_status='disabled' next_url='Mounted' next_status='' %}
 
+{% include "nav-open.html" %}
+
+{% url 'myequis:create-material-url' as create_url %}
+{% include "nav-item.html" with url=create_url title="Add" %}
+
+{% include "nav-close.html" %}
+
 <div >
 
   {% if new_materials %}
