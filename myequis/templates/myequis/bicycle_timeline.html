@@ -155,7 +155,14 @@
 {% endfor%}
 
 {% else %}
+
+{% include "nav-open.html" %}
+{% url 'myequis:bicycle-detail-url' bicycle.id as back_url %}
+{% include "nav-item.html" with url=back_url title="Back" %}
+{% include "nav-close.html" %}
+
 <p>Nothing recorded yet</p>
+
 {% endif %}
 
 
