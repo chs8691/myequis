@@ -55,7 +55,7 @@
         {% endif %}
 
         {% if part.material %}
-        <td onclick="tdClick('{% url 'myequis:edit-material-url' part.material.id %}');">
+        <td onclick="tdClick('{% url 'myequis:material-detail-url' part.material.id %}');">
           <div class="text-uppercase">
             {{ part.material.manufacture }}
           </div>

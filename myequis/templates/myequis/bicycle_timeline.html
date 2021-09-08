@@ -70,7 +70,7 @@
             <img src= "{% static '/myequis/file-earmark-minus-fill.svg' %}" width="40" height="40" alt="OUT">
             {% endif %}
           </div>
-          <div class="col-9" onclick="tdClick('{% url 'myequis:edit-material-url' m.material.id %}');">
+          <div class="col-9" onclick="tdClick('{% url 'myequis:material-detail-url' m.material.id %}');">
             <div class="text-uppercase">
               {{ m.material.manufacture }}
             </div>

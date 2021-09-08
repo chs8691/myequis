@@ -9,7 +9,13 @@
 {% include "article-title.html" with title="Material Detail" %}
 
 {% include "nav-open.html" %}
-{% include "nav-back-item.html" %}
+
+{% url 'myequis:edit-material-url' data.material.id as nav_url %}
+{% include "nav-item.html" with url=back_url title="Back" %}
+
+{% url 'myequis:edit-material-url' data.material.id as nav_url %}
+{% include "nav-item.html" with url=nav_url title="Edit" %}
+
 {% include "nav-close.html" %}
 
 <div class="card m-1">
@@ -27,6 +33,9 @@
               </span>
             </div>
           </h5>
+          <div class="text-muted">
+            ID {{ data.material.id }}
+          </div>
         </span>
         <span>
           <h5>

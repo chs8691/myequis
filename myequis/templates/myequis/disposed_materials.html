@@ -31,7 +31,7 @@
       <tr>
         <td onclick="tdClick('{% url 'myequis:material-detail-url' material.id %}');">
           {{ material.disposedAt }}</td>
-          <td onclick="tdClick('{% url 'myequis:edit-material-url' material.id %}');">
+          <td onclick="tdClick('{% url 'myequis:material-detail-url' material.id %}');">
             {{ material.name }} /
             {{ material.manufacture }}
             <div class="text-muted">

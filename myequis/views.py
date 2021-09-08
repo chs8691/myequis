@@ -32,6 +32,10 @@ KEY_FROM = 'JAPP_SESSION_FROM'
 # For Mounting tabs
 KEY_MOUNTING_TABS = 'JAPP_SESSION_MOUNTING_TABS'
 
+# Use this as GET parameter when leaving an dialog, so the calling views
+# can prevent from wrong backwards navigation
+VAR_BACK_NAVIGATION = 'back_navigation'
+
 def zip_files(files, suffix):
     outfile = io.BytesIO()
     with zipfile.ZipFile(outfile, 'w') as zf:
@@ -410,7 +414,7 @@ class EditMaterialView(LoginRequiredMixin, CreateView):
     def get(self, request, *args, **kwargs):
         logger.warning("EditMaterialView GET request: {}".format(str(request)))
 
-        # Where did I come from
+        # # Where did I come from
         request.session[type(self).__name__] = request.META.get('HTTP_REFERER', '/')
 
         # Init message
@@ -473,7 +477,8 @@ class EditMaterialView(LoginRequiredMixin, CreateView):
         if 'cancel' in request.POST:
 
             request.session[KEY_MESSAGE] = f"Editing '{material.name}' canceled."
-            return HttpResponseRedirect(request.session[type(self).__name__])
+            # Set GET parameter back_navigation to give calling view the chance to recognize this backwards navigation
+            return HttpResponseRedirect(f"{request.session[type(self).__name__]}?{VAR_BACK_NAVIGATION}=true")
 
         form = EditMaterialForm(request.POST)
         # logger.warning("form: " + str(form))
@@ -499,7 +504,8 @@ class EditMaterialView(LoginRequiredMixin, CreateView):
 
             # Redirect to previus page
             request.session[KEY_MESSAGE] = f"Material '{material.name}' saved."
-            return HttpResponseRedirect(request.session[type(self).__name__])
+            # Set GET parameter back_navigation to give calling view the chance to recognize this backwards navigation
+            return HttpResponseRedirect(f"{request.session[type(self).__name__]}?{VAR_BACK_NAVIGATION}=true")
 
         else:
             logger.warning("is not valid")
@@ -1452,6 +1458,12 @@ def list_bicycle_parts(request, bicycle_id):
 def list_material_detail(request, material_id):
 
     logger.warning(f"list_material_detail material_id={material_id}")
+    # logger.warning(f"list_material_detail back_navigation={'back_navigation' not in request.GET}")
+    # logger.warning(f"list_material_detail GET={request.GET}")
+
+    if VAR_BACK_NAVIGATION not in request.GET:
+        request.session['material-detail'] = request.META.get('HTTP_REFERER', '/')
+
 
     material = get_object_or_404(Material, pk=material_id)
 
@@ -1493,17 +1505,22 @@ def list_material_detail(request, material_id):
     data = dict(material=material, distance=total_distance, duration=human_days(total_days), mountings=mounting_list)
 
     logger.warning(f"data={data}")
+    logger.warning(f"back_url={request.session['material-detail']}")
 
     template = loader.get_template('myequis/material_detail.html')
 
-    if 'message' in request.GET.keys():
+    # Pick up message to show once
+    if KEY_MESSAGE in request.session:
+
         context = {
             'data': data,
-            'message': request.GET['message']
+            'message': request.session[KEY_MESSAGE],
+            'back_url': request.session['material-detail'],
         }
     else:
         context = {
             'data': data,
+            'back_url': request.session['material-detail'],
         }
 
     return HttpResponse(template.render(context, request))
@@ -1814,7 +1831,7 @@ def list_active_materials(request):
             'new_materials': new_materials,
             'mounted_materials': mounted_materials,
             'dismounted_materials': dismounted_materials,
-            'message': request.session[KEY_MESSAGE]
+            'message': request.session[KEY_MESSAGE],
         }
 
         request.session[KEY_MESSAGE] = None

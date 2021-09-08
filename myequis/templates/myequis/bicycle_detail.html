@@ -74,32 +74,34 @@
   {% include "section-nav-line.html" with title=data.component_name back_url=back_url prev_url=data.prev prev_status=prev_status next_url=data.next next_status=next_status %}
 
 
-
-  <table class="table">
-    <thead>
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th scope="col">Part</th>
+          <th scope="col">Material</th>
+          <th scope="col" class="d-none d-md-block">Mounted at</th>
+          <th scope="col">KM</th>
+        </tr>
+      </thead>
+      {% for part in data.parts %}
+      {% if part.material %}
       <tr>
-        <th scope="col">Part</th>
-        <th scope="col">Material</th>
-        <th scope="col" class="d-none d-md-block">Mounted at</th>
-        <th scope="col">KM</th>
+        <td>{{ part.part.name }}</td>
+        <td  onclick="tdClick('{% url 'myequis:material-detail-url' part.material.id %}');">
+          {{ part.material.name }} /
+          {{ part.material.manufacture }}
+          <div class="text-muted">
+            {{ part.material.comment }}
+          </div>
+        </td>
+        <td class="d-none d-md-block">{{ part.mounting.mount_record.date }}</td>
+        <td>{{ part.distance }}</td>
       </tr>
-    </thead>
-    {% for part in data.parts %}
-    {% if part.material %}
-    <tr>
-      <td>{{ part.part.name }}</td>
-      <td>{{ part.material.name }} /
-        {{ part.material.manufacture }}
-        <div class="text-muted">
-          {{ part.material.comment }}
-        </div>
-      </td>
-      <td class="d-none d-md-block">{{ part.mounting.mount_record.date }}</td>
-      <td>{{ part.distance }}</td>
-    </tr>
-    {% endif %}
-    {% endfor %}
-  </table>
+      {% endif %}
+      {% endfor %}
+    </table>
+  </div>
   {% endif %}
   {% endfor%}
   {% else %}
