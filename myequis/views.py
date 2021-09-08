@@ -1263,6 +1263,7 @@ def list_bicycle_detail(request, bicycle_id):
 
     bicycle = Bicycle.objects.get(pk=bicycle_id)
     records = Record.objects.filter(bicycle__id=bicycle_id).order_by('-date')
+    # logger.warning("records={}".format(str(records)))
 
     # Actual mounted
     materials = Material.objects.annotate(mounted=Exists(
@@ -1271,12 +1272,11 @@ def list_bicycle_detail(request, bicycle_id):
         .order_by('name')
 
     # All actual Mountings for this bicycle
-    mountings = Mounting.objects.annotate(
-        bicycle_found=Exists(
-            Record.objects.filter(bicycle_id=bicycle.id)
-        )
-    ).filter(bicycle_found=True, dismount_record=None)
-    logger.warning("mountings={}".format(str(mountings)))
+    mountings = Mounting.objects\
+        .filter(dismount_record=None)\
+        .filter(mount_record__bicycle_id=bicycle.id)
+
+    # logger.warning(f"mountings={str(mountings)}")
 
     data_list = []
 
@@ -1360,11 +1360,9 @@ def list_bicycle_parts(request, bicycle_id):
     records = Record.objects.filter(bicycle__id=bicycle_id).order_by('-date')
 
     # All actual Mountings for this bicycle
-    mountings = Mounting.objects.annotate(
-        bicycle_found=Exists(
-            Record.objects.filter(bicycle_id=bicycle.id)
-        )
-    ).filter(bicycle_found=True, dismount_record=None)
+    mountings = Mounting.objects\
+        .filter(dismount_record=None)\
+        .filter(mount_record__bicycle_id=bicycle.id)
 
     # logger.warning("mountings={}".format(str(mountings)))
     # logger.warning("records={}".format(str(records)))
@@ -1534,11 +1532,9 @@ def list_bicycle_history(request, bicycle_id):
     bicycle = Bicycle.objects.get(pk=bicycle_id)
 
     # All Mountings for this bicycle
-    mountings = Mounting.objects.annotate(
-        bicycle_found=Exists(
-            Record.objects.filter(bicycle_id=bicycle.id)
-        )
-    ).filter(bicycle_found=True).order_by('-mount_record__date')
+    mountings = Mounting.objects\
+        .filter(mount_record__bicycle_id=bicycle.id)\
+        .order_by('-mount_record__date')
 
     records = Record.objects.filter(bicycle_id=bicycle.id).order_by('-date')
 
@@ -1582,7 +1578,7 @@ def list_bicycle_history(request, bicycle_id):
                     distance = human_distance(mounting.mount_record.km, mounting.dismount_record.km)
                     delta = human_delta(mounting.mount_record.date, mounting.dismount_record.date)
 
-                    logger.warning(f"mounting's delta={delta}")
+                    # logger.warning(f"mounting's delta={delta}")
 
                 mounting_data_list.append(
                     dict(mounting=mounting, distance=distance, delta=delta ))
@@ -1721,7 +1717,7 @@ def list_bicycle_timeline(request, bicycle_id):
         year_data['data_list'] = [d for d in data_list if str(d['record'].date.year)==year_data['year']]
 
 
-    logger.warning(f"list_bicycle_timeline() year_data_list= {year_data_list}.")
+    # logger.warning(f"list_bicycle_timeline() year_data_list= {year_data_list}.")
 
 
     # logger.warning(f"data_list count= {len(data_list)}.")
@@ -1938,7 +1934,7 @@ def human_delta(start, end):
     if delta.days < 31:
         return human_time_delta(delta.days, 0, 0)
 
-    logger.warning(f"delta={delta}")
+    # logger.warning(f"delta={delta}")
 
     years = end.year - start.year
     months = end.month - start.month
@@ -1967,7 +1963,7 @@ def human_time_delta(days, months, years):
         Readable time delta as a nice readable String with years, months and days
     """
 
-    logger.warning(f"human_time_delta days, month, years={days}, {months}, {years}")
+    # logger.warning(f"human_time_delta days, month, years={days}, {months}, {years}")
 
     if months == 0 and years == 0:
         return f"{days} d"
@@ -1984,6 +1980,6 @@ def human_time_delta(days, months, years):
 
     res = f"{years} y {months} m"
 
-    logger.warning(f"human_time_delta returns={res}")
+    # logger.warning(f"human_time_delta returns={res}")
 
     return res
