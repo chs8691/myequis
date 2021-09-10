@@ -74,6 +74,12 @@ class ImportView(LoginRequiredMixin, CreateView):
     def get(self, request, *args, **kwargs):
         logger.warning("ImportView GET request: {}".format(str(request)))
 
+        # Where did I come from
+        request.session[type(self).__name__] = request.META.get('HTTP_REFERER', '/')
+
+        # Init message
+        request.session[KEY_MESSAGE] = None
+
         # If called with data, clean() will be processed!
         form = ImportForm({})
 
@@ -88,8 +94,8 @@ class ImportView(LoginRequiredMixin, CreateView):
             str(request.POST), str(request.FILES)))
 
         if 'cancel' in request.POST:
-            return HttpResponseRedirect(
-                "%s?message='Import canceled'" % reverse('myequis:index-url'))
+            request.session[KEY_MESSAGE] = "Import canceled"
+            return HttpResponseRedirect(request.session[type(self).__name__])
 
         form = ImportForm(request.POST, request.FILES)
         # logger.warning("form: " + str(form))
@@ -231,12 +237,9 @@ class ImportView(LoginRequiredMixin, CreateView):
                     'message': "ERROR:" + message,
                 }, request))
 
-            # redirect to a new URL:
-            # see https://docs.djangoproject.com/en/dev/ref/urlresolvers/#django.core.urlresolvers.reverse
-            # return HttpResponseRedirect(reverse('url_records', args=(record.bicycle.id,)))
-            return HttpResponseRedirect(
-                "%s?message='{} dataset imported'".format(data_count)
-                % reverse('myequis:index-url'))
+            # Redirect to previus page
+            request.session[KEY_MESSAGE] = f"{data_count} dataset imported."
+            return HttpResponseRedirect(request.session[type(self).__name__])
 
         else:
             logger.warning("is not valid")
@@ -246,109 +249,22 @@ class ImportView(LoginRequiredMixin, CreateView):
             }, request))
 
 
-def xxximport_data(request):
+def export_data(request):
 
     if request.method == 'GET':
-        template = loader.get_template('myequis/import.html')
-        return HttpResponse(template.render({
-        }, request))
 
-    if request.method == 'POST':
+        # Where did I come from
+        request.session['export_data'] = request.META.get('HTTP_REFERER', '/')
 
-        output = []
+        # Init message
+        request.session[KEY_MESSAGE] = None
 
-        logger.warning(f"request={request.FILES['importData']}")
-
-        datasets = unzip_files(request.FILES['importData'])
-        logger.warning(f"datasets={datasets}")
-
-        bicycle_resource = BicycleResource()
-        bicycle_data = datasets["Bicycle"]
-        logger.warning(f"bicycle_data={bicycle_data}")
-        result_bicycle = bicycle_resource.import_data(bicycle_data, dry_run=dry_run
-                                                      )
-        output.append(
-            f"Bicycle: {len(Bicycle.objects.all())} <-- {len(bicycle_data)}")
-        if result_bicycle.has_errors():
-            message = "Invalid Bicycles data"
-
-        component_resource = ComponentResource()
-        component_data = datasets["Component"]
-        logger.warning(f"component_data={component_data}")
-        result_component = component_resource.import_data(component_data, dry_run=dry_run
-                                                          )
-        output.append(
-            f"Component: {len(Component.objects.all())} <-- {len(component_data)}")
-        if result_component.has_errors():
-            message = "Invalid Components data"
-
-        material_resource = MaterialResource()
-        material_data = datasets["Material"]
-        logger.warning(f"material_data={material_data}")
-        result_material = material_resource.import_data(material_data, dry_run=dry_run
-                                                        )
-        output.append(
-            f"Material: {len(Material.objects.all())} <-- {len(material_data)}")
-        if result_material.has_errors():
-            message = "Invalid Materials data"
-
-        mounting_resource = MountingResource()
-        mounting_data = datasets["Mounting"]
-        logger.warning(f"mounting_data={mounting_data}")
-        result_mounting = mounting_resource.import_data(mounting_data, dry_run=dry_run
-                                                        )
-        output.append(
-            f"Mounting: {len(Mounting.objects.all())} <-- {len(mounting_data)}")
-        if result_mounting.has_errors():
-            message = "Invalid Mountings data"
-
-        part_resource = PartResource()
-        part_data = datasets["Part"]
-        logger.warning(f"part_data={part_data}")
-        result_part = part_resource.import_data(part_data, dry_run=dry_run
-                                                )
-        output.append(f"Part: {len(Part.objects.all())} <-- {len(part_data)}")
-        if result_part.has_errors():
-            message = "Invalid Parts data"
-
-        record_resource = RecordResource()
-        record_data = datasets["Record"]
-        logger.warning(f"record_data={record_data}")
-        result_record = record_resource.import_data(record_data, dry_run=dry_run
-                                                    )
-        output.append(
-            f"Record: {len(Record.objects.all())} <-- {len(record_data)}")
-        if result_record.has_errors():
-            message = "Invalid Records data"
-
-        species_resource = SpeciesResource()
-        species_data = datasets["Species"]
-        logger.warning(f"species_data={species_data}")
-        result_species = species_resource.import_data(species_data, dry_run=dry_run
-                                                      )
-        output.append(
-            f"Species: {len(Species.objects.all())} <-- {len(species_data)}")
-        if result_species.has_errors():
-            message = "Invalid Species data"
-
-        # if not result.has_errors():
-            # Import now
-            # species_resource.import_data(dataset, dry_run=False)
-
-    # return render(request, 'myequis/import.html')
-    template = loader.get_template('myequis/import.html')
-    return HttpResponse(template.render({
-        'output': output,
-    }, request))
-
-
-def export_data(request):
     if request.method == 'POST':
 
         if 'cancel' in request.POST:
-            return HttpResponseRedirect(
-                "%s?message='Export closed'" % reverse('myequis:index-url'))
 
+            request.session[KEY_MESSAGE] = "Export closed."
+            return HttpResponseRedirect(request.session['export_data'])
 
         # Get selected option from form
         file_format = request.POST['file-format']
@@ -1515,6 +1431,8 @@ def list_material_detail(request, material_id):
             'message': request.session[KEY_MESSAGE],
             'back_url': request.session['material-detail'],
         }
+        request.session[KEY_MESSAGE] = None
+
     else:
         context = {
             'data': data,
@@ -1610,12 +1528,14 @@ def list_bicycle_history(request, bicycle_id):
 
     template = loader.get_template('myequis/bicycle_history.html')
 
-    if 'message' in request.GET.keys():
+    if 'message' in request.session:
         context = {
             'bicycle': bicycle,
             'data_list': data_list,
-            'message': request.GET['message']
+            'message': request.session[KEY_MESSAGE]
         }
+        request.session[KEY_MESSAGE] = None
+
     else:
         context = {
             'bicycle': bicycle,
@@ -1725,12 +1645,13 @@ def list_bicycle_timeline(request, bicycle_id):
 
     template = loader.get_template('myequis/bicycle_timeline.html')
 
-    if 'message' in request.GET.keys():
+    if 'message' in request.session:
         context = {
             'bicycle': bicycle,
             'year_data_list': year_data_list,
-            'message': request.GET['message']
+            'message': request.session[KEY_MESSAGE]
         }
+        request.session[KEY_MESSAGE] = None
     else:
         context = {
             'bicycle': bicycle,
@@ -1754,13 +1675,14 @@ def index(request):
 
     template = loader.get_template('myequis/index.html')
 
-    if 'message' in request.GET.keys():
-        logger.warning(f"index called with message={request.GET['message']}")
+    if 'message' in request.session:
+        logger.warning(f"index called with message={request.session[KEY_MESSAGE]}")
         context = {
             'bicycles': bicycles,
             'materials': materials,
-            'message': request.GET['message'],
+            'message':   request.session[KEY_MESSAGE],
         }
+        request.session[KEY_MESSAGE] = None
     else:
         context = {
             'bicycles': bicycles,
@@ -1895,14 +1817,18 @@ def material(request, material_id):
 
     template = loader.get_template('myequis/materials.html')
 
-    if 'message' in request.GET.keys():
+    if 'message' in request.session:
+
         context = {
             'new_materials': new_materials,
             'dismounted_materials': dismounted_materials,
             'disposed_materials': disposed_materials,
-            'message': request.GET['message']
+            'message': request.session[KEY_MESSAGE]
         }
+        request.session[KEY_MESSAGE] = None
+
     else:
+
         context = {
             'new_materials': new_materials,
             'dismounted_materials': dismounted_materials,
@@ -1910,12 +1836,6 @@ def material(request, material_id):
         }
 
     return HttpResponse(template.render(context, request))
-
-
-def material(request, material_id):
-    material = Material.objects.get(id=material_id)
-
-    return HttpResponse("You're looking at material %s." % material.name)
 
 
 def human_distance(low, high):
