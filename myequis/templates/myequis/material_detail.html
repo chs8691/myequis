@@ -21,20 +21,49 @@
 <div class="card m-1">
   <div class="card-body">
     <div class="card-title">
+        <div class="text-uppercase">
+          {{ data.material.manufacture }}
+        </div>
+        <h5>
+          <div class="font-weight-bold">
+            <span>
+              {{ data.material.name }}
+            </span>
+          </div>
+        </h5>
+    </div>
+
+    <div class="card-text">
       <div class="d-flex justify-content-between">
         <span>
-          <div class="text-uppercase">
-            {{ data.material.manufacture }}
-          </div>
-          <h5>
-            <div class="font-weight-bold">
-              <span>
-                {{ data.material.name }}
-              </span>
-            </div>
-          </h5>
           <div class="text-muted">
             ID {{ data.material.id }}
+          </div>
+          <div>
+            {% if data.material.size %}
+            Size: {{ data.material.size }}
+            {% endif %}
+          </div>
+
+          <div>
+            {% if data.material.weight %}
+            Weight: {{ data.material.weight }}
+            {% endif %}
+          </div>
+          <div>
+            {% if data.material.price %}
+            Price: {{ data.material.price }}
+            {% endif %}
+          </div>
+          <div>
+            {% if data.material.disposed %}
+            {{ data.material.disposedAt }}
+            {% endif %}
+          </div>
+          <div class="text-muted">
+            {% if data.material.comment %}
+            {{ data.material.comment }}
+            {% endif %}
           </div>
         </span>
         <span>
@@ -52,80 +81,51 @@
           </h5>
         </span>
       </div>
-    </div>
-
-    <div class="card-text">
-
-      <div>
-        {% if data.material.size %}
-        Size: {{ data.material.size }}
-        {% endif %}
-      </div>
-
-      <div>
-        {% if data.material.weight %}
-        Weight: {{ data.material.weight }}
-        {% endif %}
-      </div>
-      <div>
-        {% if data.material.price %}
-        Price: {{ data.material.price }}
-        {% endif %}
-      </div>
-      <div>
-        {% if data.material.disposed %}
-        {{ data.material.disposedAt }}
-        {% endif %}
-      </div>
-      <div class="text-muted">
-        {% if data.material.comment %}
-        {{ data.material.comment }}
-        {% endif %}
-      </div>
 
     </div>
+
   </div>
-
-  <div class="table-responsive">
-    <table  class="table">
-      <thead>
-        <tr>
-          <th scope="col">Mounting</th>
-          <th scope="col">Bicycle/Part</th>
-          <th scope="col" class="text-right">Duration</th>
-          <th scope="col" class="text-right">Km</th>
-        </tr>
-      </thead>
-      {% for m in data.mountings %}
-      <tr>
-        <td>
-          <div>
-            {% if m.mounting.dismount_record %}
-            {{ m.mounting.mount_record.date }} - {{ m.mounting.dismount_record.date }}
-            {% else %}
-            {{ m.mounting.mount_record.date }}
-            {% endif %}
-          </div>
-          <div class="text-muted">
-            {{ m.mounting.comment }}
-          </div>
-        </td>
-        <td>
-          <div>
-            {{ m.mounting.mount_record.bicycle.name }}
-          </div>
-          <div>
-            {{ m.mounting.part.component.name }}/{{ m.mounting.part.name }}
-          </div>
-        </td>
-        <td class="text-right">{{ m.duration }}</td>
-        <td class="text-right">{{ m.distance }}</td>
-      </tr>
-      {% endfor %}
-    </table>
-  </div>
-
-
 </div>
+
+<div class="table-responsive">
+  <table  class="table">
+    <thead>
+      <tr>
+        <th scope="col">Mounting</th>
+        <th scope="col">Bicycle/Part</th>
+        <th scope="col" class="text-right">Duration</th>
+        <th scope="col" class="text-right">Km</th>
+      </tr>
+    </thead>
+    {% for m in data.mountings %}
+    <tr>
+      <td>
+        <div>
+          {% if m.mounting.dismount_record %}
+          {{ m.mounting.mount_record.date }} - {{ m.mounting.dismount_record.date }}
+          {% else %}
+          {{ m.mounting.mount_record.date }}
+          {% endif %}
+        </div>
+        <div class="text-muted">
+          {{ m.mounting.comment }}
+        </div>
+      </td>
+      <td>
+        <div>
+          {{ m.mounting.mount_record.bicycle.name }}
+        </div>
+        <div>
+          {{ m.mounting.part.component.name }}/{{ m.mounting.part.name }}
+        </div>
+      </td>
+      <td class="text-right">{{ m.duration }}</td>
+      <td class="text-right">{{ m.distance }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+
+
 
 {% endblock %}

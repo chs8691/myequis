@@ -71,7 +71,7 @@
   {% firstof "" as next_status  %}
   {% endif %}
 
-  {% include "section-nav-line.html" with title=data.component_name back_url=back_url prev_url=data.prev prev_status=prev_status next_url=data.next next_status=next_status %}
+  {% include "section-nav-line.html" with title=data.component_name back_url=data.back prev_url=data.prev prev_status=prev_status next_url=data.next next_status=next_status %}
 
 
   <div class="table-responsive">

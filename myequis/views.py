@@ -1240,11 +1240,16 @@ def list_bicycle_detail(request, bicycle_id):
             data_list.append(component_data)
 
     # add navigation
+    if len(data_list) > 0:
+        back_url = data_list[0]['component_name']
+
     for i in range(len(data_list)):
 
         if i > 0:
+            nav_back = back_url
             nav_prev = data_list[i-1]['component_name']
         else:
+            nav_back = None
             nav_prev = None
 
         if (i+1) < len(data_list):
@@ -1252,6 +1257,7 @@ def list_bicycle_detail(request, bicycle_id):
         else:
             nav_next = None
 
+        data_list[i]['back'] = nav_back
         data_list[i]['prev'] = nav_prev
         data_list[i]['next'] = nav_next
 

@@ -1,31 +1,34 @@
-<div class="d-flex justify-content-between align-items-center  bg-primary border border-primary pl-3 pt-3 pb-3 pr-3">
+<div class="d-flex flex-wrap  justify-content-end align-items-center  bg-primary border border-primary pl-3 pt-1 pb-1 pr-1">
 
-  <h1 id='{{ title }}' class="text-white" >
-    {{ title }}
-  </h1>
+  <div class='flex-grow-1 mr-2'>
+    <p id='{{ title }}' class="h1 mb-0 mt-0 text-white" >
+      {{ title }}
+    </p>
+  </div>
 
-  <div>
-    <div class="btn-group" role=:group">
+  <div class='btn-group' role='group'>
 
-      <a href={{ back_url }}>
+    {% if back_url is not None %}
+    <a href='#{{ back_url }}'>
+      <button type="button" class="btn text-primary mr-1 btn-light">
+        &#129145;
+      </button>
+    </a>
+    {% endif %}
 
-        <button type="button" class="btn text-primary mr-1 btn-light">
-          Back
-        </button>
-      </a>
+    {% if prev_url is not None %}
+    <a href='#{{ prev_url }}'>
+      <button type="button" class="btn text-primary mr-1 pr-2 pl-2 btn-light {{ prev_status }}">
+        &#9650;
+      </button>
+    </a>
+    {% endif %}
 
-      <a href='#{{ prev_url }}'>
-        <button type="button" class="btn text-primary mr-1 pr-3 pl-3 btn-light {{ prev_status }}">
-          &#9650;
-        </button>
-      </a>
+    <a href='#{{ next_url }}'>
+      <button type="button" class="btn text-primary mr-1 pr-2 pl-2 btn-light {{ next_status }}">
+        &#9660;
+      </button>
+    </a>
 
-      <a href='#{{ next_url }}'>
-        <button type="button" class="btn text-primary mr-1 pr-3 pl-3 btn-light {{ next_status }}">
-          &#9660;
-        </button>
-      </a>
-
-    </div>
   </div>
 </div>
