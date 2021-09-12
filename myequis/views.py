@@ -1332,11 +1332,16 @@ def list_bicycle_parts(request, bicycle_id):
         data_list.append(data)
 
     # add navigation
+    if len(data_list) > 0:
+        back_url = data_list[0]['name']
+
     for i in range(len(data_list)):
 
         if i > 0:
+            nav_back = back_url
             nav_prev = data_list[i-1]['name']
         else:
+            nav_back = None
             nav_prev = None
 
         if (i+1) < len(data_list):
@@ -1344,6 +1349,7 @@ def list_bicycle_parts(request, bicycle_id):
         else:
             nav_next = None
 
+        data_list[i]['back'] = nav_back
         data_list[i]['prev'] = nav_prev
         data_list[i]['next'] = nav_next
 
@@ -1515,20 +1521,26 @@ def list_bicycle_history(request, bicycle_id):
         data_list.append(data)
 
     # add navigation
+    if len(data_list) > 0:
+        back_url = data_list[0]['name']
+
     for i in range(len(data_list)):
 
         if i > 0:
-            prev = data_list[i-1]['name']
+            nav_back = back_url
+            nav_prev = data_list[i-1]['name']
         else:
-            prev = None
+            nav_back = None
+            nav_prev = None
 
         if (i+1) < len(data_list):
-            next = data_list[i+1]['name']
+            nav_next = data_list[i+1]['name']
         else:
-            next = None
+            nav_next = None
 
-        data_list[i]['prev'] = prev
-        data_list[i]['next'] = next
+        data_list[i]['back'] = nav_back
+        data_list[i]['prev'] = nav_prev
+        data_list[i]['next'] = nav_next
 
     # logger.warning(f"data_list={data_list}")
 
@@ -1624,11 +1636,16 @@ def list_bicycle_timeline(request, bicycle_id):
     year_data_list = []
 
     # add navigation
+    if len(years) > 0:
+        back_url = years[0]
+
     for i in range(len(years)):
 
         if i > 0:
+            back = back_url
             prev = years[i-1]
         else:
+            back = None
             prev = None
 
         if (i+1) < len(years):
@@ -1636,7 +1653,8 @@ def list_bicycle_timeline(request, bicycle_id):
         else:
             next = None
 
-        year_data_list.append(dict(year=str(years[i]), prev=str(prev), next=str(next), data_list=[]))
+        year_data_list.append(dict(year=str(years[i]), back=str(back),\
+            prev=str(prev), next=str(next), data_list=[]))
 
     # add data items
     for year_data in year_data_list:

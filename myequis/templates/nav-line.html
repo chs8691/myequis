@@ -8,7 +8,7 @@
 
   <div class='btn-group' role='group'>
 
-    {% if back_url is not None %}
+    {% if back_url is not None and back_url != 'None' %}
     <a href='#{{ back_url }}'>
       <button type="button" class="btn text-primary mr-1 btn-light">
         &#129145;
@@ -16,7 +16,7 @@
     </a>
     {% endif %}
 
-    {% if prev_url is not None %}
+    {% if prev_url is not None and prev_url != 'None' %}
     <a href='#{{ prev_url }}'>
       <button type="button" class="btn text-primary mr-1 pr-2 pl-2 btn-light {{ prev_status }}">
         &#9650;
