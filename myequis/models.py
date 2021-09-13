@@ -65,7 +65,7 @@ class Material(models.Model):
     disposedAt = models.DateField(blank=True, null=True)
 
     def __str__(self):
-        return str(self.name)
+        return str(f"{self.id}/{self.manufacture}/{self.name}/{self.disposedAt}")
 
 
 class Mounting(models.Model):

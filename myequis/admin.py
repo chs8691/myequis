@@ -44,11 +44,12 @@ class ComponentAdmin(ImportExportModelAdmin):
 
 
 class MaterialAdmin(admin.ModelAdmin):
-    list_display = ('name', 'manufacture', 'size',)
+    list_display = ('id', 'name', 'manufacture', 'size', 'disposedAt', )
 
 
 class MountingAdmin(admin.ModelAdmin):
-    ordering = ["mount_record__date"]
+    ordering = ["mount_record__date",]
+    list_display = ['id', 'part', 'material', 'mount_record', 'dismount_record',]
 
 
 # admin.site.register(Bicycle, BicycleAdmin)
