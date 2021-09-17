@@ -73,7 +73,7 @@ urlpatterns = [
     # ### DALs ####################################
     url(
         'type-autocomplete/$',
-        views.TypeAutocomplete.as_view(),
+        views.TypeAutocomplete.as_view(create_field='name'),
         name='type-autocomplete',
     ),
 
