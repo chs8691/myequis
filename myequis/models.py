@@ -9,6 +9,7 @@ class Species(models.Model):
         return str(self.name)
 
 
+
 # A bicycle is structured into components. For instance front wheel, gear etc.
 class Component(models.Model):
     name = models.CharField(max_length=100)
@@ -30,7 +31,7 @@ class Bicycle(models.Model):
 # Parts of a component. For instance front wheel: tube, tire, left spokes.
 # This is a simplified model of the real world. There is no position within a part, e.g. spokes(1)
 class Part(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=50)
 
     component = models.ForeignKey(Component, on_delete=models.CASCADE)
 
@@ -49,6 +50,13 @@ class Record(models.Model):
         return "{} {}".format(str(self.date), str(self.bicycle.name))
 
 
+# Materials can be sorted into a type, e.g. a Chain
+class Type(models.Model):
+    name = models.CharField(max_length=50)
+
+    def __str__(self):
+        return str(self.name)
+
 # A material is a physically part of a bicycle. It can be installed at removed, but it must not be used, e.g. when a
 # new tube is bought, it has yet no relation to an bicyle.
 class Material(models.Model):
@@ -58,6 +66,8 @@ class Material(models.Model):
     size = models.CharField(max_length=100, blank=True, default="")
     price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     weight = models.DecimalField(max_digits=10, decimal_places=3, blank=True, null=True)
+
+    type = models.ForeignKey(Type, null=True, on_delete=models.CASCADE)
 
     comment = models.CharField(max_length=50, blank=True, default="")
 

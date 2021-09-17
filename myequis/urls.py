@@ -1,4 +1,5 @@
 from django.urls import path
+from django.conf.urls import url
 
 from . import views
 
@@ -54,7 +55,6 @@ urlpatterns = [
     path('records/<int:record_id>/', views.EditRecordView.as_view(), name='edit-record-url'),
 
     # ### MATERIALS ##############################
-
     # ex: myequis/materials
     path('materials/active', views.list_active_materials, name='list-active-materials-url'),
 
@@ -69,5 +69,12 @@ urlpatterns = [
 
     # ex: myequis/materials/4/detail
     path('materials/<int:material_id>/detail/', views.list_material_detail, name='material-detail-url'),
+
+    # ### DALs ####################################
+    url(
+        'type-autocomplete/$',
+        views.TypeAutocomplete.as_view(),
+        name='type-autocomplete',
+    ),
 
 ]

@@ -6,6 +6,7 @@ from .models import Component, Mounting, Species
 from .models import Part
 from .models import Bicycle
 from .models import Record
+from .models import Type
 from .models import Material
 
 class ComponentInline(admin.TabularInline):
@@ -25,8 +26,6 @@ class BicycleAdmin(ImportExportModelAdmin):
     inlines = [RecordInline]
     ordering = ["name"]
 
-
-
 @admin.register(Species)
 class SpeciesAdmin(ImportExportModelAdmin):
     inlines = [ComponentInline]
@@ -42,9 +41,9 @@ class ComponentAdmin(ImportExportModelAdmin):
     inlines = [PartInline]
     ordering = ["name"]
 
-
 class MaterialAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'manufacture', 'size', 'disposedAt', )
+    list_display = ('id', 'manufacture', 'name', 'type', 'size', 'disposedAt', )
+    # list_display = ('id', 'manufacture', 'name', 'size', 'disposedAt', )
 
 
 class MountingAdmin(admin.ModelAdmin):
@@ -57,3 +56,4 @@ class MountingAdmin(admin.ModelAdmin):
 # admin.site.register(Component, ComponentAdmin)
 admin.site.register(Material, MaterialAdmin)
 admin.site.register(Mounting, MountingAdmin)
+admin.site.register(Type)

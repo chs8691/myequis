@@ -39,11 +39,14 @@
 <form action="" method="post">
   {% csrf_token %}
 
+  <div>{{ form.manufacture.label }}</div>
+  <div>{{ form.manufacture }}</div>
+
   <div>{{ form.name.label }}</div>
   <div>{{ form.name }}</div>
 
-  <div>{{ form.manufacture.label }}</div>
-  <div>{{ form.manufacture }}</div>
+  <div>{{ form.type.label }}</div>
+  <div>{{ form.type }}</div>
 
   <div>{{ form.size.label }}</div>
   <div>{{ form.size }}</div>

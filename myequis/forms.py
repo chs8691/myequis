@@ -1,14 +1,20 @@
+from bootstrap_datepicker_plus import DatePickerInput
+
+from dal import autocomplete
+
+from datetime import datetime, timedelta
+
 from django import forms
 from django.forms import Select
 
-from myequis.models import Record, Material, Mounting
-from datetime import datetime, timedelta
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext as _
-from bootstrap_datepicker_plus import DatePickerInput
 
 import logging
+
+from myequis.models import Material, Mounting, Part, Record, Type
+
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -54,11 +60,15 @@ class ImportForm(forms.Form):
 # Create Material
 class EditMaterialForm(forms.Form):
 
+    manufacture = forms.CharField(widget=forms.TextInput(
+        attrs={'max_length': '30'}), required=False, label="Manufacture")
+
     name = forms.CharField(widget=forms.TextInput(
         attrs={'max_length': '50'}), required=False, label="Name")
 
-    manufacture = forms.CharField(widget=forms.TextInput(
-        attrs={'max_length': '30'}), required=False, label="Manufacture")
+    type = forms.ModelChoiceField(
+        queryset=Type.objects.all(),
+        widget=autocomplete.ModelSelect2(url='myequis:type-autocomplete'))
 
     size = forms.CharField(widget=forms.TextInput(
         attrs={'max_length': '20'}), required=False, label="Size")
@@ -111,8 +121,9 @@ class EditMaterialForm(forms.Form):
         logger.warning("check_edit_material() clean_data={}".format(self.cleaned_data))
 
         # get the actual form data we have to check
-        name = self.cleaned_data['name']
         manufacture = self.cleaned_data['manufacture']
+        name = self.cleaned_data['name']
+        type = self.cleaned_data['type']
         size = self.cleaned_data['size']
         weight = self.cleaned_data['weight']
         price = self.cleaned_data['price']

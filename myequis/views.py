@@ -2,9 +2,8 @@ import logging
 import io
 import zipfile
 
-
+from dal import autocomplete
 from datetime import datetime
-from tablib import Dataset, UnsupportedFormat
 from django.db import DatabaseError, transaction
 from django.db.models import Q, OuterRef, Exists, Subquery
 from django.conf import settings
@@ -16,7 +15,8 @@ from django.urls import reverse
 from django.utils.datastructures import MultiValueDictKeyError
 from django.views.generic.edit import UpdateView, CreateView
 from os import path
-from myequis.models import Material, Mounting, Bicycle, Record, Component, Part, Species
+from myequis.models import Bicycle, Component, Material, Mounting, Part, Record, Species, Type
+from tablib import Dataset, UnsupportedFormat
 from .forms import CreateRecordForm, CreateMaterialForm, DeleteMountingForm, MountForm, DismountForm, ExchangeMountingForm, EditRecordForm, EditMaterialForm, ImportForm
 
 from .resources import BicycleResource, ComponentResource, MaterialResource, MountingResource, PartResource, RecordResource, SpeciesResource
@@ -67,6 +67,18 @@ def unzip_files(zip_file):
     # logger.warning(f"unzip_files ret = {ret}")
 
     return ret
+
+
+class TypeAutocomplete(autocomplete.Select2QuerySetView):
+
+    def get_queryset(self):
+
+        qs = Type.objects.all()
+
+        if self.q:
+            qs = qs.filter(name__istartswith=self.q)
+
+        return qs
 
 
 class ImportView(LoginRequiredMixin, CreateView):
@@ -342,7 +354,6 @@ class EditMaterialView(LoginRequiredMixin, CreateView):
         material = get_object_or_404(Material, pk=kwargs['material_id'])
 
         # Find actual mounting or last mounting
-
         mountings = Mounting.objects.filter(material=material.pk)\
             .filter(dismount_record=None)
 
@@ -366,13 +377,14 @@ class EditMaterialView(LoginRequiredMixin, CreateView):
 
             mounting_info = "This is an new material."
 
-        # logger.warning("EditMaterialView GET mounting_id: {}".format(str(mounting_id)))
+        logger.warning(f"EditMaterialView GET mounting_id: {str(mounting_id)} type={material.type}")
 
         # If called with data, clean() will be processed!
         form = EditMaterialForm(
             {
-                'name': material.name,
                 'manufacture': material.manufacture,
+                'name': material.name,
+                'type': material.type,
                 'size': material.size,
                 'weight': material.weight,
                 'price': material.price,
@@ -380,7 +392,7 @@ class EditMaterialView(LoginRequiredMixin, CreateView):
                 'disposed': material.disposed,
                 'disposedAt': material.disposedAt,
                 'mounting_id': mounting_id, # in form: converted to string
-             })
+            })
 
         template = loader.get_template('myequis/edit_material.html')
         return HttpResponse(template.render({'material': material, 'mounting_info': mounting_info, 'form': form}, request))
@@ -406,8 +418,9 @@ class EditMaterialView(LoginRequiredMixin, CreateView):
             # form.check_data()
 
             # process the data in form.cleaned_data as required
-            material.name = form.cleaned_data['name']
             material.manufacture = form.cleaned_data['manufacture']
+            material.name = form.cleaned_data['name']
+            material.type = form.cleaned_data['type']
             material.size = form.cleaned_data['size']
             material.weight = form.cleaned_data['weight']
             material.price = form.cleaned_data['price']
@@ -1062,8 +1075,6 @@ class ExchangeMaterialView(LoginRequiredMixin,  UpdateView):
                     'materials': MountMaterialView.select_materials(),
                     'form': form,
                 }, request))
-
-
 
 class EditRecordView(LoginRequiredMixin, UpdateView):
 
