@@ -48,6 +48,9 @@
       <div class="d-flex justify-content-between">
         <div onclick="tdClick('{% url 'myequis:material-detail-url' mountingData.mounting.material.id %}');">
           <span>
+            <div class="text-secondary">
+              {{ mountingData.mounting.material.type }}
+            </div>
             <div class="text-uppercase">
               {{ mountingData.mounting.material.manufacture }}
             </div>

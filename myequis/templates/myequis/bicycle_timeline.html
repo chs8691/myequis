@@ -76,6 +76,9 @@
             {% endif %}
           </div>
           <div class="col-9" onclick="tdClick('{% url 'myequis:material-detail-url' m.material.id %}');">
+            <div class="text-secondary">
+              {{ m.material.type }}
+            </div>
             <div class="text-uppercase">
               {{ m.material.manufacture }}
             </div>

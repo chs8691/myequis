@@ -7,7 +7,8 @@ from datetime import datetime, timedelta
 from django import forms
 from django.forms import Select
 
-from django.db.models import Q
+from django.db.models import Count, Q
+from django.db.models.functions import Lower
 from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext as _
 
@@ -18,6 +19,35 @@ from myequis.models import Material, Mounting, Part, Record, Type
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
+
+
+def get_manufacture_names():
+    list = []
+
+    for item in Material.objects.all()\
+        .order_by('manufacture')\
+        .values_list('manufacture', flat=True).distinct():
+
+        list.append((item, item))
+
+    logger.warning(f"get_manufacture_names: ret={list}")
+
+    return list
+
+
+def get_material_names():
+    list = []
+
+    for item in Material.objects.all()\
+        .order_by('name')\
+        .values_list('name', flat=True).distinct():
+
+        list.append((item, item))
+
+    # logger.warning(f"get_material_names: ret={list}")
+
+    return list
+
 
 # Create Material
 class ImportForm(forms.Form):
@@ -60,11 +90,17 @@ class ImportForm(forms.Form):
 # Create Material
 class EditMaterialForm(forms.Form):
 
-    manufacture = forms.CharField(widget=forms.TextInput(
-        attrs={'max_length': '30'}), required=False, label="Manufacture")
+    logger.warning(f"EditMaterialForm()")
 
-    name = forms.CharField(widget=forms.TextInput(
-        attrs={'max_length': '50'}), required=False, label="Name")
+    manufacture = autocomplete.Select2ListCreateChoiceField(label="Manufacture", required=False,
+        # choice_list=self.material_choice_list, # doesn't work here, see init()
+        widget=autocomplete.ListSelect2(url='myequis:manufacture-autocomplete'))
+
+    name = autocomplete.Select2ListCreateChoiceField(label="Name",
+        # choice_list=self.material_choice_list, # doesn't work here, see init()
+        widget=autocomplete.ListSelect2(url='myequis:material-autocomplete'))
+
+    # logger.warning(f"EditMaterialForm() name={name}")
 
     type = forms.ModelChoiceField(
         queryset=Type.objects.all(),
@@ -104,25 +140,40 @@ class EditMaterialForm(forms.Form):
     is_save = False
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # logger.warning("__init__() args={}".format(args[0]))
+        super(EditMaterialForm, self).__init__(*args, **kwargs)
+        # logger.warning("__init__() args={}".format(args))
+        # logger.warning(f"__init__() kwargs={kwargs}")
+
+        # Must be loaded here, otherwise the actual value will not be shown
+        self.fields['name'].choices = get_material_names()
+        self.fields['manufacture'].choices = get_manufacture_names()
 
         self.is_save = 'save' in args[0]
 
+
+
     # Form class stores get data and clean will will called, every time data have been changed.
     def clean(self):
-        logger.warning("clean() self={}".format(str(self)))
+        # logger.warning("clean() self={}".format(str(self)))
         super(EditMaterialForm, self).clean()
 
         # Only if save button pressed
         if not self.is_save:
             return
 
-        logger.warning("check_edit_material() clean_data={}".format(self.cleaned_data))
+        # logger.warning("check_edit_material() clean_data={}".format(self.cleaned_data))
 
         # get the actual form data we have to check
         manufacture = self.cleaned_data['manufacture']
+
+        if 'name' not in self.cleaned_data:
+            raise forms.ValidationError(
+                _("A name must be specified !"),
+                code="a_name_must_be_specified",
+            )
+
         name = self.cleaned_data['name']
+
         type = self.cleaned_data['type']
         size = self.cleaned_data['size']
         weight = self.cleaned_data['weight']
@@ -176,11 +227,17 @@ class EditMaterialForm(forms.Form):
 
 class CreateMaterialForm(forms.Form):
 
-    name = forms.CharField(widget=forms.TextInput(
-        attrs={'max_length': '50'}), required=False, label="Name")
+    manufacture = autocomplete.Select2ListCreateChoiceField(label="Manufacture", required=False,
+        # choice_list=self.material_choice_list, # doesn't work here, see init()
+        widget=autocomplete.ListSelect2(url='myequis:manufacture-autocomplete'))
 
-    manufacture = forms.CharField(widget=forms.TextInput(
-        attrs={'max_length': '30'}), required=False, label="Manufacture")
+    name = autocomplete.Select2ListCreateChoiceField(label="Name", required=False,
+        # choice_list=self.material_choice_list, # doesn't work here, see init()
+        widget=autocomplete.ListSelect2(url='myequis:material-autocomplete'))
+
+    type = forms.ModelChoiceField(
+        queryset=Type.objects.all(), required=False,
+        widget=autocomplete.ModelSelect2(url='myequis:type-autocomplete'))
 
     size = forms.CharField(widget=forms.TextInput(
         attrs={'max_length': '20'}), required=False, label="Size")
@@ -207,7 +264,7 @@ class CreateMaterialForm(forms.Form):
 
     # Form class stores get data and clean will will called, every time data have been changed.
     def clean(self):
-        logger.warning("clean() self={}".format(str(self)))
+        # logger.warning("clean() self={}".format(str(self)))
         super(CreateMaterialForm, self).clean()
 
         # Only if save button pressed. Be prepaired: the save button must
@@ -218,26 +275,35 @@ class CreateMaterialForm(forms.Form):
         logger.warning("check_create_material() clean_data={}".format(self.cleaned_data))
 
         # get the actual form data we have to check
-        name = self.cleaned_data['name']
         manufacture = self.cleaned_data['manufacture']
+        name = self.cleaned_data['name']
+        type = self.cleaned_data['type']
         size = self.cleaned_data['size']
         weight = self.cleaned_data['weight']
         price = self.cleaned_data['price']
         comment = self.cleaned_data['comment']
 
-        if len(name) < 1 :
+        if name is None or len(name) < 1 :
             raise forms.ValidationError(
                 _("A name must be specified"),
                 code="material_name_empty",
                 params={'name': name},
             )
 
-        if len(manufacture) < 1 :
+        if manufacture is None or len(manufacture) < 1 :
             raise forms.ValidationError(
                 _("A manufacture must be specified"),
                 code="material_manufacture_empty",
                 params={'manufacture': manufacture},
             )
+
+        if type is None:
+            raise forms.ValidationError(
+                _("A type must be specified"),
+                code="material_type_empty",
+                params={'type': type},
+            )
+
 
 
 # Create Record

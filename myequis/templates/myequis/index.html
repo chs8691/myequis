@@ -53,8 +53,17 @@
     </thead>
     {% for material in materials %}
     <tr>
-      <td>{{ material.name }} /
-        {{ material.manufacture }}
+      <td>
+        <span class="">
+        {{ material.type }} &#903;
+        </span>
+        <span class="text-uppercase">
+        {{ material.manufacture }} &#903;
+        </span>
+        <span class="">
+        {{ material.name }}
+        </span>
+
         <div class="text-muted">
           {{ material.comment }}
         </div>

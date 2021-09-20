@@ -72,6 +72,18 @@ urlpatterns = [
 
     # ### DALs ####################################
     url(
+        'manufacture-autocomplete/$',
+        views.ManufactureAutocomplete.as_view(),
+        name='manufacture-autocomplete',
+    ),
+
+    url(
+        'material-autocomplete/$',
+        views.MaterialAutocomplete.as_view(),
+        name='material-autocomplete',
+    ),
+
+    url(
         'type-autocomplete/$',
         views.TypeAutocomplete.as_view(create_field='name'),
         name='type-autocomplete',

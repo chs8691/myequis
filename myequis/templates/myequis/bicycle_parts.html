@@ -61,14 +61,15 @@
 
         {% if part.material %}
         <td onclick="tdClick('{% url 'myequis:material-detail-url' part.material.id %}');">
-          <div class="text-uppercase">
-            {{ part.material.manufacture }}
-          </div>
-          <div class="font-weight-bold">
-            <span>
-              {{ part.material.name }}
-            </span>
-          </div>
+          <span class="">
+          {{ part.material.type }} &#903;
+          </span>
+          <span class="text-uppercase">
+          {{ part.material.manufacture }} &#903;
+          </span>
+          <span class="">
+          {{ part.material.name }}
+          </span>
           <div class="text-muted">
             <div>
               {{ part.material.comment }}

@@ -34,8 +34,15 @@
       {% for material in new_materials %}
       <tr>
         <td onclick="tdClick('{% url 'myequis:material-detail-url' material.id %}');">
-          {{ material.name }} /
-          {{ material.manufacture }}
+          <span class="">
+          {{ material.type }} &#903;
+          </span>
+          <span class="text-uppercase">
+          {{ material.manufacture }} &#903;
+          </span>
+          <span class="">
+          {{ material.name }}
+          </span>
           <div class="text-muted">
             {{ material.comment }}
           </div>
@@ -72,8 +79,15 @@
         <td onclick="tdClick('{% url 'myequis:material-detail-url' material.id %}');">
           {{ material.dismountedAt }}</td>
           <td onclick="tdClick('{% url 'myequis:material-detail-url' material.id %}');">
-            {{ material.name }} /
-            {{ material.manufacture }}
+            <span class="">
+            {{ material.type }} &#903;
+            </span>
+            <span class="text-uppercase">
+            {{ material.manufacture }} &#903;
+            </span>
+            <span class="">
+            {{ material.name }}
+            </span>
             <div class="text-muted">
               {{ material.comment }}
             </div>
@@ -111,8 +125,15 @@
           <td onclick="tdClick('{% url 'myequis:material-detail-url' material.id %}');">
             {{ material.mountedAt }}</td>
             <td onclick="tdClick('{% url 'myequis:material-detail-url' material.id %}');">
-              {{ material.name }} /
-              {{ material.manufacture }}
+              <span class="">
+              {{ material.type }} &#903;
+              </span>
+              <span class="text-uppercase">
+              {{ material.manufacture }} &#903;
+              </span>
+              <span class="">
+              {{ material.name }}
+              </span>
               <div class="text-muted">
                 {{ material.comment }}
               </div>

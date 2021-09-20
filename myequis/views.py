@@ -17,7 +17,10 @@ from django.views.generic.edit import UpdateView, CreateView
 from os import path
 from myequis.models import Bicycle, Component, Material, Mounting, Part, Record, Species, Type
 from tablib import Dataset, UnsupportedFormat
-from .forms import CreateRecordForm, CreateMaterialForm, DeleteMountingForm, MountForm, DismountForm, ExchangeMountingForm, EditRecordForm, EditMaterialForm, ImportForm
+from .forms import get_material_names, get_manufacture_names,\
+    CreateRecordForm, CreateMaterialForm, DeleteMountingForm, MountForm,\
+    DismountForm, ExchangeMountingForm, EditRecordForm, EditMaterialForm,\
+    ImportForm
 
 from .resources import BicycleResource, ComponentResource, MaterialResource, MountingResource, PartResource, RecordResource, SpeciesResource
 
@@ -73,6 +76,10 @@ class TypeAutocomplete(autocomplete.Select2QuerySetView):
 
     def get_queryset(self):
 
+        # Don't forget to filter out results depending on the visitor !
+        if not self.request.user.is_authenticated:
+            return Type.objects.none()
+
         qs = Type.objects.all()
 
         if self.q:
@@ -81,10 +88,45 @@ class TypeAutocomplete(autocomplete.Select2QuerySetView):
         return qs
 
 
+class ManufactureAutocomplete(autocomplete.Select2ListView):
+    """
+        Returns list with manufacture names as tuples, unique and ordered alphabetically.
+        The query value will be added to the top of the list, if new.
+        Why tuples? This only works proper with new values and q mixing
+    """
+    def get_list(self):
+        list = get_manufacture_names()
+
+        if self.q:
+            # logger.warning(f"MaterialAutocomplete q=: {self.q}")
+            list.insert(0, (self.q, self.q))
+
+        # logger.warning(f"MaterialAutocomplete: {list}")
+
+        return list
+
+
+class MaterialAutocomplete(autocomplete.Select2ListView):
+    """
+        Returns list with material names as tuples, unique and ordered alphabetically.
+        The query value will be added to the top of the list, if new.
+        Why tuples? This only works proper with new values and q mixing
+    """
+    def get_list(self):
+        list = get_material_names()
+
+        if self.q:
+            # logger.warning(f"MaterialAutocomplete q=: {self.q}")
+            list.insert(0, (self.q, self.q))
+
+        # logger.warning(f"MaterialAutocomplete: {list}")
+
+        return list
+
+
 class ImportView(LoginRequiredMixin, CreateView):
 
     def get(self, request, *args, **kwargs):
-        logger.warning("ImportView GET request: {}".format(str(request)))
 
         # Where did I come from
         request.session[type(self).__name__] = request.META.get('HTTP_REFERER', '/')
@@ -337,10 +379,26 @@ def export_data(request):
     return render(request, 'myequis/export.html')
 
 
-class EditMaterialView(LoginRequiredMixin, CreateView):
+class EditMaterialView(LoginRequiredMixin, UpdateView):
+
+    # def get_form_kwargs(self):
+    #     kwargs = super(EditMaterialView, self).get_form_kwargs()
+    #     logger.warning("EditMaterialView GET get_form_kwargs !!!!!!")
+    #
+    #     return kwargs
+
+    # def get_form_kwargs(self):
+    #     """
+    #         Passes the request object to the form class.
+    #         This is necessary to get access to the actual instance
+    #     """
+    #     logger.warning("EditMaterialView GET get_form_kwargs")
+    #     kwargs = super(EditMaterialView, self).get_form_kwargs()
+    #     kwargs['request'] = self.request
+    #     return kwargs
 
     def get(self, request, *args, **kwargs):
-        logger.warning("EditMaterialView GET request: {}".format(str(request)))
+        # logger.warning("EditMaterialView GET request: {}".format(str(request)))
 
         # # Where did I come from
         request.session[type(self).__name__] = request.META.get('HTTP_REFERER', '/')
@@ -447,10 +505,8 @@ class EditMaterialView(LoginRequiredMixin, CreateView):
 
 class CreateMaterialView(LoginRequiredMixin, CreateView):
 
-
     def get(self, request, *args, **kwargs):
-        logger.warning(
-            "CreateMaterialView GET request: {}".format(str(request)))
+        # logger.warning("CreateMaterialView GET request: {}".format(str(request)))
 
         # Where did I come from
         request.session[type(self).__name__] = request.META.get('HTTP_REFERER', '/')
@@ -464,8 +520,9 @@ class CreateMaterialView(LoginRequiredMixin, CreateView):
         # If called with data, clean() will be processed!
         form = CreateMaterialForm(
             {
-                'name': material.name,
                 'manufacture': material.manufacture,
+                'name': material.name,
+                'type': material.type,
                 'size': material.size,
                 'weight': material.weight,
                 'price': material.price,
@@ -476,8 +533,7 @@ class CreateMaterialView(LoginRequiredMixin, CreateView):
         return HttpResponse(template.render({'material': material, 'form': form}, request))
 
     def post(self, request, *args, **kwargs):
-        logger.warning(
-            "CreateMaterialView POST request.POST: {}".format(str(request.POST)))
+        # logger.warning("CreateMaterialView POST request.POST: {}".format(str(request.POST)))
 
         if 'cancel' in request.POST:
 
@@ -496,8 +552,9 @@ class CreateMaterialView(LoginRequiredMixin, CreateView):
             # form.check_data()
 
             # process the data in form.cleaned_data as required
-            material.name = form.cleaned_data['name']
             material.manufacture = form.cleaned_data['manufacture']
+            material.name = form.cleaned_data['name']
+            material.type = form.cleaned_data['type']
             material.size = form.cleaned_data['size']
             material.weight = form.cleaned_data['weight']
             material.price = form.cleaned_data['price']
