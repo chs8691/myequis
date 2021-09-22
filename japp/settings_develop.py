@@ -41,6 +41,10 @@ INSTALLED_APPS = [
     # Include the myequis app
     'myequis.apps.MyequisConfig',
 
+    # for autocomplete light
+    'dal',
+    'dal_select2',
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
