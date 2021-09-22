@@ -71,6 +71,8 @@ class Material(models.Model):
 
     comment = models.CharField(max_length=50, blank=True, default="")
 
+    stored = models.BooleanField(default=False)
+
     disposed = models.BooleanField(default=False)
     disposedAt = models.DateField(blank=True, null=True)
 

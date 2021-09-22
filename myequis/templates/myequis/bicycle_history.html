@@ -61,6 +61,20 @@
                 </span>
               </div>
             </h5>
+
+            {% if mountingData.mounting.material.stored %}
+            <div>
+              Stored
+              &#9745;
+            </div>
+            {% endif %}
+
+            {% if mountingData.mounting.material.disposed %}
+            <div>
+              Disposed at {{ mountingData.mounting.material.disposedAt }}
+            </div>
+            {% endif %}
+
           </span>
         </div>
         <span>

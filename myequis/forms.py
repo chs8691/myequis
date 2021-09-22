@@ -117,6 +117,8 @@ class EditMaterialForm(forms.Form):
         attrs={'size': '8', 'decimal_places': '2'}), required=False,
         label="Price [€]", min_value=0, max_value=999999)
 
+    stored = forms.BooleanField(required=False, label="Stored", widget=forms.CheckboxInput(attrs={'onClick': 'refresh()'}))
+
     disposed = forms.BooleanField(required=False, label="Disposed", widget=forms.CheckboxInput(attrs={'onClick': 'refresh()'}))
 
     disposedAt = forms.DateField(
@@ -179,11 +181,17 @@ class EditMaterialForm(forms.Form):
         weight = self.cleaned_data['weight']
         price = self.cleaned_data['price']
         comment = self.cleaned_data['comment']
+        stored = self.cleaned_data['stored']
         disposed = self.cleaned_data['disposed']
         disposedAt = self.cleaned_data['disposedAt']
 
-        if disposed:
+        if disposed and stored:
+            raise forms.ValidationError(
+                _("A stored material can't be disposed"),
+                code="a_stored_material_cant_be_disposed",
+            )
 
+        if disposed:
             if disposedAt is None :
                 raise forms.ValidationError(
                     _("A Disposed date must be specified !"),
@@ -253,6 +261,8 @@ class CreateMaterialForm(forms.Form):
     comment = forms.CharField(widget=forms.TextInput(
         attrs={'max_length': '500'}), required=False, label="Comment")
 
+    stored = forms.BooleanField(required=False, label="Stored", widget=forms.CheckboxInput(attrs={'onClick': 'refresh()'}))
+
     # Will be set to true in POST, if save button pressed
     is_save = False
 
@@ -282,6 +292,7 @@ class CreateMaterialForm(forms.Form):
         weight = self.cleaned_data['weight']
         price = self.cleaned_data['price']
         comment = self.cleaned_data['comment']
+        stored = self.cleaned_data['stored']
 
         if name is None or len(name) < 1 :
             raise forms.ValidationError(

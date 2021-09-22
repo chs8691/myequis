@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block nav-items %}
+{% endblock %}
+
+
+{% block main %}
+
+{% include "nav-line.html" with title='New' back_url=None prev_url=None prev_status='disabled' next_url='Dismounted' next_status='' %}
+
+{% include "nav-open.html" %}
+
+{% url 'myequis:index-url' as back_url %}
+{% include "nav-item.html" with url=back_url title="Back" %}
+
+{% include "nav-close.html" %}
+
+<div >
+
+  {% if new_materials %}
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th scope="col">Material</th>
+          <th scope="col">Size</th>
+          <th scope="col">Weight</th>
+          <th scope="col" class="d-none d-md-block">Price</th>
+        </tr>
+      </thead>
+      {% for material in new_materials %}
+      <tr>
+        <td onclick="tdClick('{% url 'myequis:material-detail-url' material.id %}');">
+          <span class="">
+          {{ material.type }} &#903;
+          </span>
+          <span class="text-uppercase">
+          {{ material.manufacture }} &#903;
+          </span>
+          <span class="">
+          {{ material.name }}
+          </span>
+          <div class="text-muted">
+            {{ material.comment }}
+          </div>
+        </td>
+        <td>{{ material.size }}</td>
+        <td>{{ material.weight }}</td>
+        <td   class="d-none d-md-block">{{ material.price }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+  {% else %}
+  <p>Currently no new materials created.</p>
+  {% endif %}
+
+
+
+  {% include "nav-line.html" with title='Dismounted' back_url='None' prev_url='New' prev_status='' next_url='None' next_status='disabled' %}
+
+  {% if dismounted_materials %}
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th scope="col">Date</th>
+          <th scope="col">Material</th>
+          <th scope="col">Size</th>
+          <th scope="col">Weight</th>
+          <th scope="col" class="d-none d-md-block">Price</th>
+        </tr>
+      </thead>
+      {% for material in dismounted_materials %}
+      <tr>
+        <td onclick="tdClick('{% url 'myequis:material-detail-url' material.id %}');">
+          {{ material.dismountedAt }}</td>
+          <td onclick="tdClick('{% url 'myequis:material-detail-url' material.id %}');">
+            <span class="">
+            {{ material.type }} &#903;
+            </span>
+            <span class="text-uppercase">
+            {{ material.manufacture }} &#903;
+            </span>
+            <span class="">
+            {{ material.name }}
+            </span>
+            <div class="text-muted">
+              {{ material.comment }}
+            </div>
+            <div class="text-muted">
+              {{ material.dismountingComment }}
+            </div>
+          </td>
+          <td>{{ material.size }}</td>
+          <td>{{ material.weight }}</td>
+          <td class="d-none d-md-block">{{ material.price }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+    {% else %}
+    <p>Currently no materials dismounted.</p>
+    {% endif %}
+
+
+    </div>
+
+    {% endblock %}

@@ -440,15 +440,18 @@ class EditMaterialView(LoginRequiredMixin, UpdateView):
         if len(mountings) > 0:
             mounting_id = mountings[0].pk
             if mountings[0].active:
+                mounted = True
                 mounting_info = f"Material mounted into {mountings[0].mount_record.bicycle.name}/{mountings[0].part.name} at "\
                     + mountings[0].mount_record.date.strftime("%a, %d %b %Y")
             else:
+                mounted = False
                 mounting_info = f"Material was dismounted from {mountings[0].mount_record.bicycle.name}/{mountings[0].part.name} at "\
                     + mountings[0].dismount_record.date.strftime("%a, %d %b %Y")
         else:
 
             # kind of magic number
             mounting_id = 0
+            mounted = False
 
             mounting_info = "This is an new material."
 
@@ -464,13 +467,14 @@ class EditMaterialView(LoginRequiredMixin, UpdateView):
                 'weight': material.weight,
                 'price': material.price,
                 'comment': material.comment,
+                'stored': material.stored,
                 'disposed': material.disposed,
                 'disposedAt': material.disposedAt,
                 'mounting_id': mounting_id, # in form: converted to string
             })
 
         template = loader.get_template('myequis/edit_material.html')
-        return HttpResponse(template.render({'material': material, 'mounting_info': mounting_info, 'form': form}, request))
+        return HttpResponse(template.render({'material': material, 'mounting_info': mounting_info, 'mounted': mounted, 'form': form}, request))
 
     def post(self, request, *args, **kwargs):
         # logger.warning("EditMaterialView POST request.POST: {}".format(str(request.POST)))
@@ -500,6 +504,7 @@ class EditMaterialView(LoginRequiredMixin, UpdateView):
             material.weight = form.cleaned_data['weight']
             material.price = form.cleaned_data['price']
             material.comment = form.cleaned_data['comment']
+            material.stored = form.cleaned_data['stored']
             material.disposed = form.cleaned_data['disposed']
             material.disposedAt = form.cleaned_data['disposedAt']
 
@@ -543,6 +548,7 @@ class CreateMaterialView(LoginRequiredMixin, CreateView):
                 'size': material.size,
                 'weight': material.weight,
                 'price': material.price,
+                'stored': material.stored,
                 'comment': material.comment,
              })
 
@@ -576,6 +582,7 @@ class CreateMaterialView(LoginRequiredMixin, CreateView):
             material.weight = form.cleaned_data['weight']
             material.price = form.cleaned_data['price']
             material.comment = form.cleaned_data['comment']
+            material.stored = form.cleaned_data['stored']
 
             material.save()
             logger.warning("New material saved={}".format(str(material)))
@@ -1807,6 +1814,7 @@ def list_active_materials(request):
     new_materials = Material.objects.annotate(used=Exists(
         Mounting.objects.filter(material=OuterRef('pk'))))\
         .filter(used=False)\
+        .filter(stored=False)\
         .filter(disposed=False)\
         .order_by('name')
 
@@ -1817,6 +1825,7 @@ def list_active_materials(request):
         .annotate(hasMountings=Exists(Mounting.objects
                                       .filter(material=OuterRef('pk'))))\
         .filter(mounted=True)\
+        .filter(stored=False)\
         .filter(disposed=False)\
         .filter(hasMountings=True)\
         .annotate(mountedAt=Subquery(Mounting.objects
@@ -1871,6 +1880,58 @@ def list_active_materials(request):
         }
 
     return HttpResponse(template.render(context, request))
+
+
+def list_stored_materials(request):
+
+    # Existing materials without any mountings
+    new_materials = Material.objects.annotate(used=Exists(
+        Mounting.objects.filter(material=OuterRef('pk'))))\
+        .filter(used=False)\
+        .filter(stored=True)\
+        .filter(disposed=False)\
+        .order_by('name')
+
+    # Existing materials which are dismounted actually
+    dismounted_materials = Material.objects\
+        .annotate(mounted=Exists(Mounting.objects.
+                                 filter(Q(dismount_record__isnull=True), material=OuterRef('pk'))))\
+        .annotate(hasMountings=Exists(Mounting.objects
+                                      .filter(material=OuterRef('pk'))))\
+        .filter(mounted=False)\
+        .filter(stored=True)\
+        .filter(disposed=False)\
+        .filter(hasMountings=True)\
+        .annotate(dismountedAt=Subquery(Mounting.objects
+                                        .filter(material=OuterRef('pk'))
+                                        .order_by('-dismount_record__date')
+                                        .values('dismount_record__date')[:1]))\
+        .annotate(dismountingComment=Subquery(Mounting.objects
+                                        .filter(material=OuterRef('pk'))
+                                        .order_by('-dismount_record__date')
+                                        .values('comment')[:1]))
+
+    template = loader.get_template('myequis/stored_materials.html')
+
+    # Pick up message to show once
+    if KEY_MESSAGE in request.session:
+
+        context = {
+            'new_materials': new_materials,
+            'dismounted_materials': dismounted_materials,
+            'message': request.session[KEY_MESSAGE],
+        }
+
+        request.session[KEY_MESSAGE] = None
+
+    else:
+        context = {
+            'new_materials': new_materials,
+            'dismounted_materials': dismounted_materials,
+        }
+
+    return HttpResponse(template.render(context, request))
+
 
 
 def list_disposed_materials(request):

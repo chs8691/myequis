@@ -12,10 +12,25 @@
 
   function refresh(){
 
+    var disposedFields = document.getElementById("disposedFields")
     var disposedAtFields = document.getElementById("disposedAtFields")
-    var elementCheckBox = document.getElementById("id_disposed")
+    var storedFields = document.getElementById("storedFields")
+    var elementDisposed = document.getElementById("id_disposed")
+    var elementStored = document.getElementById("id_stored")
 
-    if(elementCheckBox.checked == true) {
+    if(elementDisposed.checked == true) {
+      disposedFields.style.visibility = "visible";
+      storedFields.style.visibility = "hidden";
+    }
+    else if(elementStored.checked == true) {
+      disposedFields.style.visibility = "hidden";
+      storedFields.style.visibility = "visible";
+    } else {
+      disposedFields.style.visibility = "visible";
+      storedFields.style.visibility = "visible";
+    }
+
+    if(elementDisposed.checked == true) {
       disposedAtFields.style.visibility = "visible";
     }
     else{
@@ -60,16 +75,25 @@
   <div>{{ form.comment.label }}</div>
   <div>{{ form.comment }}</div>
 
-  <div>{{ form.disposed.label }}</div>
-  <div onclick="refresh">{{ form.disposed }}</div>
+  {% if not mounted %}
+  <div id="storedFields">
+    <div>{{ form.stored.label }}</div>
+    <div onclick="refresh">{{ form.stored }}</div>
+  </div>
+
+  <div id="disposedFields">
+    <div>{{ form.disposed.label }}</div>
+    <div onclick="refresh">{{ form.disposed }}</div>
+  </div>
 
   <div id="disposedAtFields">
     <div>{{ form.disposedAt.label }}</div>
     <div>{{ form.disposedAt }}</div>
   </div>
+  {% endif %}
 
   {{ form.mounting_id }}
-    <input type="hidden" name="next" value="{{ request.path }}">
+  <input type="hidden" name="next" value="{{ request.path }}">
 
   {% include "form-buttons-open.html" %}
   <input  {% include "form-button-class.html" %} type="submit" name="save" value="Save">

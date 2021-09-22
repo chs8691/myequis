@@ -58,6 +58,9 @@ urlpatterns = [
     # ex: myequis/materials
     path('materials/active', views.list_active_materials, name='list-active-materials-url'),
 
+    # ex: myequis/materials
+    path('materials/stored', views.list_stored_materials, name='list-stored-materials-url'),
+
     # ex: myequis/materials/disposed
     path('materials/disposed', views.list_disposed_materials, name='list-disposed-materials-url'),
 
