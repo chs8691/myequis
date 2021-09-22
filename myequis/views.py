@@ -1786,6 +1786,7 @@ def index(request):
     materials = Material.objects.annotate(mounted=Exists(
         Mounting.objects.filter(dismount_record=None, material=OuterRef('pk'))))\
         .filter(mounted=False)\
+        .filter(stored=False)\
         .filter(disposed=False)\
         .order_by('name')
 
@@ -1847,6 +1848,7 @@ def list_active_materials(request):
         .annotate(hasMountings=Exists(Mounting.objects
                                       .filter(material=OuterRef('pk'))))\
         .filter(mounted=False)\
+        .filter(stored=False)\
         .filter(disposed=False)\
         .filter(hasMountings=True)\
         .annotate(dismountedAt=Subquery(Mounting.objects
