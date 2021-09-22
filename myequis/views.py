@@ -22,7 +22,9 @@ from .forms import get_material_names, get_manufacture_names,\
     DismountForm, ExchangeMountingForm, EditRecordForm, EditMaterialForm,\
     ImportForm
 
-from .resources import BicycleResource, ComponentResource, MaterialResource, MountingResource, PartResource, RecordResource, SpeciesResource
+from .resources import BicycleResource, ComponentResource, MaterialResource,\
+    MountingResource, PartResource, RecordResource, SpeciesResource,\
+    TypeResource
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -255,6 +257,18 @@ class ImportView(LoginRequiredMixin, CreateView):
                             message = "Invalid Records data"
                         error = error or result_record.has_errors()
 
+                        type_resource = TypeResource()
+                        type_data = datasets["Type"]
+                        data_count = data_count + len(type_data)
+                        logger.warning(f"type_data={type_data}")
+                        output.append(
+                            f"Type: {len(Type.objects.all())} <-- {len(type_data)}")
+                        result_type = type_resource.import_data(
+                            type_data)
+                        if result_type.has_errors():
+                            message = "Invalid Types data"
+                        error = error or result_type.has_errors()
+
                         material_resource = MaterialResource()
                         material_data = datasets["Material"]
                         data_count = data_count + len(material_data)
@@ -328,6 +342,7 @@ def export_data(request):
             zipped_file = zip_files([
                 dict(name="Bicycle", data=BicycleResource().export().csv),
                 dict(name="Component", data=ComponentResource().export().csv),
+                dict(name="Type", data=TypeResource().export().csv),
                 dict(name="Material", data=MaterialResource().export().csv),
                 dict(name="Mounting", data=MountingResource().export().csv),
                 dict(name="Part", data=PartResource().export().csv),
@@ -346,6 +361,7 @@ def export_data(request):
             zipped_file = zip_files([
                 dict(name="Bicycle", data=BicycleResource().export().json),
                 dict(name="Component", data=ComponentResource().export().json),
+                dict(name="Type", data=TypeResource().export().json),
                 dict(name="Material", data=MaterialResource().export().json),
                 dict(name="Mounting", data=MountingResource().export().json),
                 dict(name="Part", data=PartResource().export().json),
@@ -363,6 +379,7 @@ def export_data(request):
             zipped_file = zip_files([
                 dict(name="Bicycle", data=BicycleResource().export().xls),
                 dict(name="Component", data=ComponentResource().export().xls),
+                dict(name="Type", data=TypeResource().export().xls),
                 dict(name="Material", data=MaterialResource().export().xls),
                 dict(name="Mounting", data=MountingResource().export().xls),
                 dict(name="Part", data=PartResource().export().xls),

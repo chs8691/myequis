@@ -1,5 +1,6 @@
 from import_export import resources
-from .models import Bicycle, Component, Part, Record, Material, Mounting, Species
+from .models import Bicycle, Component, Part, Record, Material, Mounting,\
+    Species, Type
 
 class BicycleResource(resources.ModelResource):
     class Meta:
@@ -16,6 +17,10 @@ class PartResource(resources.ModelResource):
 class RecordResource(resources.ModelResource):
     class Meta:
         model = Record
+
+class TypeResource(resources.ModelResource):
+    class Meta:
+        model = Type
 
 class MaterialResource(resources.ModelResource):
     class Meta:
