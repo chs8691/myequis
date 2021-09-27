@@ -19,17 +19,11 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 #
 STATIC_ROOT = BASE_DIR + '/static'
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '=$^!sda07yc!#^mxjllij+#l&^&_63c@t^1(7-id+d#7^dh(rd'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
-
-ALLOWED_HOSTS = ['kollegen.uber.space', '127.0.0.1']
 
 # Set the default type for ID fields
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
@@ -137,12 +131,6 @@ USE_THOUSAND_SEPARATOR = True
 
 USE_TZ = True
 
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/2.2/howto/static-files/
-
-STATIC_URL = '/japp/static/'
-
 IMPORT_EXPORT_USE_TRANSACTIONS = True
 
 ROOT_URLCONF = 'japp.urls'
@@ -153,8 +141,9 @@ LOGIN_URL = '/japp/accounts/login'
 LOGIN_REDIRECT_URL = '/japp/myequis/'
 LOGOUT_REDIRECT_URL = '/japp/myequis/'
 
+##############################
 #### system specific part ####
-
+##############################
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True

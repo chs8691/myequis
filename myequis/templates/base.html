@@ -2,6 +2,7 @@
 <html lang="en" style="max-width: 80rem; text-align: center; margin-left:auto; margin-right:auto;">
 
   <head>
+
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -10,6 +11,8 @@
     {% bootstrap_css %}         {# Embed Bootstrap CSS #}
     {% bootstrap_javascript jquery='full' %}  {# Embed Bootstrap JS+jQuery #}
     {{ form.media }}            {# Adds date-picker required JS and CSS #}
+
+    <link rel="icon"href="{% static '/myequis/favicon.ico' %}">
 
     <script language="JavaScript">
         function tdClick(url){
