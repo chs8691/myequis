@@ -1,0 +1,389 @@
+body {
+  background-color:  #ecf2f9;
+  font-size: 16px;
+  font-family: sans-serif;
+}
+
+.profile-line{
+	display: block;
+	flex: auto;
+    float: right;
+    margin-right: 0.5em;
+    margin-bottom: 0.3em;
+}
+
+.button-line-flex-container {
+	display: flex;
+	flex-wrap: wrap;
+    float: right;
+    margin-right: 0.5em;
+    margin-bottom: 0.3em;
+}
+
+.message-line {
+    display: block;
+    color: black;
+    background-color: #d8e5f3;
+    margin: 0.5em;
+    padding: 0.3em;
+}
+
+.clearfix::after {
+  content: "";
+  clear: both;
+  display: table;
+}
+
+.nav-button{
+    backgroud-color: #fff;
+    text-align: center;
+    border: 1px solid;
+    border-color: black;
+    padding: 0.25em;
+    margin-left: 0.2em;
+    margin-bottom: 0.2em;
+    color: blue;
+    width: 100px;
+    border-radius: .2em;
+
+}
+
+.nav-button-disabled{
+    background-color: ligthgrey;
+    text-align: center;
+    border: 1px solid;
+    border-color: grey;
+    padding: 0.25em;
+    margin-left: 0.2em;
+    margin-bottom: 0.2em;
+    color: grey;
+    width: 100px;
+    border-radius: .2em;
+}
+
+
+select {
+    padding: 0.5em;
+    padding-right: 2em;
+}
+
+
+a.nav-button{
+    text-decoration: none;
+}
+
+a:link.nav-button{
+    color: black;
+}
+
+a:visited.nav-button{
+    color: black;
+}
+
+a.nav-button:hover{
+    background-color: #004d66;
+    color: white;
+    border: 1px solid;
+    border-color: #0f1e3e;
+}
+
+a.nav-button:active{
+    background-color: #74868c;
+    color: white;
+    border: 1px solid;
+    border-color: #193167;
+}
+
+/* Default span styling - hidden on desktop */
+table td span {
+    background-color: #b3d9ff;
+    color: #595959;
+    border:1px solid;
+    display: none;
+    font-size: 10px;
+    font-weight: bold;
+    padding: 5px;
+    position: absolute;
+    text-transform: uppercase;
+    top: 0;
+    left: 0;
+}
+/* Simple CSS for flexbox table on mobile */
+@media screen and (max-width: 1100px) and (orientation: portrait){
+
+  body {
+    font-size: 50px;
+  }
+
+    table thead {
+        left: -9999px;
+        position: absolute;
+        visibility: hidden;
+    }
+    table tr {
+        border-color: green;
+        border-bottom: 0;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        margin-bottom: 30px;
+    }
+    table td {
+        border-color: grey;
+        border: 1px solid;
+        margin: 0 -1px -1px 0;
+        padding-top: 70px; /* additional padding to avoid heading overlap */
+        position: relative;
+        width: 50%;
+        font-size: 40px;
+
+    }
+    /* Show the heading span */
+    table td span {
+        display: block;
+        font-size: 40px;
+    }
+
+    .nav-button{
+        width: 250px;
+    }
+    .nav-button-disabled{
+        width: 250px;
+    }
+}
+
+.columned-area{
+	display: flex;
+	flex-wrap: wrap;
+	flex: auto;
+    float: left;
+    margin-right: 0.5em;
+    margin-bottom: 0.3em;
+}
+
+.scrollable-table-area{
+    height: 300px;
+    overflow:auto;
+    border: 1px solid;
+    border-color: #aabfd4;
+    padding: 0.25em;
+    background-color: #E7EDF3;
+}
+
+
+h2{
+  color: #fff;
+  background-color:  #004d66;
+  border-radius: .5em;
+  padding: .5em 1em
+
+}
+.h3-button-div{
+    backgroud-color: #fff;
+}
+
+h2.a:link{
+    color: white;
+}
+h2.a:visited{
+    color: white;
+}
+
+.myequi-h3 {
+  color: #fff;
+  background-color:  #004d66;
+  border-radius: .5em;
+  padding: .3em 1em
+
+}
+
+h4 {
+  color: #fff;
+  background-color:  #004d66;
+  border-radius: .5em;
+  padding: .1em 1em
+
+}
+
+table {
+    width:100%;
+}
+
+th {
+  border:1px solid;
+  color: #595959;
+  background-color: #b3d9ff;
+  overflow:hidden;
+  vertical-align:top;
+  padding: .4em;
+}
+
+td {
+  border:1px solid;
+  overflow:hidden;
+  vertical-align:top;
+  padding: .2em 1em;
+  background-color:  #ecf2f9;
+}
+
+.table-button{
+    backgroud-color: #fff;
+    text-align: center;
+    border: 1px solid;
+    border-color: black;
+    padding: 1em;
+    color: blue;
+    width: 90%;
+    display: block;
+    border-radius: .5em;
+}
+
+
+a.table-button{
+    text-decoration: none;
+}
+
+
+a:visited.table-button{
+    color: black;
+}
+
+
+a.table-button:hover{
+    background-color: #004d66;
+    color: white;
+    border: 1px solid;
+    border-color: #0f1e3e;
+}
+
+a.table-button:active{
+    background-color: #74868c;
+    color: white;
+    border: 1px solid;
+    border-color: #193167;
+}
+
+.td-button-cell{
+    border: 1px solid;
+    border-radius: .2em;
+    color: black;
+    display: block;
+}
+
+
+.td-button-cell:hover{
+    background-color: #004d66;
+    color: white;
+    border: 1px solid;
+    border-color: #0f1e3e;
+}
+
+
+.td-button-cell:active{
+    background-color: #74868c;
+    color: white;
+    border: 1px solid;
+    border-color: #193167;
+}
+
+.td-radiobutton-cell{
+    border: 1px solid;
+    border-radius: .2em;
+    color: black;
+    display: block;
+}
+
+
+.td-radiobutton-cell:hover{
+    background-color: #bfd2d9;
+    color: black;
+    border: 1px solid;
+    border-color: #0f1e3e;
+}
+
+
+.td-radiobutton-cell:active{
+    background-color: #80a6b3;
+    color: white;
+    border: 1px solid;
+    border-color: #193167;
+}
+
+.td-radiobutton-cell-checked{
+    background-color: #004d66;
+    border-radius: .2em;
+    color: white;
+    border: 1px solid;
+    border-color: #0f1e3e;
+}
+
+
+}
+
+.tab-link-button-div{
+    background-color:yellow;
+    width: 100%;
+    height: 100%;
+}
+
+.tab-link-button-div a
+{
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+
+.record-form{
+    max-width: 700px;
+    border: 1px solid;
+    border-color: grey;
+    padding: 1em;
+    margin: 1em;
+}
+
+.record-field{
+    max-width: 200px;
+}
+
+.form-fields {
+    margin-top: 1em;
+	display: flex;
+    justify-content: center;
+}
+
+.form-button-bar {
+    margin-top: 1em;
+	display: flex;
+	flex-wrap: wrap;
+	flex: auto;
+    justify-content: center;
+}
+
+.form-button {
+    text-align: center;
+    border: 1px solid;
+    border-color: black;
+    padding: 1em;
+    margin: 1em;
+    min-width: 10em;
+    color: #3a4345;
+    border-radius: .2em;
+}
+.form-button-disabled {
+    text-align: center;
+    border: 1px solid;
+    border-color: grey;
+    margin: 1em;
+    padding: 1em;
+    min-width: 10em;
+    color: #909fa2;
+    border-radius: .2em;
+}
+
+.alert{
+    color: #b30000;
+    background-color: #ffe6e6;
+    margin: 0.5em;
+    padding: 0.3em;
+}

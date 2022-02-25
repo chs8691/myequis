@@ -3,4 +3,9 @@ __pycache__/
 venv
 db.sqlite3
 users
-/static/
+/static/admin/
+/static/autocomplete_light/
+/static/vendor/
+/static/import_export/
+/static/bootstrap_datepicker_plus/
+/static/autocomplete_light/
